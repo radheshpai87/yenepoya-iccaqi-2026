@@ -75,11 +75,12 @@ export const Venue: React.FC = () => {
           {/* Right: Map Embed */}
           <div className="md:col-span-7 h-72 md:h-auto min-h-[300px] rounded-3xl overflow-hidden border border-slate-200 shadow-2xs">
             <iframe
-              title="Yenepoya University Campus Map"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.9882299839446!2d74.92211977507425!3d12.843997187459738!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba359ee7cf3664d%3A0x6b7754d5dca166e!2sYenepoya%20Deemed%20to%20be%20University!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+              title="Yenepoya (Deemed to be University) Campus Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.345389658552!2d74.87861047507386!3d12.812207687489561!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba35eb9113ab6c7%3A0x2b92712dfbbe59a1!2sYenepoya%20(Deemed%20to%20be%20University)!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
               className="w-full h-full border-0"
               allowFullScreen={false}
               loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
 
