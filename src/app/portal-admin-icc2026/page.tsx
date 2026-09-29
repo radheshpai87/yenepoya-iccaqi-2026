@@ -93,10 +93,21 @@ export default function PortalAdminPage() {
   const [subTrackFilter, setSubTrackFilter] = useState('All');
   const [subStatusFilter, setSubStatusFilter] = useState('All');
 
-  // Check auth session on load
+  // Check auth session on load & set up live auto-sync without page reload
   useEffect(() => {
     checkSession();
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    // Auto-sync live records every 4 seconds (zero reload)
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   const checkSession = async () => {
     try {

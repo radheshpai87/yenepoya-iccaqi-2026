@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/lib/adminAuth';
-import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 
-// Fallback initial dataset (used when Supabase credentials are not yet populated in .env.local)
+// Fallback initial dataset (used when Supabase credentials are not yet populated in .env)
 let fallbackRegistrations = [
   {
     id: 'REG-2026-001',
@@ -119,9 +119,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
   }
 
-  // If real Supabase credentials are configured in .env.local, fetch live data from PostgreSQL
+  // Always read dynamically from process.env (.env or .env.local)
   if (isSupabaseConfigured()) {
     try {
+      const supabaseAdmin = getSupabaseAdminClient();
       const [regResult, subResult] = await Promise.all([
         supabaseAdmin.from('registrations').select('*').order('created_at', { ascending: false }),
         supabaseAdmin.from('paper_submissions').select('*').order('created_at', { ascending: false }),
@@ -184,6 +185,7 @@ export async function PATCH(request: Request) {
     const { type, id, paymentStatus, reviewStatus } = body;
 
     if (isSupabaseConfigured()) {
+      const supabaseAdmin = getSupabaseAdminClient();
       if (type === 'registration') {
         await supabaseAdmin
           .from('registrations')
