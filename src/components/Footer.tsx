@@ -31,7 +31,7 @@ export const Footer: React.FC<FooterProps> = ({
         
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-slate-800">
           <div>
-            <YenepoyaLogo variant="light" />
+            <YenepoyaLogo variant="light" showDual={true} />
             <p className="text-xs text-slate-400 mt-2 max-w-md">
               ICCAQI 2026 • International Conference on Computing, AI, Quantum Intelligence and Future Technologies. Mangaluru, Karnataka, India.
             </p>

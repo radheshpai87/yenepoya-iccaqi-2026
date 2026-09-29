@@ -41,7 +41,7 @@ export const Venue: React.FC = () => {
 
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 <strong>Yenepoya (Deemed to be University)</strong><br />
-                University Road, Deralakatte / Mudipu Campus<br />
+                University Road, Deralakatte<br />
                 Mangaluru, Karnataka, India — 575018
               </p>
 
