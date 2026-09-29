@@ -158,4 +158,6 @@ npm run start
 
 ## License
 
-Copyright (c) 2026 Yenepoya (Deemed to be University). All rights reserved.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for full details.
+
+Copyright (c) 2026 Yenepoya (Deemed to be University) & Contributors.
