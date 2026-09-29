@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" id="yenepoya-emblem" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 310" width="210" height="310">
+<style type="text/css">
+	.st1{fill:#6BC4E8;}
+	.st2{fill:#93D500;}
+	.st3{fill:#98989A;}
+</style>
+<g transform="translate(5, 5)">
+	<polygon class="st1" points="102.1,188 102.1,177.9 9.6,107.9 9.6,118.1"/>
+	<polygon class="st1" points="9.6,103.3 102.1,173.3 102.1,163.1 9.6,93.1"/>
+	<polygon class="st1" points="102.1,202.8 102.1,192.7 9.6,122.7 9.6,132.9"/>
+	<polygon class="st2" points="77.6,139.9 84.3,145 198.3,58.8 198.3,48.7"/>
+	<polygon class="st2" points="198.3,63.5 87.4,147.3 94.1,152.4 198.3,73.6"/>
+	<polygon class="st1" points="102.1,207.5 9.6,137.5 9.6,147.7 102.1,217.6"/>
+	<polygon class="st2" points="67.8,132.6 74.5,137.6 198.3,44.1 198.3,33.9"/>
+	<polygon class="st2" points="9.6,29.3 9.6,88.5 64.7,130.2 198.3,29.3"/>
+	<polygon class="st2" points="198.3,78.3 97.1,154.7 103.9,159.8 198.3,88.4"/>
+	<path class="st1" d="M102.1,222.2l-92.5-70v9.6c0,75.8,25.5,100.9,92.5,136.8V222.2z"/>
+	<path class="st3" d="M113.9,156.9l-8.1,6.1v135.6c2.8-1.5,5.5-3,8.1-4.4V156.9z"/>
+	<path class="st3" d="M152.9,127.3v141.4c32.2-26,45.3-52.5,45.3-106.9V93L152.9,127.3z"/>
+	<path class="st3" d="M125.7,148l-8.1,6.1v138c2.8-1.6,5.5-3.2,8.1-4.7V148z"/>
+	<path class="st3" d="M137.5,139l-8.1,6.1v140c2.8-1.7,5.5-3.4,8.1-5.2V139z"/>
+	<path class="st3" d="M149.2,130.1l-8.1,6.1v141.2c2.8-1.9,5.5-3.9,8.1-5.9V130.1z"/>
+	<rect x="202" y="9.8" transform="matrix(0.7071 -0.7071 0.7071 0.7071 51.2345 148.1113)" class="st2" width="4.8" height="4.8"/>
+	<rect x="1" y="9.8" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -7.636 5.9883)" class="st2" width="4.8" height="4.8"/>
+</g>
+</svg>
