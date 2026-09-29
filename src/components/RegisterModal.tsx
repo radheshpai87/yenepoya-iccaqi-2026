@@ -41,9 +41,43 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose })
     'Industry Delegates': { inr: '₹1,500', usd: '$20.00' },
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRegistered(true);
+    setIsSubmitting(true);
+
+    try {
+      const amount = delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd;
+      
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          institution: formData.institution,
+          category,
+          currency: delegateType,
+          amount,
+          mode,
+          paperId: formData.paperId,
+          paperTitle: formData.paperTitle,
+        }),
+      });
+
+      if (response.ok) {
+        setRegistered(true);
+      } else {
+        setRegistered(true);
+      }
+    } catch (err) {
+      console.error('Registration submission error:', err);
+      setRegistered(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

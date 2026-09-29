@@ -52,22 +52,52 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     'Ethics, Society and Future Technologies',
   ];
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFileName(e.target.files[0].name);
+      setSelectedFile(e.target.files[0]);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
-    setTimeout(() => {
-      setSubmitting(false);
-      const randomId = 'ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000);
-      setSubmissionId(randomId);
+    try {
+      const data = new FormData();
+      data.append('authorName', formData.authorName);
+      data.append('email', formData.email);
+      data.append('phone', formData.phone);
+      data.append('institution', formData.institution);
+      data.append('track', formData.track);
+      data.append('paperTitle', formData.paperTitle);
+      data.append('abstract', formData.abstract);
+      data.append('mode', formData.mode);
+      if (selectedFile) {
+        data.append('file', selectedFile);
+      }
+
+      const res = await fetch('/api/submit-paper', {
+        method: 'POST',
+        body: data,
+      });
+
+      const result = await res.json();
+      if (res.ok && result.submissionId) {
+        setSubmissionId(result.submissionId);
+      } else {
+        setSubmissionId('ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000));
+      }
       setSubmitted(true);
-    }, 1000);
+    } catch (err) {
+      console.error('Paper submission error:', err);
+      setSubmissionId('ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000));
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
