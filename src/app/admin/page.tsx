@@ -24,7 +24,13 @@ import {
   Filter,
   Check,
   XCircle,
-  ExternalLink
+  ExternalLink,
+  X,
+  UserCheck,
+  Tag,
+  Globe,
+  FileCheck,
+  User
 } from 'lucide-react';
 
 interface Registration {
@@ -38,8 +44,10 @@ interface Registration {
   amount: string;
   mode: string;
   paperId: string;
+  paperTitle: string;
   paymentStatus: string;
   createdAt: string;
+  notes?: string;
 }
 
 interface Submission {
@@ -52,9 +60,11 @@ interface Submission {
   track: string;
   paperTitle: string;
   abstract: string;
+  mode: string;
   fileUrl: string;
   reviewStatus: string;
   createdAt: string;
+  reviewerNotes?: string;
 }
 
 export default function AdminPage() {
@@ -65,10 +75,14 @@ export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Dashboard state
-  const [activeTab, setActiveTab] = useState<'registrations' | 'submissions' | 'system'>('registrations');
+  const [activeTab, setActiveTab] = useState<'registrations' | 'submissions'>('registrations');
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Selected Item Modals
+  const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
 
   // Search & Filters
   const [regSearch, setRegSearch] = useState('');
@@ -163,6 +177,9 @@ export default function AdminPage() {
         setRegistrations((prev) =>
           prev.map((reg) => (reg.id === id ? { ...reg, paymentStatus: newStatus } : reg))
         );
+        if (selectedRegistration && selectedRegistration.id === id) {
+          setSelectedRegistration((prev) => (prev ? { ...prev, paymentStatus: newStatus } : null));
+        }
       }
     } catch (err) {
       console.error('Error updating status:', err);
@@ -181,6 +198,9 @@ export default function AdminPage() {
         setSubmissions((prev) =>
           prev.map((sub) => (sub.id === id ? { ...sub, reviewStatus: newStatus } : sub))
         );
+        if (selectedSubmission && selectedSubmission.id === id) {
+          setSelectedSubmission((prev) => (prev ? { ...prev, reviewStatus: newStatus } : null));
+        }
       }
     } catch (err) {
       console.error('Error updating submission status:', err);
@@ -193,14 +213,14 @@ export default function AdminPage() {
 
     const headers = [
       'ID',
-      'Name',
-      'Email',
-      'Phone',
-      'Institution',
+      'Full Name',
+      'Email Address',
+      'Phone Number',
+      'Institution / Organization',
       'Category',
       'Currency',
-      'Amount',
-      'Mode',
+      'Amount Payable',
+      'Participation Mode',
       'Paper ID',
       'Payment Status',
       'Registration Date',
@@ -262,10 +282,10 @@ export default function AdminPage() {
   // Loading initial authentication state
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 text-white font-sans">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-white font-sans">
         <div className="flex items-center gap-3">
           <RefreshCw className="w-6 h-6 animate-spin text-[#7cb305]" />
-          <span className="text-sm font-semibold tracking-wide">Verifying Secure Admin Authorization...</span>
+          <span className="text-sm font-semibold tracking-wide">Authenticating Admin Access...</span>
         </div>
       </div>
     );
@@ -298,14 +318,14 @@ export default function AdminPage() {
 
             <div className="space-y-1 pt-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#7cb305]/15 border border-[#7cb305]/30 text-[#7cb305] text-[11px] font-bold uppercase tracking-widest">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Backend Control Portal
+                <UserCheck className="w-3.5 h-3.5" />
+                Delegate Administration Portal
               </div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-white">
                 ICCAQI 2026 Admin Login
               </h2>
               <p className="text-xs text-slate-400">
-                Server-side protected access to registrations &amp; manuscript database
+                Server-authenticated database management portal
               </p>
             </div>
           </div>
@@ -322,7 +342,7 @@ export default function AdminPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
-                Admin Access Key *
+                Admin Password *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -354,22 +374,16 @@ export default function AdminPage() {
               {isSubmitting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Verifying Server Credentials...</span>
+                  <span>Verifying Server Password...</span>
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="w-4 h-4" />
+                  <UserCheck className="w-4 h-4" />
                   <span>Authenticate &amp; Open Admin Dashboard</span>
                 </>
               )}
             </button>
           </form>
-
-          {/* Footer Security Badge */}
-          <div className="pt-2 text-center text-[11px] text-slate-500 flex items-center justify-center gap-2 border-t border-slate-800/80">
-            <Lock className="w-3 h-3 text-[#7cb305]" />
-            <span>Encrypted Server HMAC Session • No Client Credentials Leaked</span>
-          </div>
         </div>
       </div>
     );
@@ -383,8 +397,8 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-12">
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+      {/* Top Header - Cleaned up without status badges */}
+      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="bg-white p-2 rounded-xl flex items-center gap-2 shadow-xs">
             <img
@@ -392,19 +406,20 @@ export default function AdminPage() {
               alt="Yenepoya Logo"
               className="h-6 w-auto object-contain"
             />
+            <div className="h-4 w-[1px] bg-slate-300 hidden sm:block" />
+            <img
+              src="/yenepoya-school-engineering-and-technologynew-02.svg"
+              alt="Yenepoya SET Logo"
+              className="h-6 w-auto object-contain hidden sm:block"
+            />
           </div>
-          <div className="hidden sm:block">
-            <h1 className="text-sm font-bold text-white leading-none">ICCAQI 2026 Admin Portal</h1>
-            <p className="text-[11px] text-slate-400 mt-0.5">Yenepoya School of Engineering &amp; Technology</p>
+          <div>
+            <h1 className="text-sm font-extrabold text-white leading-none">ICCAQI 2026 Admin Portal</h1>
+            <p className="text-[11px] text-slate-400 mt-0.5">Yenepoya (Deemed to be University)</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Server Session Active</span>
-          </div>
-
           <button
             onClick={fetchDashboardData}
             title="Refresh Live Data"
@@ -415,7 +430,7 @@ export default function AdminPage() {
 
           <button
             onClick={handleLogout}
-            className="px-3.5 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Logout</span>
@@ -427,8 +442,7 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-8 mt-6 space-y-6">
         {/* Metric Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1 */}
-          <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-xl">
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-xs font-bold uppercase tracking-wider">Total Registrations</span>
               <Users className="w-5 h-5 text-sky-400" />
@@ -437,8 +451,7 @@ export default function AdminPage() {
             <p className="text-[11px] text-slate-400">{verifiedCount} Verified • {pendingCount} Pending</p>
           </div>
 
-          {/* Card 2 */}
-          <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-xl">
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-xs font-bold uppercase tracking-wider">Paper Submissions</span>
               <FileText className="w-5 h-5 text-[#7cb305]" />
@@ -447,8 +460,7 @@ export default function AdminPage() {
             <p className="text-[11px] text-slate-400">Across 8 Conference Tracks</p>
           </div>
 
-          {/* Card 3 */}
-          <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-xl">
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-xs font-bold uppercase tracking-wider">Verified Payments</span>
               <CheckCircle2 className="w-5 h-5 text-emerald-400" />
@@ -457,14 +469,13 @@ export default function AdminPage() {
             <p className="text-[11px] text-slate-400">Payment receipts confirmed</p>
           </div>
 
-          {/* Card 4 */}
-          <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-xl">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Pending Action</span>
+              <span className="text-xs font-bold uppercase tracking-wider">Pending Approvals</span>
               <Clock className="w-5 h-5 text-amber-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-amber-400">{pendingCount}</div>
-            <p className="text-[11px] text-slate-400">Awaiting payment token verification</p>
+            <p className="text-[11px] text-slate-400">Awaiting payment verification</p>
           </div>
         </div>
 
@@ -493,18 +504,6 @@ export default function AdminPage() {
             >
               <FileText className="w-4 h-4" />
               <span>Paper Submissions ({submissions.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('system')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                activeTab === 'system'
-                  ? 'bg-[#7cb305] text-white shadow-md'
-                  : 'bg-slate-900 text-slate-400 hover:text-white'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>System &amp; Security</span>
             </button>
           </div>
 
@@ -572,7 +571,7 @@ export default function AdminPage() {
                     <th className="py-3.5 px-4">Fee &amp; Currency</th>
                     <th className="py-3.5 px-4">Paper ID</th>
                     <th className="py-3.5 px-4">Payment Status</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
+                    <th className="py-3.5 px-4 text-right">Details</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
@@ -584,9 +583,15 @@ export default function AdminPage() {
                     </tr>
                   ) : (
                     filteredRegistrations.map((reg) => (
-                      <tr key={reg.id} className="hover:bg-slate-800/40 transition-colors">
+                      <tr
+                        key={reg.id}
+                        onClick={() => setSelectedRegistration(reg)}
+                        className="hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                      >
                         <td className="py-3.5 px-4 space-y-0.5">
-                          <div className="font-bold text-white text-sm">{reg.name}</div>
+                          <div className="font-bold text-white text-sm group-hover:text-[#7cb305] transition-colors">
+                            {reg.name}
+                          </div>
                           <div className="text-[11px] text-slate-400 flex items-center gap-2">
                             <span>{reg.email}</span>
                             <span>•</span>
@@ -620,15 +625,15 @@ export default function AdminPage() {
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
-                          <select
-                            value={reg.paymentStatus}
-                            onChange={(e) => updateRegistrationStatus(reg.id, e.target.value)}
-                            className="bg-slate-950 border border-slate-700 text-[11px] text-slate-300 rounded-lg px-2 py-1 focus:outline-hidden focus:border-[#7cb305]"
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRegistration(reg);
+                            }}
+                            className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-[#7cb305] hover:text-white text-slate-300 text-[11px] font-bold transition-all"
                           >
-                            <option value="Pending">Mark Pending</option>
-                            <option value="Verified">Mark Verified</option>
-                            <option value="Cancelled">Mark Cancelled</option>
-                          </select>
+                            View Details
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -693,7 +698,8 @@ export default function AdminPage() {
                 filteredSubmissions.map((sub) => (
                   <div
                     key={sub.id}
-                    className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3 hover:border-slate-700 transition-colors"
+                    onClick={() => setSelectedSubmission(sub)}
+                    className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3 hover:border-[#7cb305]/50 transition-all cursor-pointer group"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="space-y-1">
@@ -703,24 +709,23 @@ export default function AdminPage() {
                           </span>
                           <span className="text-xs text-slate-400 font-medium">{sub.track}</span>
                         </div>
-                        <h3 className="text-base font-bold text-white">{sub.paperTitle}</h3>
+                        <h3 className="text-base font-bold text-white group-hover:text-[#7cb305] transition-colors">
+                          {sub.paperTitle}
+                        </h3>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={sub.reviewStatus}
-                          onChange={(e) => updateSubmissionStatus(sub.id, e.target.value)}
-                          className="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-[#7cb305]"
-                        >
-                          <option value="Submitted">Submitted</option>
-                          <option value="Under Review">Under Review</option>
-                          <option value="Accepted">Accepted</option>
-                          <option value="Rejected">Rejected</option>
-                        </select>
-                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSubmission(sub);
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-[#7cb305] hover:text-white text-slate-300 text-xs font-bold transition-all"
+                      >
+                        Full Manuscript Details
+                      </button>
                     </div>
 
-                    <p className="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-850 italic">
+                    <p className="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-2xl border border-slate-850 italic line-clamp-2">
                       &ldquo;{sub.abstract}&rdquo;
                     </p>
 
@@ -731,15 +736,17 @@ export default function AdminPage() {
                         <span>{sub.institution}</span>
                       </div>
 
-                      <a
-                        href={sub.fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-[#7cb305] font-bold hover:underline"
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                          sub.reviewStatus === 'Accepted'
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            : sub.reviewStatus === 'Rejected'
+                            ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                            : 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+                        }`}
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>View Manuscript PDF</span>
-                      </a>
+                        {sub.reviewStatus}
+                      </span>
                     </div>
                   </div>
                 ))
@@ -747,53 +754,221 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+      </main>
 
-        {/* TAB 3: SYSTEM & SECURITY */}
-        {activeTab === 'system' && (
-          <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-6">
-            <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-[#7cb305]" />
-                Server Security &amp; Authentication Configuration
-              </h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Zero-leak backend security verification running on Next.js server runtime
-              </p>
+      {/* --- DELEGATE REGISTRATION DETAILS MODAL --- */}
+      {selectedRegistration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs transition-opacity"
+            onClick={() => setSelectedRegistration(null)}
+          />
+
+          <div className="relative bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 z-10 border border-slate-800 my-8 space-y-6 text-left">
+            <button
+              onClick={() => setSelectedRegistration(null)}
+              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="space-y-1.5 pr-8">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-md bg-sky-500/15 text-sky-400 font-mono text-xs font-bold border border-sky-500/30">
+                  {selectedRegistration.id}
+                </span>
+                <span className="text-xs text-slate-400">Registered on {new Date(selectedRegistration.createdAt).toLocaleString()}</span>
+              </div>
+              <h3 className="text-2xl font-extrabold text-white">{selectedRegistration.name}</h3>
+              <p className="text-xs text-[#7cb305] font-semibold">{selectedRegistration.category}</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <span className="text-xs text-slate-500 font-mono">AUTH_STRATEGY</span>
-                <div className="text-sm font-bold text-white">Constant-Time Server Crypto (`timingSafeEqual`)</div>
-                <p className="text-[11px] text-slate-400">
-                  Prevents side-channel timing attacks by checking input byte-by-byte in fixed time.
-                </p>
+            {/* Contact & Institution Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+              <div className="space-y-1">
+                <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-sky-400" /> Email Address
+                </span>
+                <div className="font-semibold text-slate-200">{selectedRegistration.email}</div>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                <span className="text-xs text-slate-500 font-mono">SESSION_STORAGE</span>
-                <div className="text-sm font-bold text-white">HTTP-Only SameSite Signed Cookie</div>
-                <p className="text-[11px] text-slate-400">
-                  Cookie is inaccessible to JavaScript (XSS safe) and signed with HMAC SHA-256 secret.
-                </p>
+              <div className="space-y-1">
+                <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-400" /> Contact Phone
+                </span>
+                <div className="font-semibold text-slate-200">{selectedRegistration.phone || 'Not Provided'}</div>
+              </div>
+
+              <div className="space-y-1 sm:col-span-2">
+                <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                  <Building className="w-3.5 h-3.5 text-amber-400" /> Institution / Organization
+                </span>
+                <div className="font-semibold text-slate-200">{selectedRegistration.institution}</div>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-sky-950/40 border border-sky-800/40 text-xs text-sky-300 space-y-2">
-              <div className="font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-sky-400" />
-                <span>Custom Password Configuration</span>
+            {/* Registration & Fee Breakdown */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-950/60 border border-slate-850 text-xs">
+              <div>
+                <span className="text-slate-500 font-medium">Participation Mode:</span>
+                <div className="font-bold text-white mt-0.5">{selectedRegistration.mode}</div>
               </div>
-              <p className="text-slate-300">
-                To change the admin password, set `ADMIN_PASSWORD` in your Cloudflare Pages / Vercel Environment Variables or inside `.env.local`:
-              </p>
-              <pre className="bg-slate-950 p-2.5 rounded-lg font-mono text-[11px] text-sky-400 border border-slate-800">
-                ADMIN_PASSWORD=your_new_strong_password_here
-              </pre>
+
+              <div>
+                <span className="text-slate-500 font-medium">Payable Fee &amp; Currency:</span>
+                <div className="font-extrabold text-sky-400 text-base mt-0.5">
+                  {selectedRegistration.amount} ({selectedRegistration.currency})
+                </div>
+              </div>
+
+              {selectedRegistration.paperId && (
+                <div className="sm:col-span-2 pt-2 border-t border-slate-850">
+                  <span className="text-slate-500 font-medium">Associated Paper ID:</span>
+                  <div className="font-mono font-bold text-[#7cb305] text-sm mt-0.5">
+                    {selectedRegistration.paperId}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Status Updater */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+              <span className="text-xs font-bold text-slate-300 block">Update Payment Verification Status</span>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Verified')}
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                    selectedRegistration.paymentStatus === 'Verified'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-800 hover:bg-emerald-600/30 text-slate-300'
+                  }`}
+                >
+                  <Check className="w-4 h-4" /> Mark Payment Verified
+                </button>
+
+                <button
+                  onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Pending')}
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                    selectedRegistration.paymentStatus === 'Pending'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-slate-800 hover:bg-amber-600/30 text-slate-300'
+                  }`}
+                >
+                  <Clock className="w-4 h-4" /> Set Pending
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-2 text-right">
+              <button
+                onClick={() => setSelectedRegistration(null)}
+                className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white"
+              >
+                Close Details Window
+              </button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
+
+      {/* --- PAPER SUBMISSION DETAILS MODAL --- */}
+      {selectedSubmission && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs transition-opacity"
+            onClick={() => setSelectedSubmission(null)}
+          />
+
+          <div className="relative bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 z-10 border border-slate-800 my-8 space-y-6 text-left">
+            <button
+              onClick={() => setSelectedSubmission(null)}
+              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="space-y-1.5 pr-8">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-md bg-[#7cb305]/15 text-[#7cb305] font-mono text-xs font-bold border border-[#7cb305]/30">
+                  {selectedSubmission.submissionId}
+                </span>
+                <span className="text-xs text-slate-400">{selectedSubmission.track}</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white">{selectedSubmission.paperTitle}</h3>
+            </div>
+
+            {/* Author Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+              <div className="space-y-1">
+                <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-[#7cb305]" /> Corresponding Author
+                </span>
+                <div className="font-semibold text-slate-200">{selectedSubmission.authorName}</div>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-sky-400" /> Author Email
+                </span>
+                <div className="font-semibold text-slate-200">{selectedSubmission.email}</div>
+              </div>
+
+              <div className="space-y-1 sm:col-span-2">
+                <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                  <Building className="w-3.5 h-3.5 text-amber-400" /> Institution / University
+                </span>
+                <div className="font-semibold text-slate-200">{selectedSubmission.institution}</div>
+              </div>
+            </div>
+
+            {/* Abstract */}
+            <div className="space-y-1.5">
+              <span className="text-xs font-bold text-slate-300 block">Manuscript Abstract</span>
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-850 text-xs text-slate-300 leading-relaxed max-h-48 overflow-y-auto">
+                {selectedSubmission.abstract}
+              </div>
+            </div>
+
+            {/* Download Link & Status Switcher */}
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+              <a
+                href={selectedSubmission.fileUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold transition-all"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Open / Download Manuscript PDF</span>
+              </a>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">Review Status:</span>
+                <select
+                  value={selectedSubmission.reviewStatus}
+                  onChange={(e) => updateSubmissionStatus(selectedSubmission.id, e.target.value)}
+                  className="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-[#7cb305]"
+                >
+                  <option value="Submitted">Submitted</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Accepted">Accepted</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-2 text-right">
+              <button
+                onClick={() => setSelectedSubmission(null)}
+                className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white"
+              >
+                Close Window
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
