@@ -88,18 +88,12 @@ export const Hero: React.FC<HeroProps> = ({
       {/* Hero Content Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-20 space-y-8">
         
-        {/* Institutional Pill with University Logo & School of Engineering Logo */}
+        {/* Institutional Pill with Yenepoya School of Engineering and Technology Logo */}
         <div className="inline-flex flex-wrap items-center justify-center gap-3 sm:gap-4 px-4 sm:px-6 py-2.5 rounded-full bg-slate-900/70 backdrop-blur-md border border-white/20 shadow-lg">
           <img
-            src="/yenepoya-university-logonew3.svg"
-            alt="Yenepoya (Deemed to be University)"
-            className="h-7 sm:h-8 w-auto object-contain brightness-0 invert drop-shadow-xs"
-          />
-          <div className="h-5 w-[1px] bg-white/25 hidden sm:block" />
-          <img
-            src="/yenepoya-school-engineering-and-technologynew-02.svg"
+            src="/yenepoya-school-engineering-and-technologynew-white.svg"
             alt="Yenepoya School of Engineering & Technology"
-            className="h-7 sm:h-8 w-auto object-contain brightness-0 invert drop-shadow-xs"
+            className="h-7 sm:h-8 w-auto object-contain drop-shadow-xs"
           />
           <div className="h-5 w-[1px] bg-white/25 hidden sm:block" />
           <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
