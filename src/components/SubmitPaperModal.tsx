@@ -35,6 +35,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   });
 
   const [fileName, setFileName] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
@@ -51,8 +52,6 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     'AI for Healthcare and Biomedical Applications',
     'Ethics, Society and Future Technologies',
   ];
-
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

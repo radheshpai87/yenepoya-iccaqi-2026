@@ -31,6 +31,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose })
     paperTitle: '',
   });
   const [registered, setRegistered] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -40,8 +41,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose })
     'Research scholars / Academicians': { inr: '₹750', usd: '$15.00' },
     'Industry Delegates': { inr: '₹1,500', usd: '$20.00' },
   };
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
