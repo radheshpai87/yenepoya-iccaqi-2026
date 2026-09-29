@@ -51,33 +51,30 @@ export const ImportantDates: React.FC = () => {
         </div>
 
         {/* Minimal Bright Countdown Banner */}
-        <div className="bg-gradient-to-br from-emerald-50/80 via-white to-sky-50/80 text-slate-900 rounded-3xl p-6 sm:p-8 mb-10 flex flex-col sm:flex-row items-center justify-between gap-6 border border-emerald-200/80 shadow-xs">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 block">
+        <div className="bg-gradient-to-br from-emerald-50/80 via-white to-sky-50/80 text-slate-900 rounded-3xl p-5 sm:p-8 mb-10 flex flex-col md:flex-row items-center justify-between gap-5 border border-emerald-200/80 shadow-xs">
+          <div className="text-center md:text-left">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-800 block">
               Submission Deadline Countdown
             </span>
             <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5">October 20, 2026</h3>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-center px-3 py-1.5 rounded-2xl bg-white border border-slate-200 shadow-2xs min-w-[58px]">
-              <span className="block text-2xl sm:text-3xl font-black font-mono leading-none text-slate-900">{timeLeft.days}</span>
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Days</span>
+          <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full md:w-auto max-w-sm">
+            <div className="text-center px-2 py-2 sm:px-3 sm:py-2 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+              <span className="block text-xl sm:text-3xl font-black font-mono leading-none text-slate-900">{timeLeft.days}</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-500 uppercase font-bold tracking-tight">Days</span>
             </div>
-            <span className="text-slate-400 font-bold text-xl">:</span>
-            <div className="text-center px-3 py-1.5 rounded-2xl bg-white border border-slate-200 shadow-2xs min-w-[58px]">
-              <span className="block text-2xl sm:text-3xl font-black font-mono leading-none text-slate-900">{timeLeft.hours}</span>
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Hours</span>
+            <div className="text-center px-2 py-2 sm:px-3 sm:py-2 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+              <span className="block text-xl sm:text-3xl font-black font-mono leading-none text-slate-900">{timeLeft.hours}</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-500 uppercase font-bold tracking-tight">Hours</span>
             </div>
-            <span className="text-slate-400 font-bold text-xl">:</span>
-            <div className="text-center px-3 py-1.5 rounded-2xl bg-white border border-slate-200 shadow-2xs min-w-[58px]">
-              <span className="block text-2xl sm:text-3xl font-black font-mono leading-none text-slate-900">{timeLeft.minutes}</span>
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Mins</span>
+            <div className="text-center px-2 py-2 sm:px-3 sm:py-2 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+              <span className="block text-xl sm:text-3xl font-black font-mono leading-none text-slate-900">{timeLeft.minutes}</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-500 uppercase font-bold tracking-tight">Mins</span>
             </div>
-            <span className="text-slate-400 font-bold text-xl">:</span>
-            <div className="text-center px-3 py-1.5 rounded-2xl bg-white border border-slate-200 shadow-2xs min-w-[58px]">
-              <span className="block text-2xl sm:text-3xl font-black font-mono leading-none text-[#7cb305]">{timeLeft.seconds}</span>
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Secs</span>
+            <div className="text-center px-2 py-2 sm:px-3 sm:py-2 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+              <span className="block text-xl sm:text-3xl font-black font-mono leading-none text-[#7cb305]">{timeLeft.seconds}</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-500 uppercase font-bold tracking-tight">Secs</span>
             </div>
           </div>
         </div>

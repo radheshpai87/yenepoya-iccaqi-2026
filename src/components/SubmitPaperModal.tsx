@@ -71,7 +71,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs transition-opacity"
@@ -79,12 +79,12 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
       />
 
       {/* Modal Container */}
-      <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 z-10 border border-slate-200 overflow-hidden my-8">
+      <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-2xl w-full p-5 sm:p-8 z-10 border border-slate-200 overflow-y-auto max-h-[92vh] my-auto">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors z-20"
           aria-label="Close Modal"
         >
           <X className="w-5 h-5" />
@@ -170,7 +170,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Corresponding Author Name *
@@ -181,7 +181,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     placeholder="e.g. Dr. John Doe"
                     value={formData.authorName}
                     onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:border-emerald-500 focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                   />
                 </div>
 
@@ -195,12 +195,12 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     placeholder="e.g. author@university.edu"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:border-emerald-500 focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Institution / University *
@@ -211,7 +211,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     placeholder="e.g. Yenepoya (Deemed to be University)"
                     value={formData.institution}
                     onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:border-emerald-500 focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                   />
                 </div>
 
@@ -222,7 +222,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   <select
                     value={formData.track}
                     onChange={(e) => setFormData({ ...formData, track: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:border-emerald-500 focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                   >
                     {tracks.map((t, idx) => (
                       <option key={idx} value={t}>
@@ -243,7 +243,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   placeholder="Enter full paper title..."
                   value={formData.paperTitle}
                   onChange={(e) => setFormData({ ...formData, paperTitle: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:border-emerald-500 focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                 />
               </div>
 
@@ -257,7 +257,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   placeholder="Provide concise summary of problem, methodology, findings, and technical novelty..."
                   value={formData.abstract}
                   onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:border-emerald-500 focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                 />
               </div>
 

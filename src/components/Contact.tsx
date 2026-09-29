@@ -127,7 +127,7 @@ export const Contact: React.FC = () => {
                       placeholder="Dr. John Doe"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                     />
                   </div>
 
@@ -141,7 +141,7 @@ export const Contact: React.FC = () => {
                       placeholder="john@university.edu"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                     />
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export const Contact: React.FC = () => {
                     placeholder="e.g. Yenepoya (Deemed to be University)"
                     value={formData.institution}
                     onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                   />
                 </div>
 
@@ -170,14 +170,14 @@ export const Contact: React.FC = () => {
                     placeholder="Your inquiry or track question..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white transition-colors cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 sm:py-3 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white transition-colors cursor-pointer disabled:opacity-50 active:scale-98"
                 >
                   {loading ? 'Sending...' : 'Send Message'}
                 </button>

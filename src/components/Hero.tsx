@@ -89,60 +89,60 @@ export const Hero: React.FC<HeroProps> = ({
       <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-20 space-y-8">
         
         {/* Institutional Pill with Yenepoya School of Engineering and Technology Logo */}
-        <div className="inline-flex flex-wrap items-center justify-center gap-3 sm:gap-4 px-4 sm:px-6 py-2.5 rounded-full bg-slate-900/70 backdrop-blur-md border border-white/20 shadow-lg">
+        <div className="inline-flex max-w-full items-center justify-center gap-2 sm:gap-4 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-slate-900/75 backdrop-blur-md border border-white/20 shadow-lg">
           <img
             src="/yenepoya-school-engineering-and-technologynew-white.svg"
             alt="Yenepoya School of Engineering & Technology"
-            className="h-7 sm:h-8 w-auto object-contain drop-shadow-xs"
+            className="h-6 sm:h-8 w-auto max-w-[190px] sm:max-w-none object-contain drop-shadow-xs"
           />
-          <div className="h-5 w-[1px] bg-white/25 hidden sm:block" />
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+          <div className="h-4 sm:h-5 w-[1px] bg-white/25 hidden xs:block" />
+          <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shrink-0">
             NAAC Grade &apos;A+&apos;
           </span>
         </div>
 
         {/* Main Title & Acronym */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-center gap-3 sm:gap-4">
-            <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight text-white drop-shadow-md">
+        <div className="space-y-2 sm:space-y-3">
+          <div className="flex items-center justify-center gap-2 sm:gap-4">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white drop-shadow-md">
               ICCAQI
             </h1>
-            <span className="text-4xl sm:text-6xl md:text-7xl font-black text-[#94cf1b] tracking-tight drop-shadow-md">
+            <span className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-[#94cf1b] tracking-tight drop-shadow-md">
               2026
             </span>
           </div>
 
-          <h2 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-white max-w-3xl mx-auto leading-snug drop-shadow-xs">
+          <h2 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-white max-w-3xl mx-auto leading-snug drop-shadow-xs px-1">
             International Conference on Computing, AI, Quantum Intelligence and Future Technologies
           </h2>
         </div>
 
         {/* Short Editorial Description */}
-        <p className="text-sm sm:text-base text-slate-200 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow-xs">
+        <p className="text-xs sm:text-sm md:text-base text-slate-200 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow-xs px-2">
           A premier global platform uniting researchers, academicians, and industry pioneers to exchange groundbreaking ideas across computing, quantum intelligence, and future technologies.
         </p>
 
         {/* Essential Info Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2 text-xs sm:text-sm font-semibold text-slate-100">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/15 shadow-sm">
-            <Calendar className="w-4 h-4 text-emerald-400" />
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1 sm:pt-2 text-xs sm:text-sm font-semibold text-slate-100">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/15 shadow-sm text-[11px] sm:text-xs md:text-sm">
+            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
             <span>November 6–7, 2026</span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/15 shadow-sm">
-            <MapPin className="w-4 h-4 text-sky-400" />
+          <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/15 shadow-sm text-[11px] sm:text-xs md:text-sm">
+            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
             <span>Mangaluru, Karnataka, India</span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/15 shadow-sm">
-            <Globe2 className="w-4 h-4 text-indigo-300" />
-            <span>Hybrid Mode (Online / Offline)</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/15 shadow-sm text-[11px] sm:text-xs md:text-sm">
+            <Globe2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
+            <span>Hybrid (Online / Offline)</span>
           </div>
         </div>
 
         {/* Primary Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 pt-3 sm:pt-4 max-w-md sm:max-w-none mx-auto w-full">
           <button
             onClick={onOpenSubmitModal}
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-bold text-white bg-[#7cb305] hover:bg-[#689803] shadow-lg shadow-lime-900/30 transition-all duration-200 cursor-pointer active:scale-95"
+            className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-full text-xs sm:text-sm font-bold text-white bg-[#7cb305] hover:bg-[#689803] shadow-lg shadow-lime-900/30 transition-all duration-200 cursor-pointer active:scale-95"
           >
             <span>Submit Your Paper</span>
             <ArrowRight className="w-4 h-4" />
@@ -150,14 +150,14 @@ export const Hero: React.FC<HeroProps> = ({
 
           <button
             onClick={onExploreDetails}
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold text-white bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3.5 rounded-full text-xs sm:text-sm font-semibold text-white bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 shadow-sm transition-all cursor-pointer"
           >
             <span>Conference Overview</span>
           </button>
 
           <button
             onClick={onOpenBrochureModal}
-            className="inline-flex items-center gap-1.5 px-5 py-3.5 rounded-full text-xs sm:text-sm font-semibold text-slate-200 hover:text-white bg-slate-900/40 hover:bg-slate-900/60 backdrop-blur-md border border-white/15 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-3.5 rounded-full text-xs sm:text-sm font-semibold text-slate-200 hover:text-white bg-slate-900/50 hover:bg-slate-900/70 backdrop-blur-md border border-white/15 transition-colors cursor-pointer"
           >
             <BookOpen className="w-4 h-4 text-emerald-400" />
             <span>Official Brochure</span>
