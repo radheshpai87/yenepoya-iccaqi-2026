@@ -119,8 +119,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
   }
 
+  const configured = isSupabaseConfigured();
+
   // Always read dynamically from process.env (.env or .env.local)
-  if (isSupabaseConfigured()) {
+  if (configured) {
     try {
       const supabaseAdmin = getSupabaseAdminClient();
       const [regResult, subResult] = await Promise.all([
@@ -160,6 +162,7 @@ export async function GET() {
         }));
 
         return NextResponse.json({
+          supabaseConnected: true,
           registrations: formattedRegs,
           submissions: formattedSubs,
         });
@@ -170,6 +173,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
+    supabaseConnected: false,
     registrations: fallbackRegistrations,
     submissions: fallbackSubmissions,
   });
