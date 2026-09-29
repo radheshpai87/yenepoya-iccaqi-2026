@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
-import { addLocalSubmission } from '@/lib/submissionStore';
+import { addLocalSubmission, addLocalRegistration } from '@/lib/submissionStore';
 
 export async function POST(request: Request) {
   try {
@@ -59,6 +59,8 @@ export async function POST(request: Request) {
       }
     }
 
+    const createdAt = new Date().toISOString();
+
     const submissionRecord = {
       submission_id: submissionId,
       author_name: authorName,
@@ -71,34 +73,60 @@ export async function POST(request: Request) {
       participation_mode: mode || 'Hybrid',
       file_url: fileUrl,
       review_status: 'Submitted',
-      created_at: new Date().toISOString(),
+      created_at: createdAt,
+    };
+
+    const regRecord = {
+      name: authorName,
+      email,
+      phone: phone || '',
+      institution,
+      category: 'Paper Author / Research Scholar',
+      currency: 'INR',
+      amount: '₹750',
+      mode: mode || 'Hybrid',
+      paper_id: submissionId,
+      paper_title: paperTitle,
+      payment_status: 'Pending',
+      created_at: createdAt,
     };
 
     let supabaseSaved = false;
     let savedData = null;
 
-    // Insert manuscript submission metadata into Supabase PostgreSQL
+    // Insert manuscript submission AND delegate registration into Supabase PostgreSQL
     if (isSupabaseConfigured()) {
       try {
         const supabaseAdmin = getSupabaseAdminClient();
-        const { data, error } = await supabaseAdmin
+        
+        // 1. Insert into paper_submissions
+        const { data: subData, error: subError } = await supabaseAdmin
           .from('paper_submissions')
           .insert([submissionRecord])
           .select()
           .single();
 
-        if (!error && data) {
+        if (!subError && subData) {
           supabaseSaved = true;
-          savedData = data;
+          savedData = subData;
         } else {
-          console.warn('Supabase paper_submissions insert notice (RLS policy or permissions):', error);
+          console.warn('Supabase paper_submissions insert notice:', subError);
+        }
+
+        // 2. Insert into registrations table so author appears under Delegate Registrations as well
+        const { error: regError } = await supabaseAdmin
+          .from('registrations')
+          .insert([regRecord]);
+
+        if (regError) {
+          console.warn('Supabase registrations author insert notice:', regError);
         }
       } catch (err) {
         console.error('Supabase client exception during paper insert:', err);
       }
     }
 
-    // Always store in live memory state so admin panel updates without page reload
+    // Always store in live memory state so admin panel updates instantly without page reload
     const localRecord = {
       id: savedData?.id || 'SUB-' + Date.now(),
       submissionId,
@@ -111,10 +139,27 @@ export async function POST(request: Request) {
       abstract,
       fileUrl,
       reviewStatus: 'Submitted',
-      createdAt: submissionRecord.created_at,
+      createdAt,
+    };
+
+    const localRegRecord = {
+      id: 'REG-' + Date.now(),
+      name: authorName,
+      email,
+      phone: phone || '',
+      institution,
+      category: 'Paper Author / Research Scholar',
+      currency: 'INR',
+      amount: '₹750',
+      mode: mode || 'Hybrid',
+      paperId: submissionId,
+      paperTitle,
+      paymentStatus: 'Pending',
+      createdAt,
     };
 
     addLocalSubmission(localRecord);
+    addLocalRegistration(localRegRecord);
 
     return NextResponse.json({
       success: true,
