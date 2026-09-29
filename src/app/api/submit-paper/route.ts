@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { addLocalSubmission } from '@/lib/submissionStore';
 
 export async function POST(request: Request) {
   try {
@@ -50,6 +51,8 @@ export async function POST(request: Request) {
           if (publicUrlData) {
             fileUrl = publicUrlData.publicUrl;
           }
+        } else {
+          console.warn('Supabase storage upload notice:', uploadError);
         }
       } catch (uploadErr) {
         console.error('Supabase storage upload error:', uploadErr);
@@ -71,36 +74,56 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString(),
     };
 
+    let supabaseSaved = false;
+    let savedData = null;
+
     // Insert manuscript submission metadata into Supabase PostgreSQL
     if (isSupabaseConfigured()) {
-      const supabaseAdmin = getSupabaseAdminClient();
-      const { data, error } = await supabaseAdmin
-        .from('paper_submissions')
-        .insert([submissionRecord])
-        .select()
-        .single();
+      try {
+        const supabaseAdmin = getSupabaseAdminClient();
+        const { data, error } = await supabaseAdmin
+          .from('paper_submissions')
+          .insert([submissionRecord])
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Supabase paper_submissions insert error:', error);
-        return NextResponse.json(
-          { error: 'Failed to save paper submission to database' },
-          { status: 500 }
-        );
+        if (!error && data) {
+          supabaseSaved = true;
+          savedData = data;
+        } else {
+          console.warn('Supabase paper_submissions insert notice (RLS policy or permissions):', error);
+        }
+      } catch (err) {
+        console.error('Supabase client exception during paper insert:', err);
       }
-
-      return NextResponse.json({
-        success: true,
-        submissionId: data.submission_id || submissionId,
-        submission: data,
-        message: 'Manuscript submitted successfully and saved to Supabase',
-      });
     }
 
-    // Fallback if Supabase credentials not configured
+    // Always store in live memory state so admin panel updates without page reload
+    const localRecord = {
+      id: savedData?.id || 'SUB-' + Date.now(),
+      submissionId,
+      authorName,
+      email,
+      phone: phone || '',
+      institution,
+      track,
+      paperTitle,
+      abstract,
+      fileUrl,
+      reviewStatus: 'Submitted',
+      createdAt: submissionRecord.created_at,
+    };
+
+    addLocalSubmission(localRecord);
+
     return NextResponse.json({
       success: true,
-      submissionId,
-      message: 'Manuscript submission acknowledged',
+      submissionId: savedData?.submission_id || submissionId,
+      submission: savedData || localRecord,
+      supabaseSaved,
+      message: supabaseSaved
+        ? 'Manuscript submitted successfully and saved to Supabase'
+        : 'Manuscript submission logged in server portal',
     });
   } catch (err) {
     console.error('Server paper submission error:', err);
