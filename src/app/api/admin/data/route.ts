@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/lib/adminAuth';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseClient';
 
-// In-memory initial data (will sync with Supabase when credentials are populated)
-let initialRegistrations = [
+// Fallback initial dataset (used when Supabase credentials are not yet populated in .env.local)
+let fallbackRegistrations = [
   {
     id: 'REG-2026-001',
     name: 'Dr. Ramesh Kumar',
@@ -62,7 +63,7 @@ let initialRegistrations = [
   },
 ];
 
-let initialSubmissions = [
+let fallbackSubmissions = [
   {
     id: 'SUB-001',
     submissionId: 'ICCAQI-2026-4821',
@@ -107,7 +108,6 @@ let initialSubmissions = [
   },
 ];
 
-// Verify authorization for all data access
 async function isAuthorized() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('admin_session');
@@ -119,9 +119,58 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
   }
 
+  // If real Supabase credentials are configured in .env.local, fetch live data from PostgreSQL
+  if (isSupabaseConfigured()) {
+    try {
+      const [regResult, subResult] = await Promise.all([
+        supabaseAdmin.from('registrations').select('*').order('created_at', { ascending: false }),
+        supabaseAdmin.from('paper_submissions').select('*').order('created_at', { ascending: false }),
+      ]);
+
+      if (!regResult.error && !subResult.error) {
+        const formattedRegs = (regResult.data || []).map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          phone: r.phone,
+          institution: r.institution,
+          category: r.category,
+          currency: r.currency,
+          amount: r.amount,
+          mode: r.mode,
+          paperId: r.paper_id,
+          paymentStatus: r.payment_status || 'Pending',
+          createdAt: r.created_at,
+        }));
+
+        const formattedSubs = (subResult.data || []).map((s: any) => ({
+          id: s.id,
+          submissionId: s.submission_id,
+          authorName: s.author_name,
+          email: s.email,
+          phone: s.phone,
+          institution: s.institution,
+          track: s.track,
+          paperTitle: s.paper_title,
+          abstract: s.abstract,
+          fileUrl: s.file_url,
+          reviewStatus: s.review_status || 'Under Review',
+          createdAt: s.created_at,
+        }));
+
+        return NextResponse.json({
+          registrations: formattedRegs,
+          submissions: formattedSubs,
+        });
+      }
+    } catch (err) {
+      console.error('Supabase query error, falling back:', err);
+    }
+  }
+
   return NextResponse.json({
-    registrations: initialRegistrations,
-    submissions: initialSubmissions,
+    registrations: fallbackRegistrations,
+    submissions: fallbackSubmissions,
   });
 }
 
@@ -134,21 +183,31 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { type, id, paymentStatus, reviewStatus } = body;
 
-    if (type === 'registration') {
-      initialRegistrations = initialRegistrations.map((reg) =>
-        reg.id === id ? { ...reg, paymentStatus: paymentStatus || reg.paymentStatus } : reg
-      );
-    } else if (type === 'submission') {
-      initialSubmissions = initialSubmissions.map((sub) =>
-        sub.id === id ? { ...sub, reviewStatus: reviewStatus || sub.reviewStatus } : sub
-      );
+    if (isSupabaseConfigured()) {
+      if (type === 'registration') {
+        await supabaseAdmin
+          .from('registrations')
+          .update({ payment_status: paymentStatus })
+          .eq('id', id);
+      } else if (type === 'submission') {
+        await supabaseAdmin
+          .from('paper_submissions')
+          .update({ review_status: reviewStatus })
+          .eq('id', id);
+      }
+    } else {
+      if (type === 'registration') {
+        fallbackRegistrations = fallbackRegistrations.map((reg) =>
+          reg.id === id ? { ...reg, paymentStatus: paymentStatus || reg.paymentStatus } : reg
+        );
+      } else if (type === 'submission') {
+        fallbackSubmissions = fallbackSubmissions.map((sub) =>
+          sub.id === id ? { ...sub, reviewStatus: reviewStatus || sub.reviewStatus } : sub
+        );
+      }
     }
 
-    return NextResponse.json({
-      success: true,
-      registrations: initialRegistrations,
-      submissions: initialSubmissions,
-    });
+    return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Failed to update record' }, { status: 500 });
   }
