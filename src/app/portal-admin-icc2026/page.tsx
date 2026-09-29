@@ -29,7 +29,9 @@ import {
   Calendar,
   Layers,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  FileCode,
+  ArrowUpRight
 } from 'lucide-react';
 
 interface Registration {
@@ -389,6 +391,16 @@ export default function PortalAdminPage() {
   const verifiedCount = registrations.filter((r) => r.paymentStatus === 'Verified').length;
   const pendingCount = registrations.filter((r) => r.paymentStatus === 'Pending').length;
 
+  // Find paper submission associated with delegate registration (if any)
+  const getAssociatedSubmission = (paperId: string) => {
+    if (!paperId) return null;
+    return (
+      submissions.find(
+        (s) => s.submissionId.toLowerCase() === paperId.toLowerCase()
+      ) || null
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/70 text-slate-900 font-sans pb-16">
       {/* Clean Header */}
@@ -600,7 +612,13 @@ export default function PortalAdminPage() {
                           {reg.amount} ({reg.currency})
                         </td>
                         <td className="py-3.5 px-4 font-mono text-slate-500">
-                          {reg.paperId || <span className="text-slate-300">—</span>}
+                          {reg.paperId ? (
+                            <span className="font-bold text-[#7cb305] bg-[#7cb305]/10 px-2 py-0.5 rounded border border-[#7cb305]/20">
+                              {reg.paperId}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
                         </td>
                         <td className="py-3.5 px-4">
                           <span
@@ -626,7 +644,7 @@ export default function PortalAdminPage() {
                             }}
                             className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 text-[11px] font-bold transition-all border border-slate-200"
                           >
-                            View Submission Details
+                            View Details
                           </button>
                         </td>
                       </tr>
@@ -750,215 +768,266 @@ export default function PortalAdminPage() {
         )}
       </main>
 
-      {/* --- DELEGATE REGISTRATION DETAILS MODAL (MINIMALIST WHITE) --- */}
+      {/* --- DELEGATE REGISTRATION DETAILS MODAL WITH ELEVATED BORDER & DOCUMENT VIEWER --- */}
       {selectedRegistration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          {/* Backdrop with Soft Blur */}
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
             onClick={() => setSelectedRegistration(null)}
           />
 
-          <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 z-10 border border-slate-200 my-8 space-y-6 text-left">
-            <button
-              onClick={() => setSelectedRegistration(null)}
-              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          {/* Modal Container with Gradient Accent Top Border & Shadow Ring */}
+          <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full z-10 border border-slate-200/90 ring-1 ring-slate-900/5 my-8 overflow-hidden text-left">
+            {/* Top Gradient Accent Bar */}
+            <div className="h-2 w-full bg-gradient-to-r from-[#7cb305] via-emerald-500 to-sky-500" />
 
-            {/* Header */}
-            <div className="space-y-1 pr-8">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-800 font-mono text-xs font-bold border border-sky-200">
-                  {selectedRegistration.id}
-                </span>
-                <span className="text-xs text-slate-400">Registered {new Date(selectedRegistration.createdAt).toLocaleString()}</span>
-              </div>
-              <h3 className="text-2xl font-extrabold text-slate-900">{selectedRegistration.name}</h3>
-              <p className="text-xs text-[#7cb305] font-bold">{selectedRegistration.category}</p>
-            </div>
-
-            {/* Submitted Form Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
-              <div className="space-y-0.5">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-sky-600" /> Registered Email Address
-                </span>
-                <div className="font-bold text-slate-900">{selectedRegistration.email}</div>
-              </div>
-
-              <div className="space-y-0.5">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-emerald-600" /> Phone Number
-                </span>
-                <div className="font-bold text-slate-900">{selectedRegistration.phone || 'Not Provided'}</div>
-              </div>
-
-              <div className="space-y-0.5 sm:col-span-2">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University / Organization
-                </span>
-                <div className="font-bold text-slate-900">{selectedRegistration.institution}</div>
-              </div>
-            </div>
-
-            {/* Fee & Participation Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-sky-50/40 border border-sky-100 text-xs">
-              <div>
-                <span className="text-slate-500 font-medium">Participation Mode:</span>
-                <div className="font-bold text-slate-900 mt-0.5">{selectedRegistration.mode}</div>
-              </div>
-
-              <div>
-                <span className="text-slate-500 font-medium">Payable Amount &amp; Currency:</span>
-                <div className="font-extrabold text-sky-700 text-base mt-0.5">
-                  {selectedRegistration.amount} ({selectedRegistration.currency})
-                </div>
-              </div>
-
-              {selectedRegistration.paperId && (
-                <div className="sm:col-span-2 pt-2 border-t border-sky-100">
-                  <span className="text-slate-500 font-medium">Associated Paper ID:</span>
-                  <div className="font-mono font-bold text-[#7cb305] text-sm mt-0.5">
-                    {selectedRegistration.paperId}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Status Updater */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-left">
-              <span className="text-xs font-bold text-slate-700 block">Update Payment Verification Status</span>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Verified')}
-                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                    selectedRegistration.paymentStatus === 'Verified'
-                      ? 'bg-emerald-700 text-white'
-                      : 'bg-white hover:bg-emerald-50 text-slate-700 border border-slate-300'
-                  }`}
-                >
-                  <Check className="w-4 h-4" /> Mark Payment Verified
-                </button>
-
-                <button
-                  onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Pending')}
-                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                    selectedRegistration.paymentStatus === 'Pending'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-white hover:bg-amber-50 text-slate-700 border border-slate-300'
-                  }`}
-                >
-                  <Clock className="w-4 h-4" /> Set Pending
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-2 text-right">
+            <div className="p-6 sm:p-8 space-y-6">
+              {/* Close Button */}
               <button
                 onClick={() => setSelectedRegistration(null)}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white cursor-pointer"
+                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                aria-label="Close Modal"
               >
-                Close Details Window
+                <X className="w-5 h-5" />
               </button>
+
+              {/* Header */}
+              <div className="space-y-1.5 pr-8">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-800 font-mono text-xs font-bold border border-sky-200">
+                    {selectedRegistration.id}
+                  </span>
+                  <span className="text-xs text-slate-400">Registered on {new Date(selectedRegistration.createdAt).toLocaleString()}</span>
+                </div>
+                <h3 className="text-2xl font-extrabold text-slate-900">{selectedRegistration.name}</h3>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#7cb305]/10 text-[#7cb305] border border-[#7cb305]/20 text-xs font-bold">
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>{selectedRegistration.category}</span>
+                </div>
+              </div>
+
+              {/* Submitted Form Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 text-xs">
+                <div className="space-y-0.5">
+                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-sky-600" /> Registered Email Address
+                  </span>
+                  <div className="font-bold text-slate-900">{selectedRegistration.email}</div>
+                </div>
+
+                <div className="space-y-0.5">
+                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-emerald-600" /> Phone Number
+                  </span>
+                  <div className="font-bold text-slate-900">{selectedRegistration.phone || 'Not Provided'}</div>
+                </div>
+
+                <div className="space-y-0.5 sm:col-span-2 pt-2 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                    <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University / Organization
+                  </span>
+                  <div className="font-bold text-slate-900">{selectedRegistration.institution}</div>
+                </div>
+              </div>
+
+              {/* Fee & Participation Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-sky-50/30 border border-sky-100 text-xs">
+                <div>
+                  <span className="text-slate-500 font-medium">Participation Mode:</span>
+                  <div className="font-bold text-slate-900 mt-0.5">{selectedRegistration.mode}</div>
+                </div>
+
+                <div>
+                  <span className="text-slate-500 font-medium">Payable Amount &amp; Currency:</span>
+                  <div className="font-extrabold text-sky-700 text-base mt-0.5">
+                    {selectedRegistration.amount} ({selectedRegistration.currency})
+                  </div>
+                </div>
+              </div>
+
+              {/* Associated Document / Paper Viewer Section */}
+              <div className="p-4.5 rounded-2xl bg-white border border-slate-200 space-y-3 ring-1 ring-slate-900/5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-[#7cb305]" /> Associated Manuscript / Research Paper
+                  </span>
+                  {selectedRegistration.paperId && (
+                    <span className="font-mono text-xs font-bold text-[#7cb305] bg-[#7cb305]/10 px-2.5 py-0.5 rounded-md border border-[#7cb305]/20">
+                      {selectedRegistration.paperId}
+                    </span>
+                  )}
+                </div>
+
+                {selectedRegistration.paperId ? (
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="space-y-0.5">
+                      <div className="font-bold text-slate-900">
+                        {getAssociatedSubmission(selectedRegistration.paperId)?.paperTitle || 'Manuscript Document Available'}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        Track: {getAssociatedSubmission(selectedRegistration.paperId)?.track || 'Conference Technical Track'}
+                      </div>
+                    </div>
+
+                    <a
+                      href={getAssociatedSubmission(selectedRegistration.paperId)?.fileUrl || '/sample-manuscript.pdf'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold transition-all shadow-xs shrink-0"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Open &amp; Review PDF Document</span>
+                    </a>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center italic">
+                    No Paper ID attached. Registered as Listener / Non-Author Delegate.
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Status Updater */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-left">
+                <span className="text-xs font-bold text-slate-700 block">Update Payment Verification Status</span>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Verified')}
+                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                      selectedRegistration.paymentStatus === 'Verified'
+                        ? 'bg-emerald-700 text-white shadow-xs'
+                        : 'bg-white hover:bg-emerald-50 text-slate-700 border border-slate-300'
+                    }`}
+                  >
+                    <Check className="w-4 h-4" /> Mark Payment Verified
+                  </button>
+
+                  <button
+                    onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Pending')}
+                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                      selectedRegistration.paymentStatus === 'Pending'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-white hover:bg-amber-50 text-slate-700 border border-slate-300'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4" /> Set Pending
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2 text-right">
+                <button
+                  onClick={() => setSelectedRegistration(null)}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white cursor-pointer shadow-xs"
+                >
+                  Close Window
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- PAPER SUBMISSION DETAILS MODAL (MINIMALIST WHITE) --- */}
+      {/* --- PAPER SUBMISSION DETAILS MODAL WITH ELEVATED BORDER & DIRECT DOCUMENT OPEN --- */}
       {selectedSubmission && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
             onClick={() => setSelectedSubmission(null)}
           />
 
-          <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 z-10 border border-slate-200 my-8 space-y-6 text-left">
-            <button
-              onClick={() => setSelectedSubmission(null)}
-              className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          {/* Modal Container with Gradient Top Bar & Ring Border */}
+          <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full z-10 border border-slate-200/90 ring-1 ring-slate-900/5 my-8 overflow-hidden text-left">
+            <div className="h-2 w-full bg-gradient-to-r from-[#7cb305] via-emerald-500 to-sky-500" />
 
-            {/* Header */}
-            <div className="space-y-1.5 pr-8">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-md bg-[#7cb305]/10 text-[#7cb305] font-mono text-xs font-bold border border-[#7cb305]/20">
-                  {selectedSubmission.submissionId}
-                </span>
-                <span className="text-xs text-slate-500 font-medium">{selectedSubmission.track}</span>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">{selectedSubmission.paperTitle}</h3>
-            </div>
-
-            {/* Author Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
-              <div className="space-y-0.5">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#7cb305]" /> Corresponding Author
-                </span>
-                <div className="font-bold text-slate-900">{selectedSubmission.authorName}</div>
-              </div>
-
-              <div className="space-y-0.5">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-sky-600" /> Author Email
-                </span>
-                <div className="font-bold text-slate-900">{selectedSubmission.email}</div>
-              </div>
-
-              <div className="space-y-0.5 sm:col-span-2">
-                <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University
-                </span>
-                <div className="font-bold text-slate-900">{selectedSubmission.institution}</div>
-              </div>
-            </div>
-
-            {/* Abstract */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-bold text-slate-700 block">Submitted Manuscript Abstract</span>
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed max-h-48 overflow-y-auto italic">
-                &ldquo;{selectedSubmission.abstract}&rdquo;
-              </div>
-            </div>
-
-            {/* Download Link & Status Switcher */}
-            <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <a
-                href={selectedSubmission.fileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold transition-all"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span>Open / Download Manuscript PDF</span>
-              </a>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-600 font-medium">Review Status:</span>
-                <select
-                  value={selectedSubmission.reviewStatus}
-                  onChange={(e) => updateSubmissionStatus(selectedSubmission.id, e.target.value)}
-                  className="bg-white border border-slate-300 text-xs text-slate-800 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-[#7cb305]"
-                >
-                  <option value="Submitted">Submitted</option>
-                  <option value="Under Review">Under Review</option>
-                  <option value="Accepted">Accepted</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-2 text-right">
+            <div className="p-6 sm:p-8 space-y-6">
               <button
                 onClick={() => setSelectedSubmission(null)}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white cursor-pointer"
+                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                aria-label="Close Modal"
               >
-                Close Window
+                <X className="w-5 h-5" />
               </button>
+
+              {/* Header */}
+              <div className="space-y-1.5 pr-8">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#7cb305]/10 text-[#7cb305] font-mono text-xs font-bold border border-[#7cb305]/20">
+                    {selectedSubmission.submissionId}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">{selectedSubmission.track}</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">{selectedSubmission.paperTitle}</h3>
+              </div>
+
+              {/* Author Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 text-xs">
+                <div className="space-y-0.5">
+                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-[#7cb305]" /> Corresponding Author
+                  </span>
+                  <div className="font-bold text-slate-900">{selectedSubmission.authorName}</div>
+                </div>
+
+                <div className="space-y-0.5">
+                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-sky-600" /> Author Email
+                  </span>
+                  <div className="font-bold text-slate-900">{selectedSubmission.email}</div>
+                </div>
+
+                <div className="space-y-0.5 sm:col-span-2 pt-2 border-t border-slate-200/60">
+                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                    <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University
+                  </span>
+                  <div className="font-bold text-slate-900">{selectedSubmission.institution}</div>
+                </div>
+              </div>
+
+              {/* Abstract */}
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-slate-800 block">Submitted Manuscript Abstract</span>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed max-h-48 overflow-y-auto italic">
+                  &ldquo;{selectedSubmission.abstract}&rdquo;
+                </div>
+              </div>
+
+              {/* Direct Document Open Button & Review Switcher */}
+              <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <a
+                  href={selectedSubmission.fileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold transition-all shadow-xs"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Open &amp; View Manuscript PDF</span>
+                </a>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-600 font-medium">Review Status:</span>
+                  <select
+                    value={selectedSubmission.reviewStatus}
+                    onChange={(e) => updateSubmissionStatus(selectedSubmission.id, e.target.value)}
+                    className="bg-white border border-slate-300 text-xs text-slate-800 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-[#7cb305]"
+                  >
+                    <option value="Submitted">Submitted</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-2 text-right">
+                <button
+                  onClick={() => setSelectedSubmission(null)}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white cursor-pointer shadow-xs"
+                >
+                  Close Window
+                </button>
+              </div>
             </div>
           </div>
         </div>
