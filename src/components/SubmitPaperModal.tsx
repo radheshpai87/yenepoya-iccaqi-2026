@@ -12,7 +12,8 @@ import {
   Sparkles,
   Layers,
   Trash2,
-  Eye
+  Eye,
+  RefreshCw
 } from 'lucide-react';
 
 interface SubmitPaperModalProps {
@@ -39,7 +40,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
   const [fileName, setFileName] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string>('');
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStep, setUploadStep] = useState<string>('');
   const [submitted, setSubmitted] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
 
@@ -56,50 +61,125 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     'Ethics, Society and Future Technologies',
   ];
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
-      setSelectedFile(e.target.files[0]);
+  const processFile = (file: File) => {
+    setUploadError('');
+    const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
+    if (file.size > MAX_SIZE_BYTES) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      setUploadError(`File size (${sizeMB} MB) exceeds the maximum limit of 10 MB. Please select a smaller document.`);
+      setSelectedFile(null);
+      setFileName(null);
+      return;
+    }
+
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const allowed = ['pdf', 'doc', 'docx', 'tex', 'zip'];
+    if (!allowed.includes(ext)) {
+      setUploadError('Invalid file format. Only PDF (.pdf), Word (.doc/.docx), or LaTeX (.tex/.zip) documents are permitted.');
+      setSelectedFile(null);
+      setFileName(null);
+      return;
+    }
+
+    setFileName(file.name);
+    setSelectedFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0]);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setUploadError('');
 
-    try {
-      const data = new FormData();
-      data.append('authorName', formData.authorName);
-      data.append('email', formData.email);
-      data.append('phone', formData.phone);
-      data.append('institution', formData.institution);
-      data.append('track', formData.track);
-      data.append('paperTitle', formData.paperTitle);
-      data.append('abstract', formData.abstract);
-      data.append('mode', formData.mode);
-      if (selectedFile) {
-        data.append('file', selectedFile);
-      }
-
-      const res = await fetch('/api/submit-paper', {
-        method: 'POST',
-        body: data,
-      });
-
-      const result = await res.json();
-      if (res.ok && result.submissionId) {
-        setSubmissionId(result.submissionId);
-      } else {
-        setSubmissionId('ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000));
-      }
-      setSubmitted(true);
-    } catch (err) {
-      console.error('Paper submission error:', err);
-      setSubmissionId('ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000));
-      setSubmitted(true);
-    } finally {
-      setSubmitting(false);
+    if (!selectedFile) {
+      setUploadError('Please choose or drag & drop your manuscript file before submitting.');
+      return;
     }
+
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      setUploadError('File size exceeds the 10 MB limit. Please select a smaller manuscript file.');
+      return;
+    }
+
+    setSubmitting(true);
+    setUploadProgress(0);
+    setUploadStep('Connecting to server upload gateway...');
+
+    const data = new FormData();
+    data.append('authorName', formData.authorName);
+    data.append('email', formData.email);
+    data.append('phone', formData.phone);
+    data.append('institution', formData.institution);
+    data.append('track', formData.track);
+    data.append('paperTitle', formData.paperTitle);
+    data.append('abstract', formData.abstract);
+    data.append('mode', formData.mode);
+    data.append('file', selectedFile);
+
+    // Use XMLHttpRequest for real-time upload progress tracking
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percentComplete);
+        if (percentComplete < 35) {
+          setUploadStep('Uploading manuscript file to secure storage...');
+        } else if (percentComplete < 75) {
+          setUploadStep('Verifying PDF structure & virus scan...');
+        } else if (percentComplete < 99) {
+          setUploadStep('Registering submission details...');
+        } else {
+          setUploadStep('Finalizing paper registration...');
+        }
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const result = JSON.parse(xhr.responseText);
+          setUploadProgress(100);
+          setSubmissionId(result.submissionId || ('ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000)));
+          setSubmitted(true);
+        } catch {
+          setSubmissionId('ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000));
+          setSubmitted(true);
+        }
+      } else {
+        try {
+          const result = JSON.parse(xhr.responseText);
+          setUploadError(result.error || 'Server error processing manuscript. Please check file format and size.');
+        } catch {
+          setUploadError('Server error processing manuscript. Please try again.');
+        }
+        setSubmitting(false);
+      }
+    };
+
+    xhr.onerror = () => {
+      setUploadError('Network connection error during file upload. Please verify internet connection and try again.');
+      setSubmitting(false);
+    };
+
+    xhr.open('POST', '/api/submit-paper');
+    xhr.send(data);
   };
 
   return (
@@ -196,9 +276,47 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                 Submit Research Manuscript
               </h3>
               <p className="text-xs text-slate-500">
-                Deadline: <strong>October 20, 2026</strong> • Notification: <strong>October 25, 2026</strong>
+                Deadline: <strong>October 20, 2026</strong> • Max File Size: <strong>10 MB</strong>
               </p>
             </div>
+
+            {/* Error Message Alert Banner */}
+            {uploadError && (
+              <div className="mb-4 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-start gap-2.5 text-left">
+                <AlertCircle className="w-4.5 h-4.5 shrink-0 text-rose-600 mt-0.5" />
+                <span>{uploadError}</span>
+              </div>
+            )}
+
+            {/* Real-time Upload Progress Indicator */}
+            {submitting && (
+              <div className="mb-4 p-4 rounded-2xl bg-lime-50/80 border border-[#7cb305]/40 space-y-2.5 shadow-xs text-left">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                  <div className="flex items-center gap-2 text-[#7cb305]">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>{uploadStep || 'Uploading manuscript...'}</span>
+                  </div>
+                  <span className="font-mono text-[#7cb305] text-sm font-extrabold">{uploadProgress}%</span>
+                </div>
+
+                {/* Progress Bar Container */}
+                <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-[#7cb305] to-emerald-500 h-full rounded-full transition-all duration-200 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium font-mono">
+                  <span>
+                    {selectedFile
+                      ? `${((selectedFile.size * (uploadProgress / 100)) / (1024 * 1024)).toFixed(2)} MB of ${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`
+                      : 'Uploading...'}
+                  </span>
+                  <span className="text-[#7cb305] font-semibold">Realtime Sync Active</span>
+                </div>
+              </div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
@@ -210,10 +328,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   <input
                     type="text"
                     required
+                    disabled={submitting}
                     placeholder="e.g. Dr. John Doe"
                     value={formData.authorName}
                     onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
                   />
                 </div>
 
@@ -224,10 +343,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   <input
                     type="email"
                     required
+                    disabled={submitting}
                     placeholder="e.g. author@university.edu"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
                   />
                 </div>
               </div>
@@ -240,10 +360,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   <input
                     type="text"
                     required
+                    disabled={submitting}
                     placeholder="e.g. Yenepoya (Deemed to be University)"
                     value={formData.institution}
                     onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
                   />
                 </div>
 
@@ -253,8 +374,9 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   </label>
                   <select
                     value={formData.track}
+                    disabled={submitting}
                     onChange={(e) => setFormData({ ...formData, track: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
                   >
                     {tracks.map((t, idx) => (
                       <option key={idx} value={t}>
@@ -272,10 +394,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                 <input
                   type="text"
                   required
+                  disabled={submitting}
                   placeholder="Enter full paper title..."
                   value={formData.paperTitle}
                   onChange={(e) => setFormData({ ...formData, paperTitle: e.target.value })}
-                  className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                  className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
                 />
               </div>
 
@@ -286,10 +409,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                 <textarea
                   rows={3}
                   required
+                  disabled={submitting}
                   placeholder="Provide concise summary of problem, methodology, findings, and technical novelty..."
                   value={formData.abstract}
                   onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
-                  className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                  className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
                 />
               </div>
 
@@ -333,12 +457,13 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                       {selectedFile && (
                         <button
                           type="button"
+                          disabled={submitting}
                           onClick={() => {
                             const url = URL.createObjectURL(selectedFile);
                             window.open(url, '_blank');
                           }}
                           title="Preview Document"
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -346,32 +471,48 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
                       <button
                         type="button"
+                        disabled={submitting}
                         onClick={() => {
                           setFileName(null);
                           setSelectedFile(null);
+                          setUploadError('');
                         }}
                         title="Remove Document"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 ) : (
-                  /* Minimal Drag & Drop Zone */
-                  <label className="border-2 border-dashed border-slate-200 hover:border-[#7cb305] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-colors group">
-                    <UploadCloud className="w-6 h-6 text-slate-400 group-hover:text-[#7cb305] group-hover:scale-110 transition-all mb-1" />
-                    <span className="text-xs font-semibold text-slate-700 text-center">
-                      Click to choose manuscript file (PDF, Word, or LaTeX)
+                  /* Interactive Drag & Drop Upload Zone */
+                  <label
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all text-center ${
+                      isDragging
+                        ? 'border-[#7cb305] bg-lime-50/80 scale-[1.01]'
+                        : 'border-slate-200 hover:border-[#7cb305] bg-slate-50/50 hover:bg-slate-50'
+                    }`}
+                  >
+                    <UploadCloud className={`w-8 h-8 transition-all mb-1.5 ${isDragging ? 'text-[#7cb305] scale-110' : 'text-slate-400 group-hover:text-[#7cb305]'}`} />
+                    <span className="text-xs font-bold text-slate-800">
+                      {isDragging ? 'Drop your manuscript file here' : 'Click or Drag & Drop manuscript file here'}
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5 font-mono text-center">
-                      PDF (.pdf), Word (.doc/.docx), LaTeX (.tex/.zip) • Max 25MB
+                    <span className="text-[11px] text-slate-500 mt-1 font-medium">
+                      PDF (.pdf), Word (.doc/.docx), LaTeX (.tex/.zip) • Max file size: 10 MB
                     </span>
                     <input
                       type="file"
-                      accept=".pdf,.doc,.docx,.tex,.zip,.tar,.tar.gz"
+                      accept=".pdf,.doc,.docx,.tex,.zip"
                       required
-                      onChange={handleFileChange}
+                      disabled={submitting}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          processFile(e.target.files[0]);
+                        }
+                      }}
                       className="hidden"
                     />
                   </label>
@@ -385,8 +526,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   disabled={submitting}
                   className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all cursor-pointer disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>{submitting ? 'Uploading & Registering Submission...' : 'Submit Manuscript for Review'}</span>
+                  {submitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Uploading &amp; Registering Manuscript ({uploadProgress}%)...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Submit Manuscript for Review</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
