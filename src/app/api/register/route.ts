@@ -98,7 +98,9 @@ export async function POST(request: Request) {
       createdAt: regRecord.created_at,
     };
 
-    addLocalRegistration(localRecord);
+    if (!supabaseSaved) {
+      addLocalRegistration(localRecord);
+    }
 
     return NextResponse.json({
       success: true,

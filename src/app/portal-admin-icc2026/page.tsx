@@ -167,7 +167,17 @@ export default function PortalAdminPage() {
               createdAt: r.created_at,
             };
             setRegistrations((prev) => {
-              if (prev.some((item) => item.id === formatted.id)) return prev;
+              if (
+                prev.some(
+                  (item) =>
+                    item.id === formatted.id ||
+                    (formatted.paperId && item.paperId === formatted.paperId) ||
+                    (item.email.toLowerCase() === formatted.email.toLowerCase() &&
+                      item.name.toLowerCase() === formatted.name.toLowerCase())
+                )
+              ) {
+                return prev;
+              }
               return [formatted, ...prev];
             });
           } else if (payload.eventType === 'UPDATE' && payload.new) {

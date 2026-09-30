@@ -25,7 +25,6 @@ export async function GET() {
   let supabaseSubmissions: any[] = [];
   let supabaseConnected = false;
 
-  // Read dynamically from process.env
   if (configured) {
     try {
       const supabaseAdmin = getSupabaseAdminClient();
@@ -55,19 +54,17 @@ export async function GET() {
       if (!subResult.error) {
         supabaseConnected = true;
 
-        // Process paper submissions & generate signed view URLs for private bucket manuscripts
         supabaseSubmissions = await Promise.all(
           (subResult.data || []).map(async (s: any) => {
             let viewUrl = s.file_url;
 
-            // Generate 1-hour signed URL if file is stored in private Supabase bucket
             if (s.file_url && s.file_url.includes('/manuscripts/')) {
               try {
                 const fileName = s.file_url.split('/manuscripts/').pop();
                 if (fileName) {
                   const { data: signedData } = await supabaseAdmin.storage
                     .from('manuscripts')
-                    .createSignedUrl(fileName, 3600); // Valid for 1 hour
+                    .createSignedUrl(fileName, 3600);
 
                   if (signedData?.signedUrl) {
                     viewUrl = signedData.signedUrl;
@@ -96,7 +93,7 @@ export async function GET() {
         );
       }
     } catch (err) {
-      console.error('Supabase query exception, serving combined state:', err);
+      console.error('Supabase query exception:', err);
     }
   }
 
@@ -105,25 +102,50 @@ export async function GET() {
   const localSubs = getLocalSubmissions();
 
   const combinedRegsMap = new Map();
-  localRegs.forEach((r) => combinedRegsMap.set(r.id, r));
-  supabaseRegistrations.forEach((r) => combinedRegsMap.set(r.id, r));
 
-  const combinedSubsMap = new Map();
-  localSubs.forEach((s) => combinedSubsMap.set(s.id, s));
-  supabaseSubmissions.forEach((s) => combinedSubsMap.set(s.id, s));
+  const getRegKey = (r: any) => {
+    if (r.paperId && typeof r.paperId === 'string' && r.paperId.trim().length > 0) {
+      return `PAPER:${r.paperId.trim().toLowerCase()}`;
+    }
+    return `USER:${(r.email || '').trim().toLowerCase()}|${(r.name || '').trim().toLowerCase()}`;
+  };
 
-  const combinedRegistrations = Array.from(combinedRegsMap.values()).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  // Add local memory records first
+  localRegs.forEach((r) => {
+    combinedRegsMap.set(r.id, r);
+    combinedRegsMap.set(getRegKey(r), r);
+  });
+
+  // Supabase records override local memory copies so true DB records take priority and deduplicate
+  supabaseRegistrations.forEach((r) => {
+    const key = getRegKey(r);
+    combinedRegsMap.set(key, r);
+    combinedRegsMap.set(r.id, r);
+  });
+
+  const uniqueRegs = Array.from(new Set(combinedRegsMap.values())).sort(
+    (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  const combinedSubmissions = Array.from(combinedSubsMap.values()).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  const combinedSubsMap = new Map();
+  localSubs.forEach((s) => {
+    combinedSubsMap.set(s.id, s);
+    if (s.submissionId) combinedSubsMap.set(`SUB:${s.submissionId.toLowerCase()}`, s);
+  });
+
+  supabaseSubmissions.forEach((s) => {
+    combinedSubsMap.set(s.id, s);
+    if (s.submissionId) combinedSubsMap.set(`SUB:${s.submissionId.toLowerCase()}`, s);
+  });
+
+  const uniqueSubs = Array.from(new Set(combinedSubsMap.values())).sort(
+    (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   return NextResponse.json({
     supabaseConnected,
-    registrations: combinedRegistrations,
-    submissions: combinedSubmissions,
+    registrations: uniqueRegs,
+    submissions: uniqueSubs,
   });
 }
 
@@ -136,14 +158,12 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { type, id, paymentStatus, reviewStatus } = body;
 
-    // Update local memory state
     if (type === 'registration' && paymentStatus) {
       updateLocalRegistrationStatus(id, paymentStatus);
     } else if (type === 'submission' && reviewStatus) {
       updateLocalSubmissionStatus(id, reviewStatus);
     }
 
-    // Also update Supabase database if configured
     if (isSupabaseConfigured()) {
       const supabaseAdmin = getSupabaseAdminClient();
       if (type === 'registration') {

@@ -218,8 +218,10 @@ export async function POST(request: Request) {
       createdAt,
     };
 
-    addLocalSubmission(localRecord);
-    addLocalRegistration(localRegRecord);
+    if (!supabaseSaved) {
+      addLocalSubmission(localRecord);
+      addLocalRegistration(localRegRecord);
+    }
 
     const responsePayload = {
       success: true,
