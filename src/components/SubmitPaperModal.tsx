@@ -47,6 +47,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const [uploadStep, setUploadStep] = useState<string>('');
   const [submitted, setSubmitted] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
+  const [requestId] = useState<string>(() =>
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : 'REQ-' + Date.now() + '-' + Math.random()
+  );
 
   if (!isOpen) return null;
 
@@ -122,6 +127,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     setUploadStep('Connecting to server upload gateway...');
 
     const data = new FormData();
+    data.append('requestId', requestId);
     data.append('authorName', formData.authorName);
     data.append('email', formData.email);
     data.append('phone', formData.phone);

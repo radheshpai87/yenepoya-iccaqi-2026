@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { addLocalSubmission, addLocalRegistration } from '@/lib/submissionStore';
 import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
-import { isValidEmail, sanitizeText, validateUploadedFile } from '@/lib/validation';
+import { isValidEmail, sanitizeText, validateUploadedFile, validateFileMagicBytes } from '@/lib/validation';
+import { getIdempotentResponse, setIdempotentResponse } from '@/lib/idempotency';
 
 export async function POST(request: Request) {
   try {
@@ -18,6 +19,16 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     
+    const requestId = sanitizeText(formData.get('requestId') as string, 100);
+    
+    // 2. Double-Click Idempotency Protection
+    if (requestId) {
+      const cached = getIdempotentResponse(requestId);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
+    }
+
     const authorName = sanitizeText(formData.get('authorName') as string, 100);
     const email = sanitizeText(formData.get('email') as string, 254);
     const phone = sanitizeText(formData.get('phone') as string, 30);
@@ -42,12 +53,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Strict File Upload Security Validation (MIME & Size check)
+    // 3. Strict File Size & Format Validation
     if (file) {
       const fileValidation = validateUploadedFile(file);
       if (!fileValidation.valid) {
         return NextResponse.json(
-          { error: fileValidation.error || 'Invalid file document upload' },
+          { error: fileValidation.error || 'Invalid document file' },
+          { status: 400 }
+        );
+      }
+
+      // 4. Binary Magic Byte Signature Inspection (Prevents extension spoofing)
+      const magicCheck = await validateFileMagicBytes(file);
+      if (!magicCheck.valid) {
+        return NextResponse.json(
+          { error: magicCheck.error || 'Corrupted document binary signature' },
           { status: 400 }
         );
       }
@@ -56,13 +76,13 @@ export async function POST(request: Request) {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const submissionId = `ICCAQI-2026-${randomNum}`;
     let fileUrl = '/sample-manuscript.pdf';
+    let uploadedStoragePath: string | null = null;
 
-    // 3. Upload manuscript PDF file to Supabase Storage Bucket 'manuscripts' using safe generated key
+    // 5. Upload manuscript file to Supabase Storage
     if (isSupabaseConfigured() && file && file.size > 0) {
       try {
         const supabaseAdmin = getSupabaseAdminClient();
         const fileExt = file.name.split('.').pop() || 'pdf';
-        // Generate safe non-arbitrary filename key
         const safeFileName = `${submissionId}_${Date.now()}.${fileExt}`;
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
@@ -75,6 +95,7 @@ export async function POST(request: Request) {
           });
 
         if (!uploadError && uploadData) {
+          uploadedStoragePath = uploadData.path;
           const { data: publicUrlData } = supabaseAdmin.storage
             .from('manuscripts')
             .getPublicUrl(uploadData.path);
@@ -125,12 +146,11 @@ export async function POST(request: Request) {
     let supabaseSaved = false;
     let savedData = null;
 
-    // Insert manuscript submission AND delegate registration into Supabase PostgreSQL
+    // 6. Insert into PostgreSQL Database with Orphan Cleanup Safety
     if (isSupabaseConfigured()) {
       try {
         const supabaseAdmin = getSupabaseAdminClient();
         
-        // 1. Insert into paper_submissions
         const { data: subData, error: subError } = await supabaseAdmin
           .from('paper_submissions')
           .insert([submissionRecord])
@@ -140,24 +160,33 @@ export async function POST(request: Request) {
         if (!subError && subData) {
           supabaseSaved = true;
           savedData = subData;
+
+          // Insert into registrations table as well
+          await supabaseAdmin
+            .from('registrations')
+            .insert([regRecord]);
         } else {
           console.warn('Supabase paper_submissions insert notice:', subError);
-        }
-
-        // 2. Insert into registrations table so author appears under Delegate Registrations as well
-        const { error: regError } = await supabaseAdmin
-          .from('registrations')
-          .insert([regRecord]);
-
-        if (regError) {
-          console.warn('Supabase registrations author insert notice:', regError);
+          // Clean up orphaned storage object if database insert failed
+          if (uploadedStoragePath) {
+            await supabaseAdmin.storage.from('manuscripts').remove([uploadedStoragePath]);
+            console.info('Orphaned storage object cleaned up:', uploadedStoragePath);
+          }
         }
       } catch (err) {
         console.error('Supabase client exception during paper insert:', err);
+        // Clean up orphaned storage object on exception
+        if (uploadedStoragePath) {
+          try {
+            const supabaseAdmin = getSupabaseAdminClient();
+            await supabaseAdmin.storage.from('manuscripts').remove([uploadedStoragePath]);
+          } catch {
+            // Ignore cleanup errors
+          }
+        }
       }
     }
 
-    // Always store in live memory state so admin panel updates instantly without page reload
     const localRecord = {
       id: savedData?.id || 'SUB-' + Date.now(),
       submissionId,
@@ -192,7 +221,7 @@ export async function POST(request: Request) {
     addLocalSubmission(localRecord);
     addLocalRegistration(localRegRecord);
 
-    return NextResponse.json({
+    const responsePayload = {
       success: true,
       submissionId: savedData?.submission_id || submissionId,
       submission: savedData || localRecord,
@@ -200,7 +229,14 @@ export async function POST(request: Request) {
       message: supabaseSaved
         ? 'Manuscript submitted successfully and saved to Supabase'
         : 'Manuscript submission logged in server portal',
-    });
+    };
+
+    // Cache idempotent response if requestId present
+    if (requestId) {
+      setIdempotentResponse(requestId, responsePayload);
+    }
+
+    return NextResponse.json(responsePayload);
   } catch (err) {
     console.error('Server paper submission error:', err);
     return NextResponse.json(
