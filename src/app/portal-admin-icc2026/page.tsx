@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import {
   ShieldCheck,
   Lock,
@@ -101,12 +102,105 @@ export default function PortalAdminPage() {
   useEffect(() => {
     if (!isAuthenticated) return;
     
-    // Auto-sync live records every 4 seconds (zero reload)
-    const interval = setInterval(() => {
-      fetchDashboardData();
-    }, 4000);
+    // Initial data fetch snapshot on mount
+    fetchDashboardData();
 
-    return () => clearInterval(interval);
+    // Subscribe to Supabase Realtime WebSocket events for zero-polling database load
+    const supabase = getSupabaseClient();
+    const channel = supabase
+      .channel('admin-realtime-events')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registrations' },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const r = payload.new;
+            const formatted: Registration = {
+              id: r.id,
+              name: r.name,
+              email: r.email,
+              phone: r.phone || '',
+              institution: r.institution,
+              category: r.category,
+              currency: r.currency,
+              amount: r.amount,
+              mode: r.mode,
+              paperId: r.paper_id || '',
+              paymentStatus: r.payment_status || 'Pending',
+              createdAt: r.created_at,
+            };
+            setRegistrations((prev) => {
+              if (prev.some((item) => item.id === formatted.id)) return prev;
+              return [formatted, ...prev];
+            });
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            const r = payload.new;
+            setRegistrations((prev) =>
+              prev.map((item) =>
+                item.id === r.id
+                  ? {
+                      ...item,
+                      paymentStatus: r.payment_status || item.paymentStatus,
+                      name: r.name || item.name,
+                      email: r.email || item.email,
+                    }
+                  : item
+              )
+            );
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            const oldId = payload.old.id;
+            setRegistrations((prev) => prev.filter((item) => item.id !== oldId));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'paper_submissions' },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const s = payload.new;
+            const formatted: Submission = {
+              id: s.id,
+              submissionId: s.submission_id,
+              authorName: s.author_name,
+              email: s.email,
+              phone: s.phone || '',
+              institution: s.institution,
+              track: s.track,
+              paperTitle: s.paper_title,
+              abstract: s.abstract,
+              mode: s.participation_mode || 'Hybrid',
+              fileUrl: s.file_url,
+              reviewStatus: s.review_status || 'Under Review',
+              createdAt: s.created_at,
+            };
+            setSubmissions((prev) => {
+              if (prev.some((item) => item.id === formatted.id)) return prev;
+              return [formatted, ...prev];
+            });
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            const s = payload.new;
+            setSubmissions((prev) =>
+              prev.map((item) =>
+                item.id === s.id
+                  ? {
+                      ...item,
+                      reviewStatus: s.review_status || item.reviewStatus,
+                    }
+                  : item
+              )
+            );
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            const oldId = payload.old.id;
+            setSubmissions((prev) => prev.filter((item) => item.id !== oldId));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [isAuthenticated]);
 
   const checkSession = async () => {

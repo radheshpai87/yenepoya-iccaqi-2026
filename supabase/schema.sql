@@ -70,3 +70,7 @@ WITH CHECK (bucket_id = 'manuscripts');
 CREATE POLICY "Allow public reads from manuscripts bucket" 
 ON storage.objects FOR SELECT 
 USING (bucket_id = 'manuscripts');
+
+-- 7. Enable Realtime Publications for Database Tables
+ALTER PUBLICATION supabase_realtime ADD TABLE public.registrations;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.paper_submissions;
