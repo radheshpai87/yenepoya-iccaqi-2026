@@ -1,19 +1,31 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { addLocalSubmission, addLocalRegistration } from '@/lib/submissionStore';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { isValidEmail, sanitizeText, validateUploadedFile } from '@/lib/validation';
 
 export async function POST(request: Request) {
   try {
+    // 1. Rate Limiting Check
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+    const rateLimit = checkRateLimit(ip);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Too many paper submissions from your network. Please try again in a minute.' },
+        { status: 429 }
+      );
+    }
+
     const formData = await request.formData();
     
-    const authorName = formData.get('authorName') as string;
-    const email = formData.get('email') as string;
-    const phone = formData.get('phone') as string;
-    const institution = formData.get('institution') as string;
-    const track = formData.get('track') as string;
-    const paperTitle = formData.get('paperTitle') as string;
-    const abstract = formData.get('abstract') as string;
-    const mode = formData.get('mode') as string;
+    const authorName = sanitizeText(formData.get('authorName') as string, 100);
+    const email = sanitizeText(formData.get('email') as string, 254);
+    const phone = sanitizeText(formData.get('phone') as string, 30);
+    const institution = sanitizeText(formData.get('institution') as string, 200);
+    const track = sanitizeText(formData.get('track') as string, 150);
+    const paperTitle = sanitizeText(formData.get('paperTitle') as string, 300);
+    const abstract = sanitizeText(formData.get('abstract') as string, 5000);
+    const mode = sanitizeText(formData.get('mode') as string, 100);
     const file = formData.get('file') as File | null;
 
     if (!authorName || !email || !paperTitle || !abstract || !track) {
@@ -23,23 +35,42 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: 'Invalid author email address format' },
+        { status: 400 }
+      );
+    }
+
+    // 2. Strict File Upload Security Validation (MIME & Size check)
+    if (file) {
+      const fileValidation = validateUploadedFile(file);
+      if (!fileValidation.valid) {
+        return NextResponse.json(
+          { error: fileValidation.error || 'Invalid file document upload' },
+          { status: 400 }
+        );
+      }
+    }
+
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const submissionId = `ICCAQI-2026-${randomNum}`;
     let fileUrl = '/sample-manuscript.pdf';
 
-    // Upload manuscript PDF file to Supabase Storage Bucket 'manuscripts' if configured
+    // 3. Upload manuscript PDF file to Supabase Storage Bucket 'manuscripts' using safe generated key
     if (isSupabaseConfigured() && file && file.size > 0) {
       try {
         const supabaseAdmin = getSupabaseAdminClient();
         const fileExt = file.name.split('.').pop() || 'pdf';
-        const fileName = `${submissionId}_${Date.now()}.${fileExt}`;
+        // Generate safe non-arbitrary filename key
+        const safeFileName = `${submissionId}_${Date.now()}.${fileExt}`;
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
         const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
           .from('manuscripts')
-          .upload(fileName, buffer, {
-            contentType: file.type || 'application/octet-stream',
+          .upload(safeFileName, buffer, {
+            contentType: file.type || 'application/pdf',
             upsert: true,
           });
 

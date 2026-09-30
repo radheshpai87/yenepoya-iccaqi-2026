@@ -1,26 +1,43 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { addLocalRegistration } from '@/lib/submissionStore';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { isValidEmail, sanitizeText } from '@/lib/validation';
 
 export async function POST(request: Request) {
   try {
+    // 1. IP Rate Limiting Check
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+    const rateLimit = checkRateLimit(ip);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Too many registration requests. Please wait a minute and try again.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
-    const {
-      name,
-      email,
-      phone,
-      institution,
-      category,
-      currency,
-      amount,
-      mode,
-      paperId,
-      paperTitle,
-    } = body;
+    const name = sanitizeText(body.name, 100);
+    const email = sanitizeText(body.email, 254);
+    const phone = sanitizeText(body.phone, 30);
+    const institution = sanitizeText(body.institution, 200);
+    const category = sanitizeText(body.category, 100);
+    const currency = sanitizeText(body.currency, 10);
+    const amount = sanitizeText(body.amount, 20);
+    const mode = sanitizeText(body.mode, 100);
+    const paperId = sanitizeText(body.paperId, 50);
+    const paperTitle = sanitizeText(body.paperTitle, 300);
 
     if (!name || !email || !institution || !category) {
       return NextResponse.json(
-        { error: 'Required fields missing' },
+        { error: 'Required registration fields missing' },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: 'Invalid email address format' },
         { status: 400 }
       );
     }
