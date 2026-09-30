@@ -1241,40 +1241,76 @@ export default function PortalAdminPage() {
                     </div>
                   </div>
 
-                  {/* Uploaded Document / File Card Matching Reference Image */}
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-800 block">Uploaded Manuscript / Document</span>
+                  {/* Submitted Research Paper Details (Title, Track, Abstract & File Card) */}
+                  <div className="space-y-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <FileText className="w-4 h-4 text-[#7cb305]" /> Submitted Research Paper Details
+                      </span>
+                      {selectedRegistration.paperId && (
+                        <span className="px-2.5 py-0.5 rounded-md bg-[#7cb305]/10 text-[#7cb305] font-mono text-xs font-bold border border-[#7cb305]/20">
+                          {selectedRegistration.paperId}
+                        </span>
+                      )}
+                    </div>
                     
                     {selectedRegistration.paperId ? (
-                      <div className="p-4 rounded-2xl bg-[#edf4ff] border border-[#d0e2ff] flex items-center justify-between gap-3 text-left shadow-xs">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div className="w-10 h-10 rounded-xl bg-[#3b82f6] text-white flex items-center justify-center shrink-0 shadow-xs">
-                            <FileText className="w-5 h-5" />
+                      <div className="space-y-3">
+                        {/* Paper Title & Track */}
+                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
+                          <div className="font-extrabold text-slate-900 text-sm leading-snug">
+                            {getAssociatedSubmission(selectedRegistration.paperId)?.paperTitle || 'Research Manuscript Submission'}
                           </div>
-                          <div className="space-y-0.5 overflow-hidden">
-                            <div className="text-xs font-bold text-slate-900 truncate max-w-[220px] flex items-center gap-1">
-                              <span>Paper_{selectedRegistration.paperId}.pdf</span>
-                              <span className="text-slate-600 font-semibold">• Uploaded</span>
-                            </div>
-                            <p className="text-[11px] text-slate-500 font-medium">
-                              1.45 MB • Verified Document
-                            </p>
+                          <div className="text-slate-500 font-medium text-[11px] flex items-center gap-1">
+                            <Tag className="w-3 h-3 text-[#7cb305]" />
+                            <span>Track: {getAssociatedSubmission(selectedRegistration.paperId)?.track || 'Conference Technical Track'}</span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="p-1 rounded-full bg-blue-100 text-[#3b82f6]">
-                            <Check className="w-4 h-4 stroke-[3]" />
+                        {/* Submitted Abstract */}
+                        {getAssociatedSubmission(selectedRegistration.paperId)?.abstract && (
+                          <div className="space-y-1 text-xs">
+                            <span className="font-bold text-slate-800 block">Submitted Abstract</span>
+                            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 italic leading-relaxed max-h-40 overflow-y-auto">
+                              &ldquo;{getAssociatedSubmission(selectedRegistration.paperId)?.abstract}&rdquo;
+                            </div>
                           </div>
-                          <a
-                            href={getAssociatedSubmission(selectedRegistration.paperId)?.fileUrl || '/sample-manuscript.pdf'}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-2 rounded-xl bg-white border border-[#d0e2ff] text-[#3b82f6] hover:bg-blue-50 transition-colors shadow-2xs font-bold text-xs flex items-center gap-1"
-                            title="Open Document"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" /> Open PDF
-                          </a>
+                        )}
+
+                        {/* Uploaded File UX Card Matching Reference Image */}
+                        <div className="space-y-1">
+                          <span className="text-xs font-bold text-slate-800 block">Uploaded Manuscript Document</span>
+                          <div className="p-3.5 rounded-2xl bg-[#edf4ff] border border-[#d0e2ff] flex items-center justify-between gap-3 text-left shadow-xs">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <div className="w-10 h-10 rounded-xl bg-[#3b82f6] text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <div className="space-y-0.5 overflow-hidden">
+                                <div className="text-xs font-bold text-slate-900 truncate max-w-[190px] flex items-center gap-1">
+                                  <span>Paper_{selectedRegistration.paperId}.pdf</span>
+                                  <span className="text-slate-600 font-semibold">• Uploaded</span>
+                                </div>
+                                <p className="text-[11px] text-slate-500 font-medium">
+                                  1.45 MB • Verified PDF Document
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div className="p-1 rounded-full bg-blue-100 text-[#3b82f6]">
+                                <Check className="w-4 h-4 stroke-[3]" />
+                              </div>
+                              <a
+                                href={getAssociatedSubmission(selectedRegistration.paperId)?.fileUrl || '/sample-manuscript.pdf'}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-2 rounded-xl bg-white border border-[#d0e2ff] text-[#3b82f6] hover:bg-blue-50 transition-colors shadow-2xs font-bold text-xs flex items-center gap-1"
+                                title="Open Document"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" /> Open PDF
+                              </a>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ) : (
