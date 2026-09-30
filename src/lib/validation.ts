@@ -25,10 +25,10 @@ const ALLOWED_EXTENSIONS = new Set(['pdf', 'doc', 'docx']);
 export function validateUploadedFile(file: File | null): { valid: boolean; error?: string } {
   if (!file) return { valid: true }; // File is optional unless required
 
-  // 1. Size Validation (Max 15MB)
-  const MAX_SIZE_BYTES = 15 * 1024 * 1024;
+  // 1. Size Validation (Max 10MB)
+  const MAX_SIZE_BYTES = 10 * 1024 * 1024;
   if (file.size > MAX_SIZE_BYTES) {
-    return { valid: false, error: 'File size exceeds maximum limit of 15MB' };
+    return { valid: false, error: 'File size exceeds the maximum limit of 10 MB. Please select a smaller manuscript file.' };
   }
 
   // 2. Extension Validation
