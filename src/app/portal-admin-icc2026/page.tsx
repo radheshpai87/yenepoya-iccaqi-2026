@@ -37,10 +37,10 @@ import {
   Home,
   Award,
   BarChart3,
-  Settings,
   MoreVertical,
   Download,
-  Filter
+  Filter,
+  GripVertical
 } from 'lucide-react';
 
 interface Registration {
@@ -89,9 +89,13 @@ export default function PortalAdminPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // Selected Item Modals
+  // Selected Item for Side-by-Side Split View
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+
+  // Resizable Split Pane Width State (in pixels)
+  const [splitPanelWidth, setSplitPanelWidth] = useState<number>(500);
+  const [isResizing, setIsResizing] = useState<boolean>(false);
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -105,6 +109,32 @@ export default function PortalAdminPage() {
   useEffect(() => {
     checkSession();
   }, []);
+
+  // Resizable Split Panel Drag Listener
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = window.innerWidth - e.clientX;
+      // Enforce bounds so both left admin page and right details panel stay visible & readable
+      if (newWidth >= 320 && newWidth <= window.innerWidth - 450) {
+        setSplitPanelWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -205,7 +235,6 @@ export default function PortalAdminPage() {
       )
       .subscribe();
 
-    // Re-sync snapshot when tab becomes visible after backgrounding or switching windows
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchDashboardData();
@@ -368,7 +397,6 @@ export default function PortalAdminPage() {
     document.body.removeChild(link);
   };
 
-  // Helper to extract initials for avatar badge
   const getInitials = (name: string) => {
     if (!name) return 'A';
     const parts = name.trim().split(' ');
@@ -378,7 +406,6 @@ export default function PortalAdminPage() {
     return name.slice(0, 2).toUpperCase();
   };
 
-  // Filtered registrations
   const filteredRegistrations = registrations.filter((reg) => {
     const matchesSearch =
       reg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -392,7 +419,6 @@ export default function PortalAdminPage() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  // Filtered submissions
   const filteredSubmissions = submissions.filter((sub) => {
     const matchesSearch =
       sub.authorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -420,12 +446,11 @@ export default function PortalAdminPage() {
     );
   };
 
-  // Render Login Modal if not authenticated
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-[#f4f7fc] flex items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500 font-semibold text-sm">
-          <RefreshCw className="w-5 h-5 animate-spin text-[#1e5bb8]" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex items-center gap-3 text-slate-600 font-semibold text-sm">
+          <RefreshCw className="w-5 h-5 animate-spin text-[#7cb305]" />
           <span>Verifying Administrator Access...</span>
         </div>
       </div>
@@ -434,16 +459,16 @@ export default function PortalAdminPage() {
 
   if (isAuthenticated === false) {
     return (
-      <div className="min-h-screen bg-[#f4f7fc] flex items-center justify-center p-4 font-sans">
-        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-slate-200/90 text-center space-y-6">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-slate-200 text-center space-y-6">
           <div className="flex justify-center">
-            <div className="p-3.5 rounded-2xl bg-[#1e5bb8]/10 text-[#1e5bb8] border border-[#1e5bb8]/20">
+            <div className="p-3.5 rounded-2xl bg-[#7cb305]/10 text-[#7cb305] border border-[#7cb305]/20">
               <ShieldCheck className="w-8 h-8" />
             </div>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#1e5bb8]">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#7cb305]">
               Yenepoya ICCAQI 2026
             </span>
             <h2 className="text-2xl font-extrabold text-slate-900">
@@ -476,7 +501,7 @@ export default function PortalAdminPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter access password..."
-                  className="w-full pl-10 pr-10 py-3 bg-slate-50 rounded-2xl border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#1e5bb8] focus:bg-white transition-all"
+                  className="w-full pl-10 pr-10 py-3 bg-slate-50 rounded-2xl border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white transition-all"
                 />
                 <button
                   type="button"
@@ -491,7 +516,7 @@ export default function PortalAdminPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 px-4 rounded-2xl text-sm font-bold bg-[#1e5bb8] hover:bg-[#164996] text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 px-4 rounded-2xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
@@ -511,856 +536,872 @@ export default function PortalAdminPage() {
     );
   }
 
+  const isSplitOpen = (activeTab === 'registrations' && selectedRegistration !== null) || (activeTab === 'submissions' && selectedSubmission !== null);
+
   return (
-    <div className="min-h-screen bg-[#f4f7fc] text-slate-900 font-sans flex">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex overflow-x-hidden">
       
       {/* ========================================================= */}
-      {/* 1. MOUSE-ACTIVATED HOVER COLLAPSIBLE SIDEBAR (LEFT)       */}
+      {/* 1. SOLID CLEAN SIDEBAR WITH YENEPOYA OFFICIAL LOGO AT TOP  */}
       {/* ========================================================= */}
-      <aside className="fixed left-0 top-0 bottom-0 z-50 w-16 hover:w-60 bg-[#1e5bb8] text-white transition-all duration-300 ease-in-out flex flex-col justify-between shadow-2xl group overflow-hidden">
-        {/* Top Logo Badge */}
+      <aside className="w-64 bg-white border-r border-slate-200/90 flex flex-col justify-between shrink-0 min-h-screen sticky top-0 h-screen z-40 shadow-xs">
         <div>
-          <div className="h-16 px-4 flex items-center gap-3 border-b border-white/10 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-white text-[#1e5bb8] flex items-center justify-center font-extrabold text-sm shrink-0 shadow-sm">
-              Y
+          {/* Top Logo & Brand Info with Official Yenepoya Logo */}
+          <div className="h-20 px-5 flex items-center gap-3 border-b border-slate-100">
+            <img
+              src="/yenepoya-university-logonew3.svg"
+              alt="Yenepoya (Deemed to be University)"
+              className="h-9 w-auto object-contain shrink-0"
+            />
+            <div className="overflow-hidden border-l border-slate-200 pl-3">
+              <span className="font-extrabold text-xs tracking-tight text-slate-900 block leading-tight">
+                ICCAQI 2026
+              </span>
+              <span className="text-[9px] font-bold tracking-widest text-[#7cb305] uppercase block font-mono">
+                Admin Portal
+              </span>
             </div>
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-              <span className="font-extrabold text-sm tracking-wide block">ICCAQI 2026</span>
-              <span className="text-[10px] text-blue-200 block font-mono">YENEPOYA PORTAL</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-blue-200 opacity-0 group-hover:opacity-100 ml-auto transition-opacity shrink-0" />
           </div>
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1.5 mt-2">
+          {/* Navigation Items (Capsule Pill active state) */}
+          <nav className="p-4 space-y-2">
             <button
-              onClick={() => setActiveTab('registrations')}
-              className={`w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              onClick={() => {
+                setActiveTab('registrations');
+                setSelectedRegistration(null);
+                setSelectedSubmission(null);
+              }}
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'registrations'
-                  ? 'bg-white/20 text-white shadow-sm ring-1 ring-white/30'
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                  ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <Users className="w-5 h-5 shrink-0" />
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-                Delegate Registrations
-              </span>
+              <Home className="w-4.5 h-4.5 shrink-0" />
+              <span>Delegate Registrations</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('submissions')}
-              className={`w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              onClick={() => {
+                setActiveTab('submissions');
+                setSelectedRegistration(null);
+                setSelectedSubmission(null);
+              }}
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'submissions'
-                  ? 'bg-white/20 text-white shadow-sm ring-1 ring-white/30'
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                  ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <FileText className="w-5 h-5 shrink-0" />
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-                Paper Submissions
-              </span>
+              <FileText className="w-4.5 h-4.5 shrink-0" />
+              <span>Paper Submissions</span>
             </button>
 
-            <div className="h-[1px] bg-white/10 my-2" />
+            <div className="h-[1px] bg-slate-100 my-3" />
 
             <button
               onClick={() => {
                 setActiveTab('registrations');
                 setRegStatusFilter('Verified');
               }}
-              className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
             >
-              <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-300" />
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-                Verified Payments
-              </span>
+              <CheckCircle2 className="w-4.5 h-4.5 shrink-0 text-emerald-600" />
+              <span>Verified Payments</span>
             </button>
 
             <button
               onClick={exportRegistrationsCSV}
-              className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
             >
-              <FileSpreadsheet className="w-5 h-5 shrink-0 text-amber-300" />
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-                Export Reports (CSV)
-              </span>
-            </button>
-
-            <button
-              onClick={() => alert('Yenepoya ICCAQI 2026 Admin System — Live Supabase Connected')}
-              className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
-            >
-              <Settings className="w-5 h-5 shrink-0 text-blue-200" />
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-                Portal Settings
-              </span>
+              <FileSpreadsheet className="w-4.5 h-4.5 shrink-0 text-amber-600" />
+              <span>Export CSV Reports</span>
             </button>
           </nav>
         </div>
 
-        {/* Sidebar Bottom Profile & Logout */}
-        <div className="p-3 border-t border-white/10">
+        {/* User Profile Card & Log Out at Bottom */}
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
+          <div className="flex items-center gap-3 p-2 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+            <div className="w-9 h-9 rounded-xl bg-[#7cb305]/10 text-[#7cb305] font-bold text-sm flex items-center justify-center shrink-0 border border-[#7cb305]/20">
+              A
+            </div>
+            <div className="overflow-hidden text-left flex-1">
+              <div className="font-extrabold text-xs text-slate-900 truncate">Admin User</div>
+              <div className="text-[10px] font-medium text-slate-500">Administrator</div>
+            </div>
+          </div>
+
           <button
             onClick={handleLogout}
-            title="Logout Session"
-            className="w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-bold text-rose-200 hover:bg-rose-500/20 hover:text-white transition-all cursor-pointer"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
           >
-            <LogOut className="w-5 h-5 shrink-0" />
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
-              Logout Admin
-            </span>
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span>Log out</span>
           </button>
         </div>
       </aside>
 
       {/* ========================================================= */}
-      {/* 2. MAIN BODY CONTENT AREA (WITH PL-16 FOR COLLAPSED SIDEBAR) */}
+      {/* 2. SPLIT LAYOUT: MAIN ADMIN PAGE (LEFT) + DETAILS (RIGHT)  */}
       {/* ========================================================= */}
-      <div className="flex-1 pl-16 min-w-0">
+      <div className="flex-1 flex flex-row min-h-screen min-w-0 overflow-hidden">
         
-        {/* TOP HEADER BAR */}
-        <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-              {activeTab === 'registrations' ? 'Delegate Registrations' : 'Paper Submissions'}
-            </h1>
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Realtime Live</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Search Box */}
-            <div className="relative w-48 sm:w-64">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search name, email, institution..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#1e5bb8] focus:bg-white transition-all"
-              />
-            </div>
-
-            {/* Refresh Button */}
-            <button
-              onClick={fetchDashboardData}
-              title="Refresh Live Data"
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin' : ''}`} />
-            </button>
-
-            {/* Admin Profile Chip */}
-            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-[#1e5bb8] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                A
-              </div>
-              <div className="hidden md:block text-left text-xs">
-                <span className="font-extrabold text-slate-900 block leading-tight">Admin</span>
-                <span className="text-[10px] text-slate-400 block font-medium">Administrator</span>
+        {/* LEFT PANEL: MAIN ADMIN PAGE CONTENT (HEADER, STATS, TABLE) */}
+        <div className="flex-1 min-w-0 flex flex-col min-h-screen overflow-y-auto">
+          
+          {/* TOP HEADER BAR */}
+          <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                {activeTab === 'registrations' ? 'Delegate Registrations' : 'Paper Submissions'}
+              </h1>
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Realtime Live</span>
               </div>
             </div>
-          </div>
-        </header>
 
-        {/* MAIN BODY DASHBOARD */}
-        <main className="p-6 space-y-6">
-
-          {/* ========================================================= */}
-          {/* 3. STAGE / CATEGORY CARDS CAROUSEL (TOP STAGE TILES)       */}
-          {/* ========================================================= */}
-          <div className="relative">
-            <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
-              
-              {/* Card 1: Delegate Registrations */}
-              <div
-                onClick={() => setActiveTab('registrations')}
-                className={`min-w-[210px] flex-1 p-4 rounded-2xl border transition-all cursor-pointer ${
-                  activeTab === 'registrations'
-                    ? 'bg-[#eef4ff] border-2 border-[#1e5bb8] shadow-md'
-                    : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="p-2.5 rounded-xl bg-purple-100 text-purple-600">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
-                    {totalRegistrations} Total
-                  </span>
-                </div>
-                <div className="font-extrabold text-sm text-slate-900">Delegate Registrations</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">Participants : {totalRegistrations}</div>
+            <div className="flex items-center gap-3">
+              {/* Search Box */}
+              <div className="relative w-48 sm:w-64">
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search name, email, institution..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white transition-all"
+                />
               </div>
 
-              {/* Card 2: Paper Submissions */}
-              <div
-                onClick={() => setActiveTab('submissions')}
-                className={`min-w-[210px] flex-1 p-4 rounded-2xl border transition-all cursor-pointer ${
-                  activeTab === 'submissions'
-                    ? 'bg-[#eef4ff] border-2 border-[#1e5bb8] shadow-md'
-                    : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="p-2.5 rounded-xl bg-sky-100 text-sky-600">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-extrabold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">
-                    {totalSubmissions} Papers
-                  </span>
-                </div>
-                <div className="font-extrabold text-sm text-slate-900">Paper Submissions</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">Manuscripts : {totalSubmissions}</div>
-              </div>
-
-              {/* Card 3: Verified Payments */}
-              <div
-                onClick={() => {
-                  setActiveTab('registrations');
-                  setRegStatusFilter('Verified');
-                }}
-                className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-emerald-300 shadow-xs transition-all cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    Verified
-                  </span>
-                </div>
-                <div className="font-extrabold text-sm text-slate-900">Verified Payments</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">Issued Receipts : {verifiedCount}</div>
-              </div>
-
-              {/* Card 4: Pending Verification */}
-              <div
-                onClick={() => {
-                  setActiveTab('registrations');
-                  setRegStatusFilter('Pending');
-                }}
-                className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-300 shadow-xs transition-all cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-                    Pending
-                  </span>
-                </div>
-                <div className="font-extrabold text-sm text-slate-900">Pending Actions</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">Awaiting : {pendingCount}</div>
-              </div>
-
-              {/* Card 5: Technical Tracks */}
-              <div className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
-                    <Layers className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
-                    8 Tracks
-                  </span>
-                </div>
-                <div className="font-extrabold text-sm text-slate-900">Conference Tracks</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">Active Track Domains</div>
-              </div>
-
-            </div>
-          </div>
-
-          {/* ========================================================= */}
-          {/* 4. TITLE & FILTER CONTROLS BAR                            */}
-          {/* ========================================================= */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-            <div>
-              <h2 className="text-lg font-extrabold text-slate-900">
-                {activeTab === 'registrations' ? 'All Delegates' : 'All Manuscripts'}
-              </h2>
-            </div>
-
-            {/* Filter Dropdowns */}
-            <div className="flex flex-wrap items-center gap-3">
-              {activeTab === 'registrations' ? (
-                <>
-                  <select
-                    value={regCategoryFilter}
-                    onChange={(e) => setRegCategoryFilter(e.target.value)}
-                    className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#1e5bb8] shadow-xs"
-                  >
-                    <option value="All">All Participant Categories</option>
-                    <option value="Students (UG / PG)">Students (UG / PG)</option>
-                    <option value="Research scholars / Academicians">Research Scholars / Academicians</option>
-                    <option value="Industry Delegates">Industry Delegates</option>
-                    <option value="Participants only">Participants Only</option>
-                  </select>
-
-                  <select
-                    value={regStatusFilter}
-                    onChange={(e) => setRegStatusFilter(e.target.value)}
-                    className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#1e5bb8] shadow-xs"
-                  >
-                    <option value="All">All Payment Statuses</option>
-                    <option value="Verified">Verified Only</option>
-                    <option value="Pending">Pending Only</option>
-                  </select>
-
-                  <button
-                    onClick={exportRegistrationsCSV}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <FileSpreadsheet className="w-3.5 h-3.5" />
-                    <span>Export CSV</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <select
-                    value={subTrackFilter}
-                    onChange={(e) => setSubTrackFilter(e.target.value)}
-                    className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#1e5bb8] shadow-xs"
-                  >
-                    <option value="All">All Conference Tracks</option>
-                    <option value="Artificial Intelligence and Machine Learning">AI &amp; Machine Learning</option>
-                    <option value="Quantum Computing and Quantum Intelligence">Quantum Computing</option>
-                    <option value="Cyber-Physical Systems and IoT">IoT &amp; Cyber-Physical Systems</option>
-                  </select>
-
-                  <select
-                    value={subStatusFilter}
-                    onChange={(e) => setSubStatusFilter(e.target.value)}
-                    className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#1e5bb8] shadow-xs"
-                  >
-                    <option value="All">All Review Statuses</option>
-                    <option value="Submitted">Submitted</option>
-                    <option value="Under Review">Under Review</option>
-                    <option value="Accepted">Accepted</option>
-                    <option value="Rejected">Rejected</option>
-                  </select>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* ========================================================= */}
-          {/* 5. DATA TABLE SECTION (MATCHING REFERENCE UI)             */}
-          {/* ========================================================= */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              {activeTab === 'registrations' ? (
-                /* REGISTRATIONS TABLE */
-                <table className="w-full text-left text-xs text-slate-700">
-                  <thead className="bg-[#dbe7f6] text-[#1e5bb8] uppercase tracking-wider text-[11px] font-extrabold border-b border-blue-200">
-                    <tr>
-                      <th className="py-3.5 px-4">Delegate Name</th>
-                      <th className="py-3.5 px-4">Category &amp; Mode</th>
-                      <th className="py-3.5 px-4">Fee &amp; Currency</th>
-                      <th className="py-3.5 px-4">Paper ID</th>
-                      <th className="py-3.5 px-4">Status</th>
-                      <th className="py-3.5 px-4">Recent Activity</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredRegistrations.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="py-12 text-center text-slate-400">
-                          No registration records match your filter criteria.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredRegistrations.slice(0, itemsPerPage).map((reg) => (
-                        <tr
-                          key={reg.id}
-                          onClick={() => setSelectedRegistration(reg)}
-                          className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                        >
-                          {/* Name + Initial Avatar */}
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#1e5bb8]/10 text-[#1e5bb8] font-bold text-xs flex items-center justify-center shrink-0">
-                                {getInitials(reg.name)}
-                              </div>
-                              <div className="space-y-0.5 overflow-hidden">
-                                <div className="font-bold text-slate-900 text-xs group-hover:text-[#1e5bb8] transition-colors truncate max-w-[200px]">
-                                  {reg.name}
-                                </div>
-                                <div className="text-[11px] text-slate-500 truncate max-w-[200px]">
-                                  {reg.email}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Category & Mode */}
-                          <td className="py-3.5 px-4 space-y-0.5">
-                            <div className="font-semibold text-slate-800">{reg.category}</div>
-                            <div className="text-[11px] text-slate-500">{reg.mode}</div>
-                          </td>
-
-                          {/* Fee */}
-                          <td className="py-3.5 px-4 font-mono font-bold text-[#1e5bb8]">
-                            {reg.amount} ({reg.currency})
-                          </td>
-
-                          {/* Paper ID */}
-                          <td className="py-3.5 px-4 font-mono text-slate-500">
-                            {reg.paperId ? (
-                              <span className="font-bold text-[#1e5bb8] bg-[#1e5bb8]/10 px-2 py-0.5 rounded border border-[#1e5bb8]/20">
-                                {reg.paperId}
-                              </span>
-                            ) : (
-                              <span className="text-slate-300">—</span>
-                            )}
-                          </td>
-
-                          {/* Status Pill Badge */}
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                                reg.paymentStatus === 'Verified'
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
-                              }`}
-                            >
-                              {reg.paymentStatus === 'Verified' ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
-                              ) : (
-                                <Clock className="w-3 h-3 text-amber-600" />
-                              )}
-                              {reg.paymentStatus}
-                            </span>
-                          </td>
-
-                          {/* Date */}
-                          <td className="py-3.5 px-4 text-[11px] text-slate-500 font-mono">
-                            {new Date(reg.createdAt).toLocaleDateString('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
-                          </td>
-
-                          {/* Actions */}
-                          <td className="py-3.5 px-4 text-right">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedRegistration(reg);
-                              }}
-                              className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-[#1e5bb8] hover:text-white text-slate-700 text-[11px] font-bold transition-all border border-slate-200"
-                            >
-                              Details
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              ) : (
-                /* PAPER SUBMISSIONS TABLE */
-                <table className="w-full text-left text-xs text-slate-700">
-                  <thead className="bg-[#dbe7f6] text-[#1e5bb8] uppercase tracking-wider text-[11px] font-extrabold border-b border-blue-200">
-                    <tr>
-                      <th className="py-3.5 px-4">Author &amp; Paper Title</th>
-                      <th className="py-3.5 px-4">Submission ID</th>
-                      <th className="py-3.5 px-4">Track Domain</th>
-                      <th className="py-3.5 px-4">Review Status</th>
-                      <th className="py-3.5 px-4">Submitted Date</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredSubmissions.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="py-12 text-center text-slate-400">
-                          No manuscript submissions match your filter criteria.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredSubmissions.slice(0, itemsPerPage).map((sub) => (
-                        <tr
-                          key={sub.id}
-                          onClick={() => setSelectedSubmission(sub)}
-                          className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                        >
-                          {/* Title & Author */}
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center shrink-0">
-                                {getInitials(sub.authorName)}
-                              </div>
-                              <div className="space-y-0.5 overflow-hidden">
-                                <div className="font-bold text-slate-900 text-xs group-hover:text-[#1e5bb8] transition-colors truncate max-w-[280px]">
-                                  {sub.paperTitle}
-                                </div>
-                                <div className="text-[11px] text-slate-500 truncate max-w-[280px]">
-                                  {sub.authorName} • {sub.institution}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Submission ID */}
-                          <td className="py-3.5 px-4 font-mono font-bold text-[#1e5bb8]">
-                            {sub.submissionId}
-                          </td>
-
-                          {/* Track */}
-                          <td className="py-3.5 px-4 text-slate-600 truncate max-w-[180px]">
-                            {sub.track}
-                          </td>
-
-                          {/* Status */}
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                                sub.reviewStatus === 'Accepted'
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : sub.reviewStatus === 'Rejected'
-                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                  : 'bg-sky-50 text-sky-700 border border-sky-200'
-                              }`}
-                            >
-                              {sub.reviewStatus}
-                            </span>
-                          </td>
-
-                          {/* Date */}
-                          <td className="py-3.5 px-4 text-[11px] text-slate-500 font-mono">
-                            {new Date(sub.createdAt).toLocaleDateString('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
-                          </td>
-
-                          {/* Actions */}
-                          <td className="py-3.5 px-4 text-right space-x-2">
-                            <a
-                              href={sub.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 border border-emerald-200 text-[11px] font-bold transition-all inline-flex items-center gap-1"
-                            >
-                              <ExternalLink className="w-3 h-3" /> PDF
-                            </a>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedSubmission(sub);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-[#1e5bb8] hover:text-white text-slate-700 text-[11px] font-bold transition-all border border-slate-200"
-                            >
-                              View
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* ========================================================= */}
-            {/* 6. PAGINATION & ROWS CONTROL BAR                           */}
-            {/* ========================================================= */}
-            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500 font-medium">
-              <div className="flex items-center gap-2">
-                <span>Show rows:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-hidden"
-                >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span>
-                  1-{activeTab === 'registrations' ? Math.min(itemsPerPage, filteredRegistrations.length) : Math.min(itemsPerPage, filteredSubmissions.length)} of {activeTab === 'registrations' ? filteredRegistrations.length : filteredSubmissions.length}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="px-2.5 py-1 rounded-lg bg-[#1e5bb8] text-white font-bold text-xs">
-                    1
-                  </span>
-                  <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </main>
-      </div>
-
-      {/* ========================================================= */}
-      {/* 7. DELEGATE REGISTRATION DETAILS MODAL                     */}
-      {/* ========================================================= */}
-      {selectedRegistration && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
-            onClick={() => setSelectedRegistration(null)}
-          />
-
-          <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full z-10 border border-slate-200/90 ring-1 ring-slate-900/5 my-8 overflow-hidden text-left">
-            <div className="h-2 w-full bg-gradient-to-r from-[#1e5bb8] via-emerald-500 to-sky-500" />
-
-            <div className="p-6 sm:p-8 space-y-6">
+              {/* Refresh Button */}
               <button
-                onClick={() => setSelectedRegistration(null)}
-                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                aria-label="Close Modal"
+                onClick={fetchDashboardData}
+                title="Refresh Live Data"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin' : ''}`} />
               </button>
+            </div>
+          </header>
 
-              <div className="space-y-1.5 pr-8">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-800 font-mono text-xs font-bold border border-sky-200">
-                    {selectedRegistration.id}
-                  </span>
-                  <span className="text-xs text-slate-400">Registered on {new Date(selectedRegistration.createdAt).toLocaleString()}</span>
-                </div>
-                <h3 className="text-2xl font-extrabold text-slate-900">{selectedRegistration.name}</h3>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e5bb8]/10 text-[#1e5bb8] border border-[#1e5bb8]/20 text-xs font-bold">
-                  <Tag className="w-3.5 h-3.5" />
-                  <span>{selectedRegistration.category}</span>
-                </div>
-              </div>
+          {/* MAIN BODY DASHBOARD */}
+          <main className="p-6 space-y-6 flex-1">
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 text-xs">
-                <div className="space-y-0.5">
-                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-sky-600" /> Registered Email Address
-                  </span>
-                  <div className="font-bold text-slate-900">{selectedRegistration.email}</div>
-                </div>
-
-                <div className="space-y-0.5">
-                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-emerald-600" /> Phone Number
-                  </span>
-                  <div className="font-bold text-slate-900">{selectedRegistration.phone || 'Not Provided'}</div>
-                </div>
-
-                <div className="space-y-0.5 sm:col-span-2 pt-2 border-t border-slate-200/60">
-                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University / Organization
-                  </span>
-                  <div className="font-bold text-slate-900">{selectedRegistration.institution}</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-sky-50/30 border border-sky-100 text-xs">
-                <div>
-                  <span className="text-slate-500 font-medium">Participation Mode:</span>
-                  <div className="font-bold text-slate-900 mt-0.5">{selectedRegistration.mode}</div>
-                </div>
-
-                <div>
-                  <span className="text-slate-500 font-medium">Payable Amount &amp; Currency:</span>
-                  <div className="font-extrabold text-[#1e5bb8] text-base mt-0.5">
-                    {selectedRegistration.amount} ({selectedRegistration.currency})
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4.5 rounded-2xl bg-white border border-slate-200 space-y-3 ring-1 ring-slate-900/5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-[#1e5bb8]" /> Associated Manuscript / Research Paper
-                  </span>
-                  {selectedRegistration.paperId && (
-                    <span className="font-mono text-xs font-bold text-[#1e5bb8] bg-[#1e5bb8]/10 px-2.5 py-0.5 rounded-md border border-[#1e5bb8]/20">
-                      {selectedRegistration.paperId}
-                    </span>
-                  )}
-                </div>
-
-                {selectedRegistration.paperId ? (
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-slate-900">
-                        {getAssociatedSubmission(selectedRegistration.paperId)?.paperTitle || 'Manuscript Document Available'}
-                      </div>
-                      <div className="text-[11px] text-slate-500">
-                        Track: {getAssociatedSubmission(selectedRegistration.paperId)?.track || 'Conference Technical Track'}
-                      </div>
+            {/* STAGE / CATEGORY CARDS CAROUSEL */}
+            <div className="relative">
+              <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
+                
+                {/* Card 1: Delegate Registrations */}
+                <div
+                  onClick={() => setActiveTab('registrations')}
+                  className={`min-w-[210px] flex-1 p-4 rounded-2xl border transition-all cursor-pointer ${
+                    activeTab === 'registrations'
+                      ? 'bg-lime-50/60 border-2 border-[#7cb305] shadow-md'
+                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 rounded-xl bg-lime-100 text-[#7cb305]">
+                      <Users className="w-5 h-5" />
                     </div>
+                    <span className="text-[10px] font-extrabold text-[#7cb305] bg-lime-50 px-2 py-0.5 rounded-full border border-lime-200">
+                      {totalRegistrations} Total
+                    </span>
+                  </div>
+                  <div className="font-extrabold text-sm text-slate-900">Delegate Registrations</div>
+                  <div className="text-xs text-slate-500 font-medium mt-0.5">Participants : {totalRegistrations}</div>
+                </div>
 
-                    <a
-                      href={getAssociatedSubmission(selectedRegistration.paperId)?.fileUrl || '/sample-manuscript.pdf'}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1e5bb8] hover:bg-[#164996] text-white text-xs font-bold transition-all shadow-xs shrink-0"
+                {/* Card 2: Paper Submissions */}
+                <div
+                  onClick={() => setActiveTab('submissions')}
+                  className={`min-w-[210px] flex-1 p-4 rounded-2xl border transition-all cursor-pointer ${
+                    activeTab === 'submissions'
+                      ? 'bg-lime-50/60 border-2 border-[#7cb305] shadow-md'
+                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 rounded-xl bg-sky-100 text-sky-600">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+                      {totalSubmissions} Papers
+                    </span>
+                  </div>
+                  <div className="font-extrabold text-sm text-slate-900">Paper Submissions</div>
+                  <div className="text-xs text-slate-500 font-medium mt-0.5">Manuscripts : {totalSubmissions}</div>
+                </div>
+
+                {/* Card 3: Verified Payments */}
+                <div
+                  onClick={() => {
+                    setActiveTab('registrations');
+                    setRegStatusFilter('Verified');
+                  }}
+                  className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 shadow-xs transition-all cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-600">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      Verified
+                    </span>
+                  </div>
+                  <div className="font-extrabold text-sm text-slate-900">Verified Payments</div>
+                  <div className="text-xs text-slate-500 font-medium mt-0.5">Issued Receipts : {verifiedCount}</div>
+                </div>
+
+                {/* Card 4: Pending Verification */}
+                <div
+                  onClick={() => {
+                    setActiveTab('registrations');
+                    setRegStatusFilter('Pending');
+                  }}
+                  className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 shadow-xs transition-all cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                      Pending
+                    </span>
+                  </div>
+                  <div className="font-extrabold text-sm text-slate-900">Pending Actions</div>
+                  <div className="text-xs text-slate-500 font-medium mt-0.5">Awaiting : {pendingCount}</div>
+                </div>
+
+                {/* Card 5: Technical Tracks */}
+                <div className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
+                      <Layers className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                      8 Tracks
+                    </span>
+                  </div>
+                  <div className="font-extrabold text-sm text-slate-900">Conference Tracks</div>
+                  <div className="text-xs text-slate-500 font-medium mt-0.5">Active Track Domains</div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* TITLE & FILTER CONTROLS BAR */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-900">
+                  {activeTab === 'registrations' ? 'All Delegates' : 'All Manuscripts'}
+                </h2>
+              </div>
+
+              {/* Filter Dropdowns */}
+              <div className="flex flex-wrap items-center gap-3">
+                {activeTab === 'registrations' ? (
+                  <>
+                    <select
+                      value={regCategoryFilter}
+                      onChange={(e) => setRegCategoryFilter(e.target.value)}
+                      className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Open &amp; Review PDF Document</span>
-                    </a>
-                  </div>
+                      <option value="All">All Participant Categories</option>
+                      <option value="Students (UG / PG)">Students (UG / PG)</option>
+                      <option value="Research scholars / Academicians">Research Scholars / Academicians</option>
+                      <option value="Industry Delegates">Industry Delegates</option>
+                      <option value="Participants only">Participants Only</option>
+                    </select>
+
+                    <select
+                      value={regStatusFilter}
+                      onChange={(e) => setRegStatusFilter(e.target.value)}
+                      className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                    >
+                      <option value="All">All Payment Statuses</option>
+                      <option value="Verified">Verified Only</option>
+                      <option value="Pending">Pending Only</option>
+                    </select>
+
+                    <button
+                      onClick={exportRegistrationsCSV}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                      <span>Export CSV</span>
+                    </button>
+                  </>
                 ) : (
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center italic">
-                    No Paper ID attached. Registered as Listener / Non-Author Delegate.
-                  </div>
+                  <>
+                    <select
+                      value={subTrackFilter}
+                      onChange={(e) => setSubTrackFilter(e.target.value)}
+                      className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                    >
+                      <option value="All">All Conference Tracks</option>
+                      <option value="Artificial Intelligence and Machine Learning">AI &amp; Machine Learning</option>
+                      <option value="Quantum Computing and Quantum Intelligence">Quantum Computing</option>
+                      <option value="Cyber-Physical Systems and IoT">IoT &amp; Cyber-Physical Systems</option>
+                    </select>
+
+                    <select
+                      value={subStatusFilter}
+                      onChange={(e) => setSubStatusFilter(e.target.value)}
+                      className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                    >
+                      <option value="All">All Review Statuses</option>
+                      <option value="Submitted">Submitted</option>
+                      <option value="Under Review">Under Review</option>
+                      <option value="Accepted">Accepted</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* DATA TABLE */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div className="overflow-x-auto">
+                {activeTab === 'registrations' ? (
+                  /* REGISTRATIONS TABLE */
+                  <table className="w-full text-left text-xs text-slate-700">
+                    <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
+                      <tr>
+                        <th className="py-3.5 px-4">Delegate Name</th>
+                        <th className="py-3.5 px-4">Category &amp; Mode</th>
+                        <th className="py-3.5 px-4">Fee &amp; Currency</th>
+                        <th className="py-3.5 px-4">Paper ID</th>
+                        <th className="py-3.5 px-4">Status</th>
+                        <th className="py-3.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredRegistrations.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-12 text-center text-slate-400">
+                            No registration records match your filter criteria.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredRegistrations.slice(0, itemsPerPage).map((reg) => {
+                          const isSelected = selectedRegistration?.id === reg.id;
+                          return (
+                            <tr
+                              key={reg.id}
+                              onClick={() => setSelectedRegistration(reg)}
+                              className={`transition-all cursor-pointer group ${
+                                isSelected
+                                  ? 'bg-lime-50/90 border-l-4 border-[#7cb305]'
+                                  : 'hover:bg-slate-50/80'
+                              }`}
+                            >
+                              {/* Name + Initial Avatar */}
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 border ${
+                                    isSelected
+                                      ? 'bg-[#7cb305] text-white border-[#7cb305]'
+                                      : 'bg-[#7cb305]/10 text-[#7cb305] border-[#7cb305]/20'
+                                  }`}>
+                                    {getInitials(reg.name)}
+                                  </div>
+                                  <div className="space-y-0.5 overflow-hidden">
+                                    <div className="font-bold text-slate-900 text-xs group-hover:text-[#7cb305] transition-colors truncate max-w-[200px]">
+                                      {reg.name}
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 truncate max-w-[200px]">
+                                      {reg.email}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Category & Mode */}
+                              <td className="py-3.5 px-4 space-y-0.5">
+                                <div className="font-semibold text-slate-800 truncate max-w-[150px]">{reg.category}</div>
+                                <div className="text-[11px] text-slate-500">{reg.mode}</div>
+                              </td>
+
+                              {/* Fee */}
+                              <td className="py-3.5 px-4 font-mono font-bold text-sky-700">
+                                {reg.amount} ({reg.currency})
+                              </td>
+
+                              {/* Paper ID */}
+                              <td className="py-3.5 px-4 font-mono text-slate-500">
+                                {reg.paperId ? (
+                                  <span className="font-bold text-[#7cb305] bg-[#7cb305]/10 px-2 py-0.5 rounded border border-[#7cb305]/20">
+                                    {reg.paperId}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
+                              </td>
+
+                              {/* Status Pill Badge */}
+                              <td className="py-3.5 px-4">
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                                    reg.paymentStatus === 'Verified'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  }`}
+                                >
+                                  {reg.paymentStatus === 'Verified' ? (
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                  ) : (
+                                    <Clock className="w-3 h-3 text-amber-600" />
+                                  )}
+                                  {reg.paymentStatus}
+                                </span>
+                              </td>
+
+                              {/* Actions */}
+                              <td className="py-3.5 px-4 text-right">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedRegistration(reg);
+                                  }}
+                                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all border ${
+                                    isSelected
+                                      ? 'bg-[#7cb305] text-white border-[#7cb305]'
+                                      : 'bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 border-slate-200'
+                                  }`}
+                                >
+                                  Split Details
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                ) : (
+                  /* PAPER SUBMISSIONS TABLE */
+                  <table className="w-full text-left text-xs text-slate-700">
+                    <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
+                      <tr>
+                        <th className="py-3.5 px-4">Author &amp; Paper Title</th>
+                        <th className="py-3.5 px-4">Paper ID</th>
+                        <th className="py-3.5 px-4">Track Domain</th>
+                        <th className="py-3.5 px-4">Review Status</th>
+                        <th className="py-3.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredSubmissions.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-12 text-center text-slate-400">
+                            No manuscript submissions match your filter criteria.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredSubmissions.slice(0, itemsPerPage).map((sub) => {
+                          const isSelected = selectedSubmission?.id === sub.id;
+                          return (
+                            <tr
+                              key={sub.id}
+                              onClick={() => setSelectedSubmission(sub)}
+                              className={`transition-all cursor-pointer group ${
+                                isSelected
+                                  ? 'bg-lime-50/90 border-l-4 border-[#7cb305]'
+                                  : 'hover:bg-slate-50/80'
+                              }`}
+                            >
+                              {/* Title & Author */}
+                              <td className="py-3.5 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 ${
+                                    isSelected ? 'bg-[#7cb305] text-white' : 'bg-sky-100 text-sky-700'
+                                  }`}>
+                                    {getInitials(sub.authorName)}
+                                  </div>
+                                  <div className="space-y-0.5 overflow-hidden">
+                                    <div className="font-bold text-slate-900 text-xs group-hover:text-[#7cb305] transition-colors truncate max-w-[280px]">
+                                      {sub.paperTitle}
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 truncate max-w-[280px]">
+                                      {sub.authorName} • {sub.institution}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Submission ID */}
+                              <td className="py-3.5 px-4 font-mono font-bold text-[#7cb305]">
+                                {sub.submissionId}
+                              </td>
+
+                              {/* Track */}
+                              <td className="py-3.5 px-4 text-slate-600 truncate max-w-[180px]">
+                                {sub.track}
+                              </td>
+
+                              {/* Status */}
+                              <td className="py-3.5 px-4">
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                                    sub.reviewStatus === 'Accepted'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : sub.reviewStatus === 'Rejected'
+                                      ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                      : 'bg-sky-50 text-sky-700 border border-sky-200'
+                                  }`}
+                                >
+                                  {sub.reviewStatus}
+                                </span>
+                              </td>
+
+                              {/* Actions */}
+                              <td className="py-3.5 px-4 text-right">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedSubmission(sub);
+                                  }}
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border ${
+                                    isSelected
+                                      ? 'bg-[#7cb305] text-white border-[#7cb305]'
+                                      : 'bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 border-slate-200'
+                                  }`}
+                                >
+                                  Split Details
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
                 )}
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-left">
-                <span className="text-xs font-bold text-slate-700 block">Update Payment Verification Status</span>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Verified')}
-                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                      selectedRegistration.paymentStatus === 'Verified'
-                        ? 'bg-emerald-700 text-white shadow-xs'
-                        : 'bg-white hover:bg-emerald-50 text-slate-700 border border-slate-300'
-                    }`}
-                  >
-                    <Check className="w-4 h-4" /> Mark Payment Verified
-                  </button>
-
-                  <button
-                    onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Pending')}
-                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                      selectedRegistration.paymentStatus === 'Pending'
-                        ? 'bg-amber-600 text-white shadow-xs'
-                        : 'bg-white hover:bg-amber-50 text-slate-700 border border-slate-300'
-                    }`}
-                  >
-                    <Clock className="w-4 h-4" /> Set Pending
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-2 text-right">
-                <button
-                  onClick={() => setSelectedRegistration(null)}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#1e5bb8] hover:bg-[#164996] text-white cursor-pointer shadow-xs"
-                >
-                  Close Window
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* 8. PAPER SUBMISSION DETAILS MODAL                          */}
-      {/* ========================================================= */}
-      {selectedSubmission && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
-            onClick={() => setSelectedSubmission(null)}
-          />
-
-          <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full z-10 border border-slate-200/90 ring-1 ring-slate-900/5 my-8 overflow-hidden text-left">
-            <div className="h-2 w-full bg-gradient-to-r from-[#1e5bb8] via-emerald-500 to-sky-500" />
-
-            <div className="p-6 sm:p-8 space-y-6">
-              <button
-                onClick={() => setSelectedSubmission(null)}
-                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                aria-label="Close Modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="space-y-1.5 pr-8">
+              {/* PAGINATION BAR */}
+              <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500 font-medium">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-md bg-[#1e5bb8]/10 text-[#1e5bb8] font-mono text-xs font-bold border border-[#1e5bb8]/20">
-                    {selectedSubmission.submissionId}
-                  </span>
-                  <span className="text-xs text-slate-500 font-medium">{selectedSubmission.track}</span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">{selectedSubmission.paperTitle}</h3>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 text-xs">
-                <div className="space-y-0.5">
-                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-[#1e5bb8]" /> Corresponding Author
-                  </span>
-                  <div className="font-bold text-slate-900">{selectedSubmission.authorName}</div>
-                </div>
-
-                <div className="space-y-0.5">
-                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-sky-600" /> Author Email
-                  </span>
-                  <div className="font-bold text-slate-900">{selectedSubmission.email}</div>
-                </div>
-
-                <div className="space-y-0.5 sm:col-span-2 pt-2 border-t border-slate-200/60">
-                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University
-                  </span>
-                  <div className="font-bold text-slate-900">{selectedSubmission.institution}</div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="text-xs font-bold text-slate-800 block">Submitted Manuscript Abstract</span>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed max-h-48 overflow-y-auto italic">
-                  &ldquo;{selectedSubmission.abstract}&rdquo;
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <a
-                  href={selectedSubmission.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl bg-[#1e5bb8] hover:bg-[#164996] text-white text-xs font-bold transition-all shadow-xs"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>Open &amp; View Manuscript PDF</span>
-                </a>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-600 font-medium">Review Status:</span>
+                  <span>Show rows:</span>
                   <select
-                    value={selectedSubmission.reviewStatus}
-                    onChange={(e) => updateSubmissionStatus(selectedSubmission.id, e.target.value)}
-                    className="bg-white border border-slate-300 text-xs text-slate-800 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-[#1e5bb8]"
+                    value={itemsPerPage}
+                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                    className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-hidden"
                   >
-                    <option value="Submitted">Submitted</option>
-                    <option value="Under Review">Under Review</option>
-                    <option value="Accepted">Accepted</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
                   </select>
                 </div>
-              </div>
 
-              <div className="pt-2 text-right">
-                <button
-                  onClick={() => setSelectedSubmission(null)}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white cursor-pointer shadow-xs"
-                >
-                  Close Window
-                </button>
+                <div className="flex items-center gap-3">
+                  <span>
+                    1-{activeTab === 'registrations' ? Math.min(itemsPerPage, filteredRegistrations.length) : Math.min(itemsPerPage, filteredSubmissions.length)} of {activeTab === 'registrations' ? filteredRegistrations.length : filteredSubmissions.length}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="px-2.5 py-1 rounded-lg bg-[#7cb305] text-white font-bold text-xs">
+                      1
+                    </span>
+                    <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+
+          </main>
         </div>
-      )}
+
+        {/* RIGHT PANEL: RESIZABLE SPLIT DETAILS PANE (IN-LAYOUT, NOT OVERLAYING!) */}
+        {isSplitOpen && (
+          <>
+            {/* DRAGGABLE RESIZER VERTICAL DIVIDER HANDLE */}
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsResizing(true);
+              }}
+              className="w-2.5 hover:w-3.5 bg-slate-200 hover:bg-[#7cb305] cursor-col-resize h-screen sticky top-0 shrink-0 transition-colors flex items-center justify-center group z-30 select-none border-x border-slate-300/80 shadow-xs"
+              title="Click and drag horizontally to resize left admin page and right details panel"
+            >
+              <GripVertical className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
+            </div>
+
+            {/* RIGHT DETAILS PANE */}
+            <div
+              style={{ width: `${splitPanelWidth}px` }}
+              className="shrink-0 h-screen sticky top-0 bg-white border-l border-slate-200 overflow-y-auto p-6 space-y-6 shadow-xl z-20 text-left transition-all"
+            >
+              {/* REGISTRATION SPLIT DETAILS */}
+              {activeTab === 'registrations' && selectedRegistration && (
+                <div className="space-y-6">
+                  {/* Top Bar with Close button */}
+                  <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-[#7cb305] text-white font-extrabold text-base flex items-center justify-center shadow-md shrink-0">
+                        {getInitials(selectedRegistration.name)}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-extrabold text-slate-900 leading-tight">
+                          {selectedRegistration.name}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-800 font-mono text-xs font-bold border border-sky-200">
+                            {selectedRegistration.id}
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium">
+                            {selectedRegistration.category}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedRegistration(null)}
+                      className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                      title="Close Split Details"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Payment Verification Quick Action Bar */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                    <span className="text-xs font-bold text-slate-700 block">Payment Verification Status</span>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Verified')}
+                        className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                          selectedRegistration.paymentStatus === 'Verified'
+                            ? 'bg-emerald-700 text-white shadow-xs'
+                            : 'bg-white hover:bg-emerald-50 text-slate-700 border border-slate-300'
+                        }`}
+                      >
+                        <Check className="w-4 h-4" /> Mark Payment Verified
+                      </button>
+
+                      <button
+                        onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Pending')}
+                        className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                          selectedRegistration.paymentStatus === 'Pending'
+                            ? 'bg-amber-600 text-white shadow-xs'
+                            : 'bg-white hover:bg-amber-50 text-slate-700 border border-slate-300'
+                        }`}
+                      >
+                        <Clock className="w-4 h-4" /> Set Pending
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Comprehensive Info Grid */}
+                  <div className="space-y-3.5 text-xs">
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-sky-600" /> Email Address
+                        </span>
+                        <span className="font-bold text-slate-900">{selectedRegistration.email}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
+                        <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5 text-emerald-600" /> Phone Number
+                        </span>
+                        <span className="font-bold text-slate-900">{selectedRegistration.phone || 'Not Provided'}</span>
+                      </div>
+
+                      <div className="pt-2.5 border-t border-slate-200 space-y-0.5">
+                        <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                          <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University
+                        </span>
+                        <div className="font-bold text-slate-900">{selectedRegistration.institution}</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3.5 p-4 rounded-2xl bg-sky-50/40 border border-sky-100">
+                      <div>
+                        <span className="text-slate-500 font-medium">Participation Mode</span>
+                        <div className="font-bold text-slate-900 mt-0.5 text-sm">{selectedRegistration.mode}</div>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-500 font-medium">Payable Fee</span>
+                        <div className="font-extrabold text-[#7cb305] text-base mt-0.5">
+                          {selectedRegistration.amount} ({selectedRegistration.currency})
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Uploaded Document / File Card Matching Reference Image */}
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Uploaded Manuscript / Document</span>
+                    
+                    {selectedRegistration.paperId ? (
+                      <div className="p-4 rounded-2xl bg-[#edf4ff] border border-[#d0e2ff] flex items-center justify-between gap-3 text-left shadow-xs">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div className="w-10 h-10 rounded-xl bg-[#3b82f6] text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div className="space-y-0.5 overflow-hidden">
+                            <div className="text-xs font-bold text-slate-900 truncate max-w-[220px] flex items-center gap-1">
+                              <span>Paper_{selectedRegistration.paperId}.pdf</span>
+                              <span className="text-slate-600 font-semibold">• Uploaded</span>
+                            </div>
+                            <p className="text-[11px] text-slate-500 font-medium">
+                              1.45 MB • Verified Document
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="p-1 rounded-full bg-blue-100 text-[#3b82f6]">
+                            <Check className="w-4 h-4 stroke-[3]" />
+                          </div>
+                          <a
+                            href={getAssociatedSubmission(selectedRegistration.paperId)?.fileUrl || '/sample-manuscript.pdf'}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-2 rounded-xl bg-white border border-[#d0e2ff] text-[#3b82f6] hover:bg-blue-50 transition-colors shadow-2xs font-bold text-xs flex items-center gap-1"
+                            title="Open Document"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Open PDF
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center italic">
+                        No Paper ID attached. Listener / Attendee Delegate.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* SUBMISSION SPLIT DETAILS */}
+              {activeTab === 'submissions' && selectedSubmission && (
+                <div className="space-y-6">
+                  {/* Top Bar with Close button */}
+                  <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div className="space-y-1.5 overflow-hidden pr-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-md bg-[#7cb305]/10 text-[#7cb305] font-mono text-xs font-bold border border-[#7cb305]/20">
+                          {selectedSubmission.submissionId}
+                        </span>
+                        <span className="text-xs text-slate-500 font-medium truncate">{selectedSubmission.track}</span>
+                      </div>
+                      <h3 className="text-lg font-extrabold text-slate-900 leading-snug">
+                        {selectedSubmission.paperTitle}
+                      </h3>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedSubmission(null)}
+                      className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+                      title="Close Split Details"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Review Status Selector Bar */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+                    <span className="text-xs font-bold text-slate-700">Update Review Status:</span>
+                    <select
+                      value={selectedSubmission.reviewStatus}
+                      onChange={(e) => updateSubmissionStatus(selectedSubmission.id, e.target.value)}
+                      className="bg-white border border-slate-300 text-xs font-bold text-slate-800 rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                    >
+                      <option value="Submitted">Submitted</option>
+                      <option value="Under Review">Under Review</option>
+                      <option value="Accepted">Accepted</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
+                  </div>
+
+                  {/* Author Details Card */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-[#7cb305]" /> Author Name
+                      </span>
+                      <span className="font-bold text-slate-900">{selectedSubmission.authorName}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-sky-600" /> Author Email
+                      </span>
+                      <span className="font-bold text-slate-900">{selectedSubmission.email}</span>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-slate-200 space-y-0.5">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University
+                      </span>
+                      <div className="font-bold text-slate-900">{selectedSubmission.institution}</div>
+                    </div>
+                  </div>
+
+                  {/* Abstract */}
+                  <div className="space-y-1.5 text-xs">
+                    <span className="font-bold text-slate-800 block">Abstract</span>
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 italic leading-relaxed max-h-48 overflow-y-auto">
+                      &ldquo;{selectedSubmission.abstract}&rdquo;
+                    </div>
+                  </div>
+
+                  {/* Uploaded File UX Card Matching Reference Image */}
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-slate-800 block">Uploaded Manuscript File</span>
+                    <div className="p-4 rounded-2xl bg-[#edf4ff] border border-[#d0e2ff] flex items-center justify-between gap-3 text-left shadow-xs">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-10 h-10 rounded-xl bg-[#3b82f6] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-0.5 overflow-hidden">
+                          <div className="text-xs font-bold text-slate-900 truncate max-w-[220px] flex items-center gap-1">
+                            <span>Manuscript_{selectedSubmission.submissionId}.pdf</span>
+                            <span className="text-slate-600 font-semibold">• Uploaded</span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 font-medium">
+                            2.85 MB • Verified PDF Document
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="p-1 rounded-full bg-blue-100 text-[#3b82f6]">
+                          <Check className="w-4 h-4 stroke-[3]" />
+                        </div>
+                        <a
+                          href={selectedSubmission.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-2 rounded-xl bg-white border border-[#d0e2ff] text-[#3b82f6] hover:bg-blue-50 transition-colors shadow-2xs font-bold text-xs flex items-center gap-1"
+                          title="Open Manuscript PDF"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" /> Open PDF
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+      </div>
+
     </div>
   );
 }

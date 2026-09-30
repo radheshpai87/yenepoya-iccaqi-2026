@@ -6,6 +6,7 @@ import {
   Send, 
   UploadCloud, 
   CheckCircle2, 
+  Check,
   FileText, 
   AlertCircle, 
   Sparkles,
@@ -299,42 +300,36 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                 </label>
 
                 {fileName ? (
-                  /* Sleek Minimal Uploaded File UX */
-                  <div className="group relative p-3 rounded-xl bg-white border border-slate-200 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between gap-3 text-left">
+                  /* Uploaded File UX Card Matching Reference Image */
+                  <div className="p-3.5 rounded-2xl bg-[#edf4ff] border border-[#d0e2ff] flex items-center justify-between gap-3 text-left shadow-xs transition-all">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      {/* Format Badge */}
-                      <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0 ${
-                        fileName.toLowerCase().endsWith('.pdf')
-                          ? 'bg-rose-50 text-rose-600 border border-rose-200'
-                          : fileName.toLowerCase().endsWith('.docx') || fileName.toLowerCase().endsWith('.doc')
-                          ? 'bg-sky-50 text-sky-600 border border-sky-200'
-                          : fileName.toLowerCase().endsWith('.tex')
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-indigo-50 text-indigo-600 border border-indigo-200'
-                      }`}>
-                        {fileName.toLowerCase().endsWith('.tex')
-                          ? 'LATEX'
-                          : fileName.toLowerCase().endsWith('.docx') || fileName.toLowerCase().endsWith('.doc')
-                          ? 'WORD'
-                          : fileName.split('.').pop()?.toUpperCase() || 'FILE'}
-                      </span>
+                      {/* Document Icon Box */}
+                      <div className="w-10 h-10 rounded-xl bg-[#3b82f6] text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <FileText className="w-5 h-5" />
+                      </div>
 
-                      {/* File Details */}
+                      {/* File Info */}
                       <div className="space-y-0.5 overflow-hidden">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-slate-900 truncate max-w-[180px] sm:max-w-[280px]">
-                            {fileName}
-                          </span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" title="File Verified & Ready" />
+                        <div className="text-xs font-bold text-slate-900 truncate max-w-[180px] sm:max-w-[260px] flex items-center gap-1">
+                          <span>{fileName}</span>
+                          <span className="text-slate-600 font-semibold">• Uploaded</span>
                         </div>
-                        <p className="text-[11px] text-slate-400 font-mono">
-                          {selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB` : 'Attached'} • Ready for submission
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          {selectedFile
+                            ? selectedFile.size > 1024 * 1024
+                              ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`
+                              : `${(selectedFile.size / 1024).toFixed(2)} KB`
+                            : '96.47 KB'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Interactive Action Buttons */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    {/* Checkmark & Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="p-1 rounded-full bg-blue-100 text-[#3b82f6]">
+                        <Check className="w-4 h-4 stroke-[3]" />
+                      </div>
+
                       {selectedFile && (
                         <button
                           type="button"
@@ -342,11 +337,10 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                             const url = URL.createObjectURL(selectedFile);
                             window.open(url, '_blank');
                           }}
-                          title="Preview / Download Document"
-                          className="px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-emerald-700 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+                          title="Preview Document"
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer"
                         >
-                          <Eye className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>View</span>
+                          <Eye className="w-4 h-4" />
                         </button>
                       )}
 
