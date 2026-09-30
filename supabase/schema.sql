@@ -58,18 +58,15 @@ CREATE POLICY "Allow public inserts to paper_submissions"
 ON public.paper_submissions FOR INSERT 
 WITH CHECK (true);
 
--- 6. Storage Bucket SQL Setup for PDF Manuscripts
+-- 6. Private Storage Bucket Setup for Permanent PDF Evidence (Kept Forever)
 INSERT INTO storage.buckets (id, name, public) 
-VALUES ('manuscripts', 'manuscripts', true)
-ON CONFLICT (id) DO NOTHING;
+VALUES ('manuscripts', 'manuscripts', false)
+ON CONFLICT (id) DO UPDATE SET public = false;
 
+-- Allow public uploads to manuscripts bucket for manuscript submissions
 CREATE POLICY "Allow public uploads to manuscripts bucket" 
 ON storage.objects FOR INSERT 
 WITH CHECK (bucket_id = 'manuscripts');
-
-CREATE POLICY "Allow public reads from manuscripts bucket" 
-ON storage.objects FOR SELECT 
-USING (bucket_id = 'manuscripts');
 
 -- 7. Enable Realtime Publications for Database Tables
 ALTER PUBLICATION supabase_realtime ADD TABLE public.registrations;

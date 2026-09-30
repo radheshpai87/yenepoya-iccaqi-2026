@@ -54,20 +54,46 @@ export async function GET() {
 
       if (!subResult.error) {
         supabaseConnected = true;
-        supabaseSubmissions = (subResult.data || []).map((s: any) => ({
-          id: s.id,
-          submissionId: s.submission_id,
-          authorName: s.author_name,
-          email: s.email,
-          phone: s.phone,
-          institution: s.institution,
-          track: s.track,
-          paperTitle: s.paper_title,
-          abstract: s.abstract,
-          fileUrl: s.file_url,
-          reviewStatus: s.review_status || 'Under Review',
-          createdAt: s.created_at,
-        }));
+
+        // Process paper submissions & generate signed view URLs for private bucket manuscripts
+        supabaseSubmissions = await Promise.all(
+          (subResult.data || []).map(async (s: any) => {
+            let viewUrl = s.file_url;
+
+            // Generate 1-hour signed URL if file is stored in private Supabase bucket
+            if (s.file_url && s.file_url.includes('/manuscripts/')) {
+              try {
+                const fileName = s.file_url.split('/manuscripts/').pop();
+                if (fileName) {
+                  const { data: signedData } = await supabaseAdmin.storage
+                    .from('manuscripts')
+                    .createSignedUrl(fileName, 3600); // Valid for 1 hour
+
+                  if (signedData?.signedUrl) {
+                    viewUrl = signedData.signedUrl;
+                  }
+                }
+              } catch (signedErr) {
+                console.warn('Error generating signed URL for manuscript:', signedErr);
+              }
+            }
+
+            return {
+              id: s.id,
+              submissionId: s.submission_id,
+              authorName: s.author_name,
+              email: s.email,
+              phone: s.phone,
+              institution: s.institution,
+              track: s.track,
+              paperTitle: s.paper_title,
+              abstract: s.abstract,
+              fileUrl: viewUrl,
+              reviewStatus: s.review_status || 'Under Review',
+              createdAt: s.created_at,
+            };
+          })
+        );
       }
     } catch (err) {
       console.error('Supabase query exception, serving combined state:', err);
@@ -79,9 +105,7 @@ export async function GET() {
   const localSubs = getLocalSubmissions();
 
   const combinedRegsMap = new Map();
-  // Insert local records first
   localRegs.forEach((r) => combinedRegsMap.set(r.id, r));
-  // Override / append Supabase records
   supabaseRegistrations.forEach((r) => combinedRegsMap.set(r.id, r));
 
   const combinedSubsMap = new Map();
