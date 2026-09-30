@@ -198,7 +198,17 @@ export default function PortalAdminPage() {
       )
       .subscribe();
 
+    // Re-sync snapshot when tab becomes visible after backgrounding or switching windows
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchDashboardData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       supabase.removeChannel(channel);
     };
   }, [isAuthenticated]);
@@ -531,12 +541,18 @@ export default function PortalAdminPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200" title="Connected to Supabase Realtime WebSockets">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Realtime Sync</span>
+          </div>
+
           <button
             onClick={fetchDashboardData}
-            title="Refresh Live Data"
-            className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+            title="Refresh Live Data Snapshot"
+            className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
           >
             <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin' : ''}`} />
+            <span className="hidden md:inline">Sync</span>
           </button>
 
           <button
