@@ -30,9 +30,17 @@ import {
   Calendar,
   Layers,
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   FileCode,
-  ArrowUpRight
+  ArrowUpRight,
+  Home,
+  Award,
+  BarChart3,
+  Settings,
+  MoreVertical,
+  Download,
+  Filter
 } from 'lucide-react';
 
 interface Registration {
@@ -86,13 +94,12 @@ export default function PortalAdminPage() {
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
 
   // Search & Filters
-  const [regSearch, setRegSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [regCategoryFilter, setRegCategoryFilter] = useState('All');
   const [regStatusFilter, setRegStatusFilter] = useState('All');
-
-  const [subSearch, setSubSearch] = useState('');
   const [subTrackFilter, setSubTrackFilter] = useState('All');
   const [subStatusFilter, setSubStatusFilter] = useState('All');
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
   // Check auth session on load & set up live auto-sync without page reload
   useEffect(() => {
@@ -263,10 +270,10 @@ export default function PortalAdminPage() {
         setPassword('');
         fetchDashboardData();
       } else {
-        setLoginError(data.error || 'Authentication failed. Please check the administrator password.');
+        setLoginError(data.error || 'Invalid administrator password');
       }
     } catch {
-      setLoginError('Server error while authenticating. Please try again.');
+      setLoginError('Server error while verifying password');
     } finally {
       setIsSubmitting(false);
     }
@@ -275,57 +282,52 @@ export default function PortalAdminPage() {
   const handleLogout = async () => {
     try {
       await fetch('/api/admin/logout', { method: 'POST' });
+    } catch {
+      // Ignore errors on logout
     } finally {
       setIsAuthenticated(false);
     }
   };
 
-  const updateRegistrationStatus = async (id: string, newStatus: string) => {
+  const updateRegistrationStatus = async (id: string, paymentStatus: string) => {
     try {
-      const res = await fetch('/api/admin/data', {
+      setRegistrations((prev) =>
+        prev.map((reg) => (reg.id === id ? { ...reg, paymentStatus } : reg))
+      );
+      if (selectedRegistration && selectedRegistration.id === id) {
+        setSelectedRegistration({ ...selectedRegistration, paymentStatus });
+      }
+
+      await fetch('/api/admin/data', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'registration', id, paymentStatus: newStatus }),
+        body: JSON.stringify({ type: 'registration', id, paymentStatus }),
       });
-
-      if (res.ok) {
-        setRegistrations((prev) =>
-          prev.map((reg) => (reg.id === id ? { ...reg, paymentStatus: newStatus } : reg))
-        );
-        if (selectedRegistration && selectedRegistration.id === id) {
-          setSelectedRegistration((prev) => (prev ? { ...prev, paymentStatus: newStatus } : null));
-        }
-      }
     } catch (err) {
-      console.error('Error updating registration status:', err);
+      console.error('Failed to update registration status:', err);
     }
   };
 
-  const updateSubmissionStatus = async (id: string, newStatus: string) => {
+  const updateSubmissionStatus = async (id: string, reviewStatus: string) => {
     try {
-      const res = await fetch('/api/admin/data', {
+      setSubmissions((prev) =>
+        prev.map((sub) => (sub.id === id ? { ...sub, reviewStatus } : sub))
+      );
+      if (selectedSubmission && selectedSubmission.id === id) {
+        setSelectedSubmission({ ...selectedSubmission, reviewStatus });
+      }
+
+      await fetch('/api/admin/data', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'submission', id, reviewStatus: newStatus }),
+        body: JSON.stringify({ type: 'submission', id, reviewStatus }),
       });
-
-      if (res.ok) {
-        setSubmissions((prev) =>
-          prev.map((sub) => (sub.id === id ? { ...sub, reviewStatus: newStatus } : sub))
-        );
-        if (selectedSubmission && selectedSubmission.id === id) {
-          setSelectedSubmission((prev) => (prev ? { ...prev, reviewStatus: newStatus } : null));
-        }
-      }
     } catch (err) {
-      console.error('Error updating submission status:', err);
+      console.error('Failed to update submission status:', err);
     }
   };
 
-  // Export registrations CSV
   const exportRegistrationsCSV = () => {
-    if (registrations.length === 0) return;
-
     const headers = [
       'Registration ID',
       'Full Name',
@@ -366,13 +368,23 @@ export default function PortalAdminPage() {
     document.body.removeChild(link);
   };
 
+  // Helper to extract initials for avatar badge
+  const getInitials = (name: string) => {
+    if (!name) return 'A';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
   // Filtered registrations
   const filteredRegistrations = registrations.filter((reg) => {
     const matchesSearch =
-      reg.name.toLowerCase().includes(regSearch.toLowerCase()) ||
-      reg.email.toLowerCase().includes(regSearch.toLowerCase()) ||
-      reg.institution.toLowerCase().includes(regSearch.toLowerCase()) ||
-      (reg.paperId && reg.paperId.toLowerCase().includes(regSearch.toLowerCase()));
+      reg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reg.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reg.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (reg.paperId && reg.paperId.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = regCategoryFilter === 'All' || reg.category === regCategoryFilter;
     const matchesStatus = regStatusFilter === 'All' || reg.paymentStatus === regStatusFilter;
@@ -383,10 +395,10 @@ export default function PortalAdminPage() {
   // Filtered submissions
   const filteredSubmissions = submissions.filter((sub) => {
     const matchesSearch =
-      sub.authorName.toLowerCase().includes(subSearch.toLowerCase()) ||
-      sub.email.toLowerCase().includes(subSearch.toLowerCase()) ||
-      sub.paperTitle.toLowerCase().includes(subSearch.toLowerCase()) ||
-      sub.submissionId.toLowerCase().includes(subSearch.toLowerCase());
+      sub.authorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.paperTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.submissionId.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesTrack = subTrackFilter === 'All' || sub.track === subTrackFilter;
     const matchesStatus = subStatusFilter === 'All' || sub.reviewStatus === subStatusFilter;
@@ -394,62 +406,61 @@ export default function PortalAdminPage() {
     return matchesSearch && matchesTrack && matchesStatus;
   });
 
-  // Loading initial authentication state
+  const totalRegistrations = registrations.length;
+  const totalSubmissions = submissions.length;
+  const verifiedCount = registrations.filter((r) => r.paymentStatus === 'Verified').length;
+  const pendingCount = registrations.filter((r) => r.paymentStatus === 'Pending').length;
+
+  const getAssociatedSubmission = (paperId: string) => {
+    if (!paperId) return null;
+    return (
+      submissions.find(
+        (s) => s.submissionId.toLowerCase() === paperId.toLowerCase()
+      ) || null
+    );
+  };
+
+  // Render Login Modal if not authenticated
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-slate-700 font-sans">
-        <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-200 shadow-sm">
-          <RefreshCw className="w-5 h-5 animate-spin text-[#7cb305]" />
-          <span className="text-sm font-semibold tracking-wide text-slate-800">Verifying Admin Session...</span>
+      <div className="min-h-screen bg-[#f4f7fc] flex items-center justify-center">
+        <div className="flex items-center gap-3 text-slate-500 font-semibold text-sm">
+          <RefreshCw className="w-5 h-5 animate-spin text-[#1e5bb8]" />
+          <span>Verifying Administrator Access...</span>
         </div>
       </div>
     );
   }
 
-  // --- MINIMALIST WHITE THEME: LOGIN VIEW ---
-  if (!isAuthenticated) {
+  if (isAuthenticated === false) {
     return (
-      <div className="min-h-screen bg-slate-50/80 flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 font-sans relative">
-        <div className="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-6">
-          {/* Logo & Header */}
-          <div className="text-center space-y-4">
-            <div className="flex justify-center items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-              <img
-                src="/yenepoya-university-logonew3.svg"
-                alt="Yenepoya University"
-                className="h-7 w-auto object-contain"
-              />
-              <div className="h-4 w-[1px] bg-slate-300" />
-              <img
-                src="/yenepoya-school-engineering-and-technologynew-02.svg"
-                alt="Yenepoya SET"
-                className="h-7 w-auto object-contain"
-              />
-            </div>
-
-            <div className="space-y-1 pt-1">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold uppercase tracking-wider">
-                <UserCheck className="w-3.5 h-3.5 text-[#7cb305]" />
-                Administration Portal
-              </div>
-              <h2 className="text-2xl font-extrabold text-slate-900">
-                ICCAQI 2026 Admin Login
-              </h2>
-              <p className="text-xs text-slate-500">
-                Enter your access password to manage registrations &amp; paper submissions
-              </p>
+      <div className="min-h-screen bg-[#f4f7fc] flex items-center justify-center p-4 font-sans">
+        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-slate-200/90 text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="p-3.5 rounded-2xl bg-[#1e5bb8]/10 text-[#1e5bb8] border border-[#1e5bb8]/20">
+              <ShieldCheck className="w-8 h-8" />
             </div>
           </div>
 
-          {/* Login Error Alert */}
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#1e5bb8]">
+              Yenepoya ICCAQI 2026
+            </span>
+            <h2 className="text-2xl font-extrabold text-slate-900">
+              Admin Portal Security
+            </h2>
+            <p className="text-xs text-slate-500">
+              Enter administrator password to access live portal data
+            </p>
+          </div>
+
           {loginError && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <span className="leading-relaxed font-semibold">{loginError}</span>
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center gap-2 text-left">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{loginError}</span>
             </div>
           )}
 
-          {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4 text-left">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
@@ -465,7 +476,7 @@ export default function PortalAdminPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter access password..."
-                  className="w-full pl-10 pr-10 py-3 bg-slate-50 rounded-2xl border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white transition-all"
+                  className="w-full pl-10 pr-10 py-3 bg-slate-50 rounded-2xl border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#1e5bb8] focus:bg-white transition-all"
                 />
                 <button
                   type="button"
@@ -480,17 +491,17 @@ export default function PortalAdminPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 px-4 rounded-2xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 px-4 rounded-2xl text-sm font-bold bg-[#1e5bb8] hover:bg-[#164996] text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Verifying Password...</span>
+                  <span>Verifying Access...</span>
                 </>
               ) : (
                 <>
-                  <UserCheck className="w-4 h-4" />
-                  <span>Access Dashboard</span>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Authenticate &amp; Open Portal</span>
                 </>
               )}
             </button>
@@ -500,411 +511,617 @@ export default function PortalAdminPage() {
     );
   }
 
-  // --- MINIMALIST WHITE THEME: DASHBOARD VIEW ---
-  const totalRegistrations = registrations.length;
-  const totalSubmissions = submissions.length;
-  const verifiedCount = registrations.filter((r) => r.paymentStatus === 'Verified').length;
-  const pendingCount = registrations.filter((r) => r.paymentStatus === 'Pending').length;
-
-  // Find paper submission associated with delegate registration (if any)
-  const getAssociatedSubmission = (paperId: string) => {
-    if (!paperId) return null;
-    return (
-      submissions.find(
-        (s) => s.submissionId.toLowerCase() === paperId.toLowerCase()
-      ) || null
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50/70 text-slate-900 font-sans pb-16">
-      {/* Clean Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <img
-              src="/yenepoya-university-logonew3.svg"
-              alt="Yenepoya Logo"
-              className="h-7 w-auto object-contain"
-            />
-            <div className="h-4 w-[1px] bg-slate-300 hidden sm:block" />
-            <img
-              src="/yenepoya-school-engineering-and-technologynew-02.svg"
-              alt="Yenepoya SET Logo"
-              className="h-7 w-auto object-contain hidden sm:block"
-            />
-          </div>
-          <div>
-            <h1 className="text-base font-extrabold text-slate-900 leading-none">ICCAQI 2026 Admin Portal</h1>
-            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Yenepoya (Deemed to be University)</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200" title="Connected to Supabase Realtime WebSockets">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Realtime Sync</span>
-          </div>
-
-          <button
-            onClick={fetchDashboardData}
-            title="Refresh Live Data Snapshot"
-            className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin' : ''}`} />
-            <span className="hidden md:inline">Sync</span>
-          </button>
-
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 mt-6 space-y-6">
-        {/* Metric Cards Grid - Clean White Styling */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Registrations</span>
-              <Users className="w-5 h-5 text-sky-600" />
+    <div className="min-h-screen bg-[#f4f7fc] text-slate-900 font-sans flex">
+      
+      {/* ========================================================= */}
+      {/* 1. MOUSE-ACTIVATED HOVER COLLAPSIBLE SIDEBAR (LEFT)       */}
+      {/* ========================================================= */}
+      <aside className="fixed left-0 top-0 bottom-0 z-50 w-16 hover:w-60 bg-[#1e5bb8] text-white transition-all duration-300 ease-in-out flex flex-col justify-between shadow-2xl group overflow-hidden">
+        {/* Top Logo Badge */}
+        <div>
+          <div className="h-16 px-4 flex items-center gap-3 border-b border-white/10 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-white text-[#1e5bb8] flex items-center justify-center font-extrabold text-sm shrink-0 shadow-sm">
+              Y
             </div>
-            <div className="text-3xl font-extrabold text-slate-900">{totalRegistrations}</div>
-            <p className="text-xs text-slate-500 font-medium">{verifiedCount} Verified • {pendingCount} Pending</p>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Paper Submissions</span>
-              <FileText className="w-5 h-5 text-[#7cb305]" />
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+              <span className="font-extrabold text-sm tracking-wide block">ICCAQI 2026</span>
+              <span className="text-[10px] text-blue-200 block font-mono">YENEPOYA PORTAL</span>
             </div>
-            <div className="text-3xl font-extrabold text-slate-900">{totalSubmissions}</div>
-            <p className="text-xs text-slate-500 font-medium">Across 8 Conference Tracks</p>
+            <ChevronRight className="w-4 h-4 text-blue-200 opacity-0 group-hover:opacity-100 ml-auto transition-opacity shrink-0" />
           </div>
 
-          <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Verified Payments</span>
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div className="text-3xl font-extrabold text-emerald-700">{verifiedCount}</div>
-            <p className="text-xs text-slate-500 font-medium">Official receipt tokens issued</p>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-500">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Pending Actions</span>
-              <Clock className="w-5 h-5 text-amber-600" />
-            </div>
-            <div className="text-3xl font-extrabold text-amber-700">{pendingCount}</div>
-            <p className="text-xs text-slate-500 font-medium">Awaiting payment verification</p>
-          </div>
-        </div>
-
-        {/* Tab Switcher & Action Bar */}
-        <div className="flex flex-wrap items-center justify-between border-b border-slate-200 gap-4 pb-3">
-          <div className="flex gap-2">
+          {/* Navigation Links */}
+          <nav className="p-3 space-y-1.5 mt-2">
             <button
               onClick={() => setActiveTab('registrations')}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'registrations'
-                  ? 'bg-[#7cb305] text-white shadow-sm'
-                  : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+                  ? 'bg-white/20 text-white shadow-sm ring-1 ring-white/30'
+                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
               }`}
             >
-              <Users className="w-4 h-4" />
-              <span>Delegate Registrations ({registrations.length})</span>
+              <Users className="w-5 h-5 shrink-0" />
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+                Delegate Registrations
+              </span>
             </button>
 
             <button
               onClick={() => setActiveTab('submissions')}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'submissions'
-                  ? 'bg-[#7cb305] text-white shadow-sm'
-                  : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+                  ? 'bg-white/20 text-white shadow-sm ring-1 ring-white/30'
+                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
               }`}
             >
-              <FileText className="w-4 h-4" />
-              <span>Paper Submissions ({submissions.length})</span>
+              <FileText className="w-5 h-5 shrink-0" />
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+                Paper Submissions
+              </span>
             </button>
-          </div>
 
-          {activeTab === 'registrations' && (
+            <div className="h-[1px] bg-white/10 my-2" />
+
+            <button
+              onClick={() => {
+                setActiveTab('registrations');
+                setRegStatusFilter('Verified');
+              }}
+              className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+            >
+              <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-300" />
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+                Verified Payments
+              </span>
+            </button>
+
             <button
               onClick={exportRegistrationsCSV}
-              className="px-4 py-2 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+              className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
             >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Export CSV (Excel)</span>
+              <FileSpreadsheet className="w-5 h-5 shrink-0 text-amber-300" />
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+                Export Reports (CSV)
+              </span>
             </button>
-          )}
+
+            <button
+              onClick={() => alert('Yenepoya ICCAQI 2026 Admin System — Live Supabase Connected')}
+              className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-100 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+            >
+              <Settings className="w-5 h-5 shrink-0 text-blue-200" />
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+                Portal Settings
+              </span>
+            </button>
+          </nav>
         </div>
 
-        {/* TAB 1: REGISTRATIONS */}
-        {activeTab === 'registrations' && (
-          <div className="space-y-4">
-            {/* Filter Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-3xl bg-white border border-slate-200 shadow-xs">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search name, email, institution..."
-                  value={regSearch}
-                  onChange={(e) => setRegSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white"
-                />
-              </div>
+        {/* Sidebar Bottom Profile & Logout */}
+        <div className="p-3 border-t border-white/10">
+          <button
+            onClick={handleLogout}
+            title="Logout Session"
+            className="w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-xs font-bold text-rose-200 hover:bg-rose-500/20 hover:text-white transition-all cursor-pointer"
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden">
+              Logout Admin
+            </span>
+          </button>
+        </div>
+      </aside>
 
-              <div>
-                <select
-                  value={regCategoryFilter}
-                  onChange={(e) => setRegCategoryFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 focus:outline-hidden focus:border-[#7cb305] focus:bg-white"
-                >
-                  <option value="All">All Participant Categories</option>
-                  <option value="Students (UG / PG)">Students (UG / PG)</option>
-                  <option value="Research scholars / Academicians">Research Scholars / Academicians</option>
-                  <option value="Industry Delegates">Industry Delegates</option>
-                  <option value="Participants only">Participants Only</option>
-                </select>
-              </div>
-
-              <div>
-                <select
-                  value={regStatusFilter}
-                  onChange={(e) => setRegStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 focus:outline-hidden focus:border-[#7cb305] focus:bg-white"
-                >
-                  <option value="All">All Payment Statuses</option>
-                  <option value="Verified">Verified Only</option>
-                  <option value="Pending">Pending Only</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-xs">
-              <table className="w-full text-left text-xs text-slate-700">
-                <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px] font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-3.5 px-4">Delegate Name</th>
-                    <th className="py-3.5 px-4">Category &amp; Mode</th>
-                    <th className="py-3.5 px-4">Fee &amp; Currency</th>
-                    <th className="py-3.5 px-4">Paper ID</th>
-                    <th className="py-3.5 px-4">Payment Status</th>
-                    <th className="py-3.5 px-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredRegistrations.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400">
-                        No registration records match your filter criteria.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredRegistrations.map((reg) => (
-                      <tr
-                        key={reg.id}
-                        onClick={() => setSelectedRegistration(reg)}
-                        className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                      >
-                        <td className="py-3.5 px-4 space-y-0.5">
-                          <div className="font-bold text-slate-900 text-sm group-hover:text-[#7cb305] transition-colors">
-                            {reg.name}
-                          </div>
-                          <div className="text-[11px] text-slate-500 flex items-center gap-2">
-                            <span>{reg.email}</span>
-                            <span>•</span>
-                            <span>{reg.institution}</span>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4 space-y-0.5">
-                          <div className="font-semibold text-slate-800">{reg.category}</div>
-                          <div className="text-[11px] text-slate-500">{reg.mode}</div>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono font-bold text-sky-700">
-                          {reg.amount} ({reg.currency})
-                        </td>
-                        <td className="py-3.5 px-4 font-mono text-slate-500">
-                          {reg.paperId ? (
-                            <span className="font-bold text-[#7cb305] bg-[#7cb305]/10 px-2 py-0.5 rounded border border-[#7cb305]/20">
-                              {reg.paperId}
-                            </span>
-                          ) : (
-                            <span className="text-slate-300">—</span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                              reg.paymentStatus === 'Verified'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border border-amber-200'
-                            }`}
-                          >
-                            {reg.paymentStatus === 'Verified' ? (
-                              <Check className="w-3 h-3 text-emerald-600" />
-                            ) : (
-                              <Clock className="w-3 h-3 text-amber-600" />
-                            )}
-                            {reg.paymentStatus}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedRegistration(reg);
-                            }}
-                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 text-[11px] font-bold transition-all border border-slate-200"
-                          >
-                            View Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+      {/* ========================================================= */}
+      {/* 2. MAIN BODY CONTENT AREA (WITH PL-16 FOR COLLAPSED SIDEBAR) */}
+      {/* ========================================================= */}
+      <div className="flex-1 pl-16 min-w-0">
+        
+        {/* TOP HEADER BAR */}
+        <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+              {activeTab === 'registrations' ? 'Delegate Registrations' : 'Paper Submissions'}
+            </h1>
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Realtime Live</span>
             </div>
           </div>
-        )}
 
-        {/* TAB 2: SUBMISSIONS */}
-        {activeTab === 'submissions' && (
-          <div className="space-y-4">
-            {/* Filter Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-3xl bg-white border border-slate-200 shadow-xs">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search title, author, ID..."
-                  value={subSearch}
-                  onChange={(e) => setSubSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white"
-                />
-              </div>
-
-              <div>
-                <select
-                  value={subTrackFilter}
-                  onChange={(e) => setSubTrackFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 focus:outline-hidden focus:border-[#7cb305] focus:bg-white"
-                >
-                  <option value="All">All Conference Tracks</option>
-                  <option value="Artificial Intelligence and Machine Learning">AI &amp; Machine Learning</option>
-                  <option value="Quantum Computing and Quantum Intelligence">Quantum Computing</option>
-                  <option value="Cyber-Physical Systems and IoT">IoT &amp; Cyber-Physical Systems</option>
-                </select>
-              </div>
-
-              <div>
-                <select
-                  value={subStatusFilter}
-                  onChange={(e) => setSubStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 focus:outline-hidden focus:border-[#7cb305] focus:bg-white"
-                >
-                  <option value="All">All Review Statuses</option>
-                  <option value="Submitted">Submitted</option>
-                  <option value="Under Review">Under Review</option>
-                  <option value="Accepted">Accepted</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
+          <div className="flex items-center gap-3">
+            {/* Search Box */}
+            <div className="relative w-48 sm:w-64">
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search name, email, institution..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#1e5bb8] focus:bg-white transition-all"
+              />
             </div>
 
-            {/* List Cards */}
-            <div className="space-y-3">
-              {filteredSubmissions.length === 0 ? (
-                <div className="p-8 text-center bg-white rounded-3xl border border-slate-200 text-slate-400 text-xs">
-                  No manuscript submissions match your filter criteria.
-                </div>
-              ) : (
-                filteredSubmissions.map((sub) => (
-                  <div
-                    key={sub.id}
-                    onClick={() => setSelectedSubmission(sub)}
-                    className="p-5 rounded-3xl bg-white border border-slate-200 space-y-3 hover:border-[#7cb305] shadow-xs transition-all cursor-pointer group text-left"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-[#7cb305] bg-[#7cb305]/10 px-2 py-0.5 rounded-md border border-[#7cb305]/20">
-                            {sub.submissionId}
-                          </span>
-                          <span className="text-xs text-slate-500 font-medium">{sub.track}</span>
-                        </div>
-                        <h3 className="text-base font-bold text-slate-900 group-hover:text-[#7cb305] transition-colors">
-                          {sub.paperTitle}
-                        </h3>
-                      </div>
+            {/* Refresh Button */}
+            <button
+              onClick={fetchDashboardData}
+              title="Refresh Live Data"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin' : ''}`} />
+            </button>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedSubmission(sub);
-                        }}
-                        className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 text-xs font-bold transition-all border border-slate-200"
-                      >
-                        Full Submission Details
-                      </button>
-                    </div>
+            {/* Admin Profile Chip */}
+            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
+              <div className="w-8 h-8 rounded-full bg-[#1e5bb8] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                A
+              </div>
+              <div className="hidden md:block text-left text-xs">
+                <span className="font-extrabold text-slate-900 block leading-tight">Admin</span>
+                <span className="text-[10px] text-slate-400 block font-medium">Administrator</span>
+              </div>
+            </div>
+          </div>
+        </header>
 
-                    <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-200 italic line-clamp-2">
-                      &ldquo;{sub.abstract}&rdquo;
-                    </p>
+        {/* MAIN BODY DASHBOARD */}
+        <main className="p-6 space-y-6">
 
-                    <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
-                      <div className="flex items-center gap-4">
-                        <span className="font-semibold text-slate-800">{sub.authorName}</span>
-                        <span>{sub.email}</span>
-                        <span>{sub.institution}</span>
-                      </div>
-
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                          sub.reviewStatus === 'Accepted'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : sub.reviewStatus === 'Rejected'
-                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                            : 'bg-sky-50 text-sky-700 border border-sky-200'
-                        }`}
-                      >
-                        {sub.reviewStatus}
-                      </span>
-                    </div>
+          {/* ========================================================= */}
+          {/* 3. STAGE / CATEGORY CARDS CAROUSEL (TOP STAGE TILES)       */}
+          {/* ========================================================= */}
+          <div className="relative">
+            <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
+              
+              {/* Card 1: Delegate Registrations */}
+              <div
+                onClick={() => setActiveTab('registrations')}
+                className={`min-w-[210px] flex-1 p-4 rounded-2xl border transition-all cursor-pointer ${
+                  activeTab === 'registrations'
+                    ? 'bg-[#eef4ff] border-2 border-[#1e5bb8] shadow-md'
+                    : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="p-2.5 rounded-xl bg-purple-100 text-purple-600">
+                    <Users className="w-5 h-5" />
                   </div>
-                ))
+                  <span className="text-[10px] font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                    {totalRegistrations} Total
+                  </span>
+                </div>
+                <div className="font-extrabold text-sm text-slate-900">Delegate Registrations</div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">Participants : {totalRegistrations}</div>
+              </div>
+
+              {/* Card 2: Paper Submissions */}
+              <div
+                onClick={() => setActiveTab('submissions')}
+                className={`min-w-[210px] flex-1 p-4 rounded-2xl border transition-all cursor-pointer ${
+                  activeTab === 'submissions'
+                    ? 'bg-[#eef4ff] border-2 border-[#1e5bb8] shadow-md'
+                    : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="p-2.5 rounded-xl bg-sky-100 text-sky-600">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-extrabold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">
+                    {totalSubmissions} Papers
+                  </span>
+                </div>
+                <div className="font-extrabold text-sm text-slate-900">Paper Submissions</div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">Manuscripts : {totalSubmissions}</div>
+              </div>
+
+              {/* Card 3: Verified Payments */}
+              <div
+                onClick={() => {
+                  setActiveTab('registrations');
+                  setRegStatusFilter('Verified');
+                }}
+                className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-emerald-300 shadow-xs transition-all cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-600">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Verified
+                  </span>
+                </div>
+                <div className="font-extrabold text-sm text-slate-900">Verified Payments</div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">Issued Receipts : {verifiedCount}</div>
+              </div>
+
+              {/* Card 4: Pending Verification */}
+              <div
+                onClick={() => {
+                  setActiveTab('registrations');
+                  setRegStatusFilter('Pending');
+                }}
+                className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-300 shadow-xs transition-all cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                    Pending
+                  </span>
+                </div>
+                <div className="font-extrabold text-sm text-slate-900">Pending Actions</div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">Awaiting : {pendingCount}</div>
+              </div>
+
+              {/* Card 5: Technical Tracks */}
+              <div className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
+                    8 Tracks
+                  </span>
+                </div>
+                <div className="font-extrabold text-sm text-slate-900">Conference Tracks</div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">Active Track Domains</div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* ========================================================= */}
+          {/* 4. TITLE & FILTER CONTROLS BAR                            */}
+          {/* ========================================================= */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900">
+                {activeTab === 'registrations' ? 'All Delegates' : 'All Manuscripts'}
+              </h2>
+            </div>
+
+            {/* Filter Dropdowns */}
+            <div className="flex flex-wrap items-center gap-3">
+              {activeTab === 'registrations' ? (
+                <>
+                  <select
+                    value={regCategoryFilter}
+                    onChange={(e) => setRegCategoryFilter(e.target.value)}
+                    className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#1e5bb8] shadow-xs"
+                  >
+                    <option value="All">All Participant Categories</option>
+                    <option value="Students (UG / PG)">Students (UG / PG)</option>
+                    <option value="Research scholars / Academicians">Research Scholars / Academicians</option>
+                    <option value="Industry Delegates">Industry Delegates</option>
+                    <option value="Participants only">Participants Only</option>
+                  </select>
+
+                  <select
+                    value={regStatusFilter}
+                    onChange={(e) => setRegStatusFilter(e.target.value)}
+                    className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#1e5bb8] shadow-xs"
+                  >
+                    <option value="All">All Payment Statuses</option>
+                    <option value="Verified">Verified Only</option>
+                    <option value="Pending">Pending Only</option>
+                  </select>
+
+                  <button
+                    onClick={exportRegistrationsCSV}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                    <span>Export CSV</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <select
+                    value={subTrackFilter}
+                    onChange={(e) => setSubTrackFilter(e.target.value)}
+                    className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#1e5bb8] shadow-xs"
+                  >
+                    <option value="All">All Conference Tracks</option>
+                    <option value="Artificial Intelligence and Machine Learning">AI &amp; Machine Learning</option>
+                    <option value="Quantum Computing and Quantum Intelligence">Quantum Computing</option>
+                    <option value="Cyber-Physical Systems and IoT">IoT &amp; Cyber-Physical Systems</option>
+                  </select>
+
+                  <select
+                    value={subStatusFilter}
+                    onChange={(e) => setSubStatusFilter(e.target.value)}
+                    className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#1e5bb8] shadow-xs"
+                  >
+                    <option value="All">All Review Statuses</option>
+                    <option value="Submitted">Submitted</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </>
               )}
             </div>
           </div>
-        )}
-      </main>
 
-      {/* --- DELEGATE REGISTRATION DETAILS MODAL WITH ELEVATED BORDER & DOCUMENT VIEWER --- */}
+          {/* ========================================================= */}
+          {/* 5. DATA TABLE SECTION (MATCHING REFERENCE UI)             */}
+          {/* ========================================================= */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              {activeTab === 'registrations' ? (
+                /* REGISTRATIONS TABLE */
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-[#dbe7f6] text-[#1e5bb8] uppercase tracking-wider text-[11px] font-extrabold border-b border-blue-200">
+                    <tr>
+                      <th className="py-3.5 px-4">Delegate Name</th>
+                      <th className="py-3.5 px-4">Category &amp; Mode</th>
+                      <th className="py-3.5 px-4">Fee &amp; Currency</th>
+                      <th className="py-3.5 px-4">Paper ID</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4">Recent Activity</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredRegistrations.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center text-slate-400">
+                          No registration records match your filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredRegistrations.slice(0, itemsPerPage).map((reg) => (
+                        <tr
+                          key={reg.id}
+                          onClick={() => setSelectedRegistration(reg)}
+                          className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                        >
+                          {/* Name + Initial Avatar */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-[#1e5bb8]/10 text-[#1e5bb8] font-bold text-xs flex items-center justify-center shrink-0">
+                                {getInitials(reg.name)}
+                              </div>
+                              <div className="space-y-0.5 overflow-hidden">
+                                <div className="font-bold text-slate-900 text-xs group-hover:text-[#1e5bb8] transition-colors truncate max-w-[200px]">
+                                  {reg.name}
+                                </div>
+                                <div className="text-[11px] text-slate-500 truncate max-w-[200px]">
+                                  {reg.email}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Category & Mode */}
+                          <td className="py-3.5 px-4 space-y-0.5">
+                            <div className="font-semibold text-slate-800">{reg.category}</div>
+                            <div className="text-[11px] text-slate-500">{reg.mode}</div>
+                          </td>
+
+                          {/* Fee */}
+                          <td className="py-3.5 px-4 font-mono font-bold text-[#1e5bb8]">
+                            {reg.amount} ({reg.currency})
+                          </td>
+
+                          {/* Paper ID */}
+                          <td className="py-3.5 px-4 font-mono text-slate-500">
+                            {reg.paperId ? (
+                              <span className="font-bold text-[#1e5bb8] bg-[#1e5bb8]/10 px-2 py-0.5 rounded border border-[#1e5bb8]/20">
+                                {reg.paperId}
+                              </span>
+                            ) : (
+                              <span className="text-slate-300">—</span>
+                            )}
+                          </td>
+
+                          {/* Status Pill Badge */}
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                                reg.paymentStatus === 'Verified'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              }`}
+                            >
+                              {reg.paymentStatus === 'Verified' ? (
+                                <Check className="w-3 h-3 text-emerald-600" />
+                              ) : (
+                                <Clock className="w-3 h-3 text-amber-600" />
+                              )}
+                              {reg.paymentStatus}
+                            </span>
+                          </td>
+
+                          {/* Date */}
+                          <td className="py-3.5 px-4 text-[11px] text-slate-500 font-mono">
+                            {new Date(reg.createdAt).toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedRegistration(reg);
+                              }}
+                              className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-[#1e5bb8] hover:text-white text-slate-700 text-[11px] font-bold transition-all border border-slate-200"
+                            >
+                              Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              ) : (
+                /* PAPER SUBMISSIONS TABLE */
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-[#dbe7f6] text-[#1e5bb8] uppercase tracking-wider text-[11px] font-extrabold border-b border-blue-200">
+                    <tr>
+                      <th className="py-3.5 px-4">Author &amp; Paper Title</th>
+                      <th className="py-3.5 px-4">Submission ID</th>
+                      <th className="py-3.5 px-4">Track Domain</th>
+                      <th className="py-3.5 px-4">Review Status</th>
+                      <th className="py-3.5 px-4">Submitted Date</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredSubmissions.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-12 text-center text-slate-400">
+                          No manuscript submissions match your filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredSubmissions.slice(0, itemsPerPage).map((sub) => (
+                        <tr
+                          key={sub.id}
+                          onClick={() => setSelectedSubmission(sub)}
+                          className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                        >
+                          {/* Title & Author */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center shrink-0">
+                                {getInitials(sub.authorName)}
+                              </div>
+                              <div className="space-y-0.5 overflow-hidden">
+                                <div className="font-bold text-slate-900 text-xs group-hover:text-[#1e5bb8] transition-colors truncate max-w-[280px]">
+                                  {sub.paperTitle}
+                                </div>
+                                <div className="text-[11px] text-slate-500 truncate max-w-[280px]">
+                                  {sub.authorName} • {sub.institution}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Submission ID */}
+                          <td className="py-3.5 px-4 font-mono font-bold text-[#1e5bb8]">
+                            {sub.submissionId}
+                          </td>
+
+                          {/* Track */}
+                          <td className="py-3.5 px-4 text-slate-600 truncate max-w-[180px]">
+                            {sub.track}
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                                sub.reviewStatus === 'Accepted'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : sub.reviewStatus === 'Rejected'
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : 'bg-sky-50 text-sky-700 border border-sky-200'
+                              }`}
+                            >
+                              {sub.reviewStatus}
+                            </span>
+                          </td>
+
+                          {/* Date */}
+                          <td className="py-3.5 px-4 text-[11px] text-slate-500 font-mono">
+                            {new Date(sub.createdAt).toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3.5 px-4 text-right space-x-2">
+                            <a
+                              href={sub.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 border border-emerald-200 text-[11px] font-bold transition-all inline-flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3" /> PDF
+                            </a>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedSubmission(sub);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-[#1e5bb8] hover:text-white text-slate-700 text-[11px] font-bold transition-all border border-slate-200"
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* ========================================================= */}
+            {/* 6. PAGINATION & ROWS CONTROL BAR                           */}
+            {/* ========================================================= */}
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500 font-medium">
+              <div className="flex items-center gap-2">
+                <span>Show rows:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-hidden"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span>
+                  1-{activeTab === 'registrations' ? Math.min(itemsPerPage, filteredRegistrations.length) : Math.min(itemsPerPage, filteredSubmissions.length)} of {activeTab === 'registrations' ? filteredRegistrations.length : filteredSubmissions.length}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="px-2.5 py-1 rounded-lg bg-[#1e5bb8] text-white font-bold text-xs">
+                    1
+                  </span>
+                  <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 7. DELEGATE REGISTRATION DETAILS MODAL                     */}
+      {/* ========================================================= */}
       {selectedRegistration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          {/* Backdrop with Soft Blur */}
           <div
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
             onClick={() => setSelectedRegistration(null)}
           />
 
-          {/* Modal Container with Gradient Accent Top Border & Shadow Ring */}
           <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full z-10 border border-slate-200/90 ring-1 ring-slate-900/5 my-8 overflow-hidden text-left">
-            {/* Top Gradient Accent Bar */}
-            <div className="h-2 w-full bg-gradient-to-r from-[#7cb305] via-emerald-500 to-sky-500" />
+            <div className="h-2 w-full bg-gradient-to-r from-[#1e5bb8] via-emerald-500 to-sky-500" />
 
             <div className="p-6 sm:p-8 space-y-6">
-              {/* Close Button */}
               <button
                 onClick={() => setSelectedRegistration(null)}
                 className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
@@ -913,7 +1130,6 @@ export default function PortalAdminPage() {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Header */}
               <div className="space-y-1.5 pr-8">
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-800 font-mono text-xs font-bold border border-sky-200">
@@ -922,13 +1138,12 @@ export default function PortalAdminPage() {
                   <span className="text-xs text-slate-400">Registered on {new Date(selectedRegistration.createdAt).toLocaleString()}</span>
                 </div>
                 <h3 className="text-2xl font-extrabold text-slate-900">{selectedRegistration.name}</h3>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#7cb305]/10 text-[#7cb305] border border-[#7cb305]/20 text-xs font-bold">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e5bb8]/10 text-[#1e5bb8] border border-[#1e5bb8]/20 text-xs font-bold">
                   <Tag className="w-3.5 h-3.5" />
                   <span>{selectedRegistration.category}</span>
                 </div>
               </div>
 
-              {/* Submitted Form Details Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 text-xs">
                 <div className="space-y-0.5">
                   <span className="text-slate-500 font-medium flex items-center gap-1.5">
@@ -952,7 +1167,6 @@ export default function PortalAdminPage() {
                 </div>
               </div>
 
-              {/* Fee & Participation Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-sky-50/30 border border-sky-100 text-xs">
                 <div>
                   <span className="text-slate-500 font-medium">Participation Mode:</span>
@@ -961,20 +1175,19 @@ export default function PortalAdminPage() {
 
                 <div>
                   <span className="text-slate-500 font-medium">Payable Amount &amp; Currency:</span>
-                  <div className="font-extrabold text-sky-700 text-base mt-0.5">
+                  <div className="font-extrabold text-[#1e5bb8] text-base mt-0.5">
                     {selectedRegistration.amount} ({selectedRegistration.currency})
                   </div>
                 </div>
               </div>
 
-              {/* Associated Document / Paper Viewer Section */}
               <div className="p-4.5 rounded-2xl bg-white border border-slate-200 space-y-3 ring-1 ring-slate-900/5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-[#7cb305]" /> Associated Manuscript / Research Paper
+                    <FileText className="w-4 h-4 text-[#1e5bb8]" /> Associated Manuscript / Research Paper
                   </span>
                   {selectedRegistration.paperId && (
-                    <span className="font-mono text-xs font-bold text-[#7cb305] bg-[#7cb305]/10 px-2.5 py-0.5 rounded-md border border-[#7cb305]/20">
+                    <span className="font-mono text-xs font-bold text-[#1e5bb8] bg-[#1e5bb8]/10 px-2.5 py-0.5 rounded-md border border-[#1e5bb8]/20">
                       {selectedRegistration.paperId}
                     </span>
                   )}
@@ -995,7 +1208,7 @@ export default function PortalAdminPage() {
                       href={getAssociatedSubmission(selectedRegistration.paperId)?.fileUrl || '/sample-manuscript.pdf'}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold transition-all shadow-xs shrink-0"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1e5bb8] hover:bg-[#164996] text-white text-xs font-bold transition-all shadow-xs shrink-0"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Open &amp; Review PDF Document</span>
@@ -1008,7 +1221,6 @@ export default function PortalAdminPage() {
                 )}
               </div>
 
-              {/* Quick Status Updater */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-left">
                 <span className="text-xs font-bold text-slate-700 block">Update Payment Verification Status</span>
                 <div className="flex gap-3">
@@ -1039,7 +1251,7 @@ export default function PortalAdminPage() {
               <div className="pt-2 text-right">
                 <button
                   onClick={() => setSelectedRegistration(null)}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white cursor-pointer shadow-xs"
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#1e5bb8] hover:bg-[#164996] text-white cursor-pointer shadow-xs"
                 >
                   Close Window
                 </button>
@@ -1049,18 +1261,18 @@ export default function PortalAdminPage() {
         </div>
       )}
 
-      {/* --- PAPER SUBMISSION DETAILS MODAL WITH ELEVATED BORDER & DIRECT DOCUMENT OPEN --- */}
+      {/* ========================================================= */}
+      {/* 8. PAPER SUBMISSION DETAILS MODAL                          */}
+      {/* ========================================================= */}
       {selectedSubmission && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
             onClick={() => setSelectedSubmission(null)}
           />
 
-          {/* Modal Container with Gradient Top Bar & Ring Border */}
           <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full z-10 border border-slate-200/90 ring-1 ring-slate-900/5 my-8 overflow-hidden text-left">
-            <div className="h-2 w-full bg-gradient-to-r from-[#7cb305] via-emerald-500 to-sky-500" />
+            <div className="h-2 w-full bg-gradient-to-r from-[#1e5bb8] via-emerald-500 to-sky-500" />
 
             <div className="p-6 sm:p-8 space-y-6">
               <button
@@ -1071,10 +1283,9 @@ export default function PortalAdminPage() {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Header */}
               <div className="space-y-1.5 pr-8">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-md bg-[#7cb305]/10 text-[#7cb305] font-mono text-xs font-bold border border-[#7cb305]/20">
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#1e5bb8]/10 text-[#1e5bb8] font-mono text-xs font-bold border border-[#1e5bb8]/20">
                     {selectedSubmission.submissionId}
                   </span>
                   <span className="text-xs text-slate-500 font-medium">{selectedSubmission.track}</span>
@@ -1082,11 +1293,10 @@ export default function PortalAdminPage() {
                 <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">{selectedSubmission.paperTitle}</h3>
               </div>
 
-              {/* Author Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 text-xs">
                 <div className="space-y-0.5">
                   <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-[#7cb305]" /> Corresponding Author
+                    <User className="w-3.5 h-3.5 text-[#1e5bb8]" /> Corresponding Author
                   </span>
                   <div className="font-bold text-slate-900">{selectedSubmission.authorName}</div>
                 </div>
@@ -1106,7 +1316,6 @@ export default function PortalAdminPage() {
                 </div>
               </div>
 
-              {/* Abstract */}
               <div className="space-y-1.5">
                 <span className="text-xs font-bold text-slate-800 block">Submitted Manuscript Abstract</span>
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed max-h-48 overflow-y-auto italic">
@@ -1114,13 +1323,12 @@ export default function PortalAdminPage() {
                 </div>
               </div>
 
-              {/* Direct Document Open Button & Review Switcher */}
               <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
                 <a
                   href={selectedSubmission.fileUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold transition-all shadow-xs"
+                  className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl bg-[#1e5bb8] hover:bg-[#164996] text-white text-xs font-bold transition-all shadow-xs"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <span>Open &amp; View Manuscript PDF</span>
@@ -1131,7 +1339,7 @@ export default function PortalAdminPage() {
                   <select
                     value={selectedSubmission.reviewStatus}
                     onChange={(e) => updateSubmissionStatus(selectedSubmission.id, e.target.value)}
-                    className="bg-white border border-slate-300 text-xs text-slate-800 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-[#7cb305]"
+                    className="bg-white border border-slate-300 text-xs text-slate-800 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-[#1e5bb8]"
                   >
                     <option value="Submitted">Submitted</option>
                     <option value="Under Review">Under Review</option>
