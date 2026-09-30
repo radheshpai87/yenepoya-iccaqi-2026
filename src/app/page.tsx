@@ -14,13 +14,11 @@ import { Venue } from '@/components/Venue';
 import { Contact } from '@/components/Contact';
 import { Footer } from '@/components/Footer';
 import { SubmitPaperModal } from '@/components/SubmitPaperModal';
-import { RegisterModal } from '@/components/RegisterModal';
 import { BrochureModal } from '@/components/BrochureModal';
 import { SmoothScroll } from '@/components/SmoothScroll';
 
 export default function HomePage() {
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
-  const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [brochureModalOpen, setBrochureModalOpen] = useState(false);
   const [selectedTrackForSubmission, setSelectedTrackForSubmission] = useState('');
 
@@ -61,7 +59,6 @@ export default function HomePage() {
       {/* Modern Clean Floating Navbar */}
       <Navbar
         onOpenSubmitModal={handleOpenSubmitModal}
-        onOpenRegisterModal={() => setRegisterModalOpen(true)}
         onOpenBrochureModal={() => setBrochureModalOpen(true)}
       />
 
@@ -85,8 +82,8 @@ export default function HomePage() {
         {/* Call for Papers */}
         <CallForPapers onOpenSubmitModal={handleOpenSubmitModal} />
 
-        {/* Registration */}
-        <Registration onOpenRegisterModal={() => setRegisterModalOpen(true)} />
+        {/* Registration & Fee Structure */}
+        <Registration onOpenSubmitModal={handleOpenSubmitModal} />
 
         {/* Publication & Indexing */}
         <Publication />
@@ -105,7 +102,6 @@ export default function HomePage() {
       <Footer
         onOpenBrochureModal={() => setBrochureModalOpen(true)}
         onOpenSubmitModal={handleOpenSubmitModal}
-        onOpenRegisterModal={() => setRegisterModalOpen(true)}
       />
 
       {/* Interactive Modals */}
@@ -113,11 +109,6 @@ export default function HomePage() {
         isOpen={submitModalOpen}
         onClose={() => setSubmitModalOpen(false)}
         preselectedTrack={selectedTrackForSubmission}
-      />
-
-      <RegisterModal
-        isOpen={registerModalOpen}
-        onClose={() => setRegisterModalOpen(false)}
       />
 
       <BrochureModal

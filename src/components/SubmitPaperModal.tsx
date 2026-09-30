@@ -295,7 +295,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
               {/* File Upload Section */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Upload Manuscript (PDF / DOCX) *
+                  Upload Manuscript (PDF / Word / LaTeX) *
                 </label>
 
                 {fileName ? (
@@ -306,9 +306,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                       <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0 ${
                         fileName.toLowerCase().endsWith('.pdf')
                           ? 'bg-rose-50 text-rose-600 border border-rose-200'
-                          : 'bg-sky-50 text-sky-600 border border-sky-200'
+                          : fileName.toLowerCase().endsWith('.docx') || fileName.toLowerCase().endsWith('.doc')
+                          ? 'bg-sky-50 text-sky-600 border border-sky-200'
+                          : fileName.toLowerCase().endsWith('.tex')
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-indigo-50 text-indigo-600 border border-indigo-200'
                       }`}>
-                        {fileName.split('.').pop() || 'FILE'}
+                        {fileName.toLowerCase().endsWith('.tex')
+                          ? 'LATEX'
+                          : fileName.toLowerCase().endsWith('.docx') || fileName.toLowerCase().endsWith('.doc')
+                          ? 'WORD'
+                          : fileName.split('.').pop()?.toUpperCase() || 'FILE'}
                       </span>
 
                       {/* File Details */}
@@ -334,7 +342,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                             const url = URL.createObjectURL(selectedFile);
                             window.open(url, '_blank');
                           }}
-                          title="Preview Document"
+                          title="Preview / Download Document"
                           className="px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-emerald-700 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5 text-emerald-600" />
@@ -359,15 +367,15 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   /* Minimal Drag & Drop Zone */
                   <label className="border-2 border-dashed border-slate-200 hover:border-[#7cb305] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-colors group">
                     <UploadCloud className="w-6 h-6 text-slate-400 group-hover:text-[#7cb305] group-hover:scale-110 transition-all mb-1" />
-                    <span className="text-xs font-semibold text-slate-700">
-                      Click to choose manuscript PDF / DOCX
+                    <span className="text-xs font-semibold text-slate-700 text-center">
+                      Click to choose manuscript file (PDF, Word, or LaTeX)
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5 font-mono">
-                      IEEE Format • Max 15MB
+                    <span className="text-[10px] text-slate-400 mt-0.5 font-mono text-center">
+                      PDF (.pdf), Word (.doc/.docx), LaTeX (.tex/.zip) • Max 25MB
                     </span>
                     <input
                       type="file"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf,.doc,.docx,.tex,.zip,.tar,.tar.gz"
                       required
                       onChange={handleFileChange}
                       className="hidden"

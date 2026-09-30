@@ -6,13 +6,11 @@ import { Menu, X, ArrowUpRight } from 'lucide-react';
 
 interface NavbarProps {
   onOpenSubmitModal: () => void;
-  onOpenRegisterModal: () => void;
   onOpenBrochureModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenSubmitModal,
-  onOpenRegisterModal,
   onOpenBrochureModal,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -193,18 +191,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  onOpenRegisterModal();
-                }}
-                className="w-full py-2.5 rounded-xl text-xs font-semibold text-slate-700 border border-slate-200 hover:bg-slate-50 text-center"
-              >
-                Register
-              </button>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
                   onOpenBrochureModal();
                 }}
-                className="w-full py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-800 text-center"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold text-slate-700 border border-slate-200 hover:bg-slate-50 text-center"
               >
                 View Official Brochure
               </button>

@@ -39,7 +39,7 @@ export async function POST(request: Request) {
         const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
           .from('manuscripts')
           .upload(fileName, buffer, {
-            contentType: file.type || 'application/pdf',
+            contentType: file.type || 'application/octet-stream',
             upsert: true,
           });
 

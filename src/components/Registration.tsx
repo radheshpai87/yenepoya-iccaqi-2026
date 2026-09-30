@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 import { Check, CreditCard } from 'lucide-react';
 
 interface RegistrationProps {
-  onOpenRegisterModal: () => void;
+  onOpenSubmitModal: () => void;
 }
 
-export const Registration: React.FC<RegistrationProps> = ({ onOpenRegisterModal }) => {
+export const Registration: React.FC<RegistrationProps> = ({ onOpenSubmitModal }) => {
   const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
 
   const tiers = [
@@ -48,10 +48,10 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenRegisterModal 
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 block">
-            Participation
+            Participation &amp; Fees
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Registration Fees
+            Registration Fee Structure
           </h2>
           <p className="text-sm text-slate-600">
             Participant Category &amp; Fees (All fees inclusive of applicable GST)
@@ -80,7 +80,7 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenRegisterModal 
           </div>
         </div>
 
-        {/* 4 Clean Cards */}
+        {/* 4 Clean Cards without payment/register button */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {tiers.map((t, idx) => (
             <div
@@ -107,28 +107,29 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenRegisterModal 
                 }`}>
                   {currency === 'INR' ? t.feeInr : t.feeUsd}
                 </div>
-                <span className="text-[11px] text-slate-500 block mb-6">
+                <span className="text-[11px] text-slate-500 block">
                   Inclusive of GST
                 </span>
               </div>
-
-              <button
-                onClick={onOpenRegisterModal}
-                className={`w-full py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  t.highlight
-                    ? 'bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
-                }`}
-              >
-                Register
-              </button>
             </div>
           ))}
         </div>
 
-        <p className="text-center text-xs text-slate-500">
-          * Note: <strong>Register upon intimation of acceptance.</strong> Authors will receive official payment instructions upon paper acceptance.
-        </p>
+        {/* Instructions & Next Steps */}
+        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 text-center max-w-2xl mx-auto space-y-3">
+          <p className="text-xs text-slate-600 leading-relaxed">
+            * <strong>Payment Procedure:</strong> As per the conference guidelines, <em>&ldquo;Register upon intimation of acceptance.&rdquo;</em> There is no direct online payment gateway checkout on this website. Official payment account details and invoice instructions will be communicated directly to accepted authors.
+          </p>
+
+          <div className="pt-2">
+            <button
+              onClick={onOpenSubmitModal}
+              className="inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs transition-colors cursor-pointer"
+            >
+              Submit Your Research Paper
+            </button>
+          </div>
+        </div>
 
       </div>
     </section>
