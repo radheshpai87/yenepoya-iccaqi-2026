@@ -7,6 +7,8 @@ import {
   getLocalSubmissions,
   updateLocalRegistrationStatus,
   updateLocalSubmissionStatus,
+  deleteLocalRegistration,
+  deleteLocalSubmission,
 } from '@/lib/submissionStore';
 
 async function isAuthorized() {
@@ -110,13 +112,11 @@ export async function GET() {
     return `USER:${(r.email || '').trim().toLowerCase()}|${(r.name || '').trim().toLowerCase()}`;
   };
 
-  // Add local memory records first
   localRegs.forEach((r) => {
     combinedRegsMap.set(r.id, r);
     combinedRegsMap.set(getRegKey(r), r);
   });
 
-  // Supabase records override local memory copies so true DB records take priority and deduplicate
   supabaseRegistrations.forEach((r) => {
     const key = getRegKey(r);
     combinedRegsMap.set(key, r);
@@ -182,5 +182,82 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Failed to update record' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  if (!(await isAuthorized())) {
+    return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
+    const id = searchParams.get('id');
+
+    if (!type || !id) {
+      return NextResponse.json({ error: 'Type and ID parameters required for deletion' }, { status: 400 });
+    }
+
+    if (type === 'registration') {
+      deleteLocalRegistration(id);
+
+      if (isSupabaseConfigured()) {
+        const supabaseAdmin = getSupabaseAdminClient();
+        await supabaseAdmin
+          .from('registrations')
+          .delete()
+          .eq('id', id);
+      }
+    } else if (type === 'submission') {
+      deleteLocalSubmission(id);
+
+      if (isSupabaseConfigured()) {
+        const supabaseAdmin = getSupabaseAdminClient();
+        
+        // Fetch record to check for storage file & submission_id
+        const { data: subRecord } = await supabaseAdmin
+          .from('paper_submissions')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (subRecord) {
+          // Delete from paper_submissions table
+          await supabaseAdmin
+            .from('paper_submissions')
+            .delete()
+            .eq('id', id);
+
+          // Also delete associated author registration if paper_id matches
+          if (subRecord.submission_id) {
+            await supabaseAdmin
+              .from('registrations')
+              .delete()
+              .eq('paper_id', subRecord.submission_id);
+          }
+
+          // Delete uploaded storage file from manuscripts bucket if present
+          if (subRecord.file_url && subRecord.file_url.includes('/manuscripts/')) {
+            try {
+              const fileName = subRecord.file_url.split('/manuscripts/').pop();
+              if (fileName) {
+                await supabaseAdmin.storage.from('manuscripts').remove([fileName]);
+              }
+            } catch (fileErr) {
+              console.warn('Notice removing storage file on deletion:', fileErr);
+            }
+          }
+        } else {
+          // Delete by ID directly
+          await supabaseAdmin.from('paper_submissions').delete().eq('id', id);
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, message: `${type} deleted successfully` });
+  } catch (err) {
+    console.error('Server deletion error:', err);
+    return NextResponse.json({ error: 'Failed to delete record' }, { status: 500 });
   }
 }

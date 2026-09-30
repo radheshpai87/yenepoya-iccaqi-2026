@@ -40,7 +40,8 @@ import {
   MoreVertical,
   Download,
   Filter,
-  GripVertical
+  GripVertical,
+  Trash2
 } from 'lucide-react';
 
 interface Registration {
@@ -363,6 +364,40 @@ export default function PortalAdminPage() {
       });
     } catch (err) {
       console.error('Failed to update submission status:', err);
+    }
+  };
+
+  const handleDeleteRecord = async (type: 'registration' | 'submission', id: string, label?: string) => {
+    const confirmMsg = type === 'registration'
+      ? `Are you sure you want to permanently delete delegate registration "${label || id}"? This will remove the database record.`
+      : `Are you sure you want to permanently delete paper submission "${label || id}"? This will delete the manuscript PDF from storage, the paper submission database record, and any linked delegate registration.`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await fetch(`/api/admin/data?type=${type}&id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        if (type === 'registration') {
+          setRegistrations((prev) => prev.filter((r) => r.id !== id));
+          if (selectedRegistration?.id === id) {
+            setSelectedRegistration(null);
+          }
+        } else {
+          setSubmissions((prev) => prev.filter((s) => s.id !== id));
+          if (selectedSubmission?.id === id) {
+            setSelectedSubmission(null);
+          }
+        }
+      } else {
+        const errData = await res.json();
+        alert(`Failed to delete record: ${errData.error || 'Server error'}`);
+      }
+    } catch (err) {
+      console.error('Delete record error:', err);
+      alert('An unexpected error occurred while deleting.');
     }
   };
 
@@ -972,19 +1007,31 @@ export default function PortalAdminPage() {
 
                               {/* Actions */}
                               <td className="py-3.5 px-4 text-right">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedRegistration(reg);
-                                  }}
-                                  className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all border ${
-                                    isSelected
-                                      ? 'bg-[#7cb305] text-white border-[#7cb305]'
-                                      : 'bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 border-slate-200'
-                                  }`}
-                                >
-                                  Split Details
-                                </button>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedRegistration(reg);
+                                    }}
+                                    className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all border ${
+                                      isSelected
+                                        ? 'bg-[#7cb305] text-white border-[#7cb305]'
+                                        : 'bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 border-slate-200'
+                                    }`}
+                                  >
+                                    Split Details
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteRecord('registration', reg.id, reg.name);
+                                    }}
+                                    className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 transition-colors cursor-pointer"
+                                    title="Delete Delegate Registration"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -1070,19 +1117,31 @@ export default function PortalAdminPage() {
 
                               {/* Actions */}
                               <td className="py-3.5 px-4 text-right">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedSubmission(sub);
-                                  }}
-                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border ${
-                                    isSelected
-                                      ? 'bg-[#7cb305] text-white border-[#7cb305]'
-                                      : 'bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 border-slate-200'
-                                  }`}
-                                >
-                                  Split Details
-                                </button>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedSubmission(sub);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border ${
+                                      isSelected
+                                        ? 'bg-[#7cb305] text-white border-[#7cb305]'
+                                        : 'bg-slate-100 hover:bg-[#7cb305] hover:text-white text-slate-700 border-slate-200'
+                                    }`}
+                                  >
+                                    Split Details
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteRecord('submission', sub.id, sub.paperTitle);
+                                    }}
+                                    className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 transition-colors cursor-pointer"
+                                    title="Delete Paper Submission"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -1174,13 +1233,22 @@ export default function PortalAdminPage() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => setSelectedRegistration(null)}
-                      className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                      title="Close Split Details"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleDeleteRecord('registration', selectedRegistration.id, selectedRegistration.name)}
+                        className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+                        title="Delete Delegate Registration Record"
+                      >
+                        <Trash2 className="w-4.5 h-4.5" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedRegistration(null)}
+                        className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Close Split Details"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Payment Verification Quick Action Bar */}
@@ -1329,6 +1397,17 @@ export default function PortalAdminPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Delete Action Bar */}
+                  <div className="pt-4 border-t border-slate-200">
+                    <button
+                      onClick={() => handleDeleteRecord('registration', selectedRegistration.id, selectedRegistration.name)}
+                      className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete Registration Record</span>
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -1349,13 +1428,22 @@ export default function PortalAdminPage() {
                       </h3>
                     </div>
 
-                    <button
-                      onClick={() => setSelectedSubmission(null)}
-                      className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
-                      title="Close Split Details"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleDeleteRecord('submission', selectedSubmission.id, selectedSubmission.paperTitle)}
+                        className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+                        title="Delete Paper Submission & Manuscript"
+                      >
+                        <Trash2 className="w-4.5 h-4.5" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedSubmission(null)}
+                        className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+                        title="Close Split Details"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Review Status Selector Bar */}
@@ -1439,6 +1527,17 @@ export default function PortalAdminPage() {
                         </a>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Delete Action Bar */}
+                  <div className="pt-4 border-t border-slate-200">
+                    <button
+                      onClick={() => handleDeleteRecord('submission', selectedSubmission.id, selectedSubmission.paperTitle)}
+                      className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete Submission &amp; Manuscript PDF</span>
+                    </button>
                   </div>
                 </div>
               )}
