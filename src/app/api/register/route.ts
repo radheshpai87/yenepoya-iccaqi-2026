@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { addLocalRegistration } from '@/lib/submissionStore';
-import { checkRateLimit } from '@/lib/rateLimit';
+import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
 import { isValidEmail, sanitizeText } from '@/lib/validation';
 
 export async function POST(request: Request) {
   try {
-    // 1. IP Rate Limiting Check
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+    // 1. IP Rate Limiting Check (Generous 30 req/min for shared university campus networks)
+    const ip = getClientIP(request);
     const rateLimit = checkRateLimit(ip);
     if (!rateLimit.success) {
       return NextResponse.json(
