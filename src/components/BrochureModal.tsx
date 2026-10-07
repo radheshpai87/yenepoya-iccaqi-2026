@@ -42,8 +42,8 @@ export const BrochureModal: React.FC<BrochureModalProps> = ({ isOpen, onClose })
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <a
-              href="/iccaqi-2026-poster.png"
-              download="ICCAQI-2026-Official-Poster.png"
+              href="/iccaqi-2026-poster.webp"
+              download="ICCAQI-2026-Official-Poster.webp"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold shadow-xs transition-colors"
             >
               <Download className="w-3.5 h-3.5" />

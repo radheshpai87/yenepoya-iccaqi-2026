@@ -14,8 +14,8 @@ const ASSETS_TO_PRELOAD = [
   '/yenepoya3image.webp',
   '/yiascm_kulur.webp',
   '/event.webp',
-  '/iccaqi-logo.png',
-  '/imanager-publications-logo.png',
+  '/iccaqi-logo.webp',
+  '/imanager-publications-logo.webp',
   '/indexing-services-collage.webp',
 ];
 

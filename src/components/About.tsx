@@ -59,7 +59,7 @@ export const About: React.FC = () => {
             <div className="flex flex-wrap items-center gap-4 sm:gap-6">
               <div className="h-7 w-[1.5px] bg-slate-200 hidden md:block" />
               <img
-                src="/iccaqi-logo.png"
+                src="/iccaqi-logo.webp"
                 alt="ICCAQI 2026 Official Conference Logo"
                 width={180}
                 height={48}
@@ -69,7 +69,7 @@ export const About: React.FC = () => {
               />
               <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
               <img
-                src="/imanager-publications-logo.png"
+                src="/imanager-publications-logo.webp"
                 alt="i-manager Publications Partner"
                 width={180}
                 height={44}
