@@ -1,3 +1,4 @@
+import { ApiError, apiErrorResponse, readJsonObject } from '@/lib/apiErrors';
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
+    const body = await readJsonObject(request);
     const name = sanitizeText(body.name, 100);
     const email = sanitizeText(body.email, 254);
     const phone = sanitizeText(body.phone, 30);
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
     };
 
     if (!isSupabaseConfigured()) {
-      throw new Error('Supabase is not configured');
+      throw new ApiError(503, 'Saving is temporarily unavailable. Please try again later.');
     }
     const supabaseAdmin = getSupabaseAdminClient();
     const { data, error } = await supabaseAdmin
@@ -66,7 +67,8 @@ export async function POST(request: Request) {
       .select()
       .single();
     if (error || !data) {
-      throw new Error('Registration database save failed', { cause: error });
+      console.error('Registration database save failed:', error);
+      throw new ApiError(503, 'Unable to confirm your registration save. Please retry with the same details.');
     }
 
     return NextResponse.json({
@@ -76,10 +78,6 @@ export async function POST(request: Request) {
       message: 'Registration successfully saved in Supabase database',
     });
   } catch (err) {
-    console.error('Server registration error:', err);
-    return NextResponse.json(
-      { error: 'Internal server error while processing registration' },
-      { status: 500 }
-    );
+    return apiErrorResponse(err, 'register request failed:');
   }
 }

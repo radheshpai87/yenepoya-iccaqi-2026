@@ -126,3 +126,25 @@ test('submission success includes a durable manuscript and both records', async 
   assert.match(body.submission.file_url, /^https:\/\/storage.test\/manuscripts\//);
   assert.deepEqual(b.writes.filter((w) => w.table).map((w) => w.table), ['paper_submissions', 'registrations']);
 });
+
+test('malformed JSON returns a client error', async () => {
+  const b = backend();
+  const response = await b.route('register').POST(new Request('http://localhost/api/register', { method: 'POST', body: '{broken' }));
+  assert.equal(response.status, 400);
+  assert.equal(b.writes.length, 0);
+});
+test('non-string text fields return a client error', async () => {
+  const b = backend();
+  const response = await b.route('register').POST(new Request('http://localhost/api/register', { method: 'POST', body: JSON.stringify({ name: 42 }) }));
+  assert.equal(response.status, 400);
+  assert.equal(b.writes.length, 0);
+});
+test('database outages return a retryable error without backend details', async () => {
+  const b = backend({ failTable: 'registrations' });
+  const response = await b.route('register').POST(registrationRequest());
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.success, false);
+  assert.match(body.error, /retry/i);
+  assert.doesNotMatch(body.error, /simulated outage/);
+});

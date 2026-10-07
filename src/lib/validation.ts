@@ -1,3 +1,5 @@
+import { ApiError } from '@/lib/apiErrors';
+
 /**
  * Server-side input & file validation helpers
  */
@@ -9,8 +11,9 @@ export function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email);
 }
 
-export function sanitizeText(str: string, maxLength: number = 500): string {
-  if (!str) return '';
+export function sanitizeText(str: unknown, maxLength: number = 500): string {
+  if (str === undefined || str === null) return '';
+  if (typeof str !== 'string') throw new ApiError(400, 'Text fields must be strings');
   return str.trim().slice(0, maxLength);
 }
 

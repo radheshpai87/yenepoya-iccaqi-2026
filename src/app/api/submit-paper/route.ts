@@ -1,3 +1,4 @@
+import { ApiError, apiErrorResponse, readFormData } from '@/lib/apiErrors';
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const formData = await request.formData();
+    const formData = await readFormData(request);
     
     const requestId = sanitizeText(formData.get('requestId') as string, 100);
     
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      throw new Error('Supabase is not configured');
+      throw new ApiError(503, 'Saving is temporarily unavailable. Please try again later.');
     }
     const supabaseAdmin = getSupabaseAdminClient();
     const randomNum = Math.floor(1000 + Math.random() * 9000);
@@ -93,7 +94,8 @@ export async function POST(request: Request) {
         upsert: false,
       });
     if (uploadError || !uploadData) {
-      throw new Error('Manuscript storage save failed', { cause: uploadError });
+      console.error('Manuscript storage save failed:', uploadError);
+      throw new ApiError(503, 'Manuscript upload could not be confirmed. Please retry with the same file.');
     }
     const { data: publicUrlData } = supabaseAdmin.storage
       .from('manuscripts')
@@ -149,13 +151,15 @@ export async function POST(request: Request) {
     if (submissionError || !savedData) {
       // A network failure may follow a committed insert. Preserve the manuscript
       // rather than deleting a file that a durable record could reference.
-      throw new Error('Submission database save failed', { cause: submissionError });
+      console.error('Submission database save failed:', submissionError);
+      throw new ApiError(503, 'Unable to confirm your submission save. Please retry with the same details and file.');
     }
     const { error: registrationError } = await supabaseAdmin
       .from('registrations')
       .insert([regRecord]);
     if (registrationError) {
-      throw new Error('Linked registration save failed', { cause: registrationError });
+      console.error('Linked registration save failed:', registrationError);
+      throw new ApiError(503, 'Unable to confirm your linked registration save. Please retry with the same details and file.');
     }
 
     const responsePayload = {
@@ -173,10 +177,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(responsePayload);
   } catch (err) {
-    console.error('Server paper submission error:', err);
-    return NextResponse.json(
-      { error: 'Internal server error while processing manuscript submission' },
-      { status: 500 }
-    );
+    return apiErrorResponse(err, 'submit-paper request failed:');
   }
 }

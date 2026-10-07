@@ -202,23 +202,18 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     };
 
     xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const result = JSON.parse(xhr.responseText);
-          setUploadProgress(100);
-          setSubmissionId(result.submissionId || ('ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000)));
-          setSubmitted(true);
-        } catch {
-          setSubmissionId('ICCAQI-2026-' + Math.floor(1000 + Math.random() * 9000));
-          setSubmitted(true);
+      try {
+        const result = JSON.parse(xhr.responseText);
+        if (xhr.status < 200 || xhr.status >= 300 || result.success !== true || result.supabaseSaved !== true || !result.submissionId) {
+          setUploadError(result.error || 'Manuscript save could not be confirmed. Please retry with the same file.');
+          return;
         }
-      } else {
-        try {
-          const result = JSON.parse(xhr.responseText);
-          setUploadError(result.error || 'Server error processing manuscript. Please check file format and size.');
-        } catch {
-          setUploadError('Server error processing manuscript. Please try again.');
-        }
+        setUploadProgress(100);
+        setSubmissionId(result.submissionId);
+        setSubmitted(true);
+      } catch {
+        setUploadError('Manuscript save could not be confirmed. Please retry with the same file.');
+      } finally {
         setSubmitting(false);
       }
     };

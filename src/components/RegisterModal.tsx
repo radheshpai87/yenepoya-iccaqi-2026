@@ -38,6 +38,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [registered, setRegistered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState('');
+  const [registrationError, setRegistrationError] = useState('');
 
   // Lock body scroll and pause Lenis while modal is open so mouse wheel scrolls inside modal
   useEffect(() => {
@@ -66,6 +67,8 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setRegistrationError('');
     setIsSubmitting(true);
 
     const amount = delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd;
@@ -81,7 +84,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     setPaymentUrl(generatedPaymentUrl);
 
     try {
-      await fetch('/api/register', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -98,16 +101,18 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
           paymentStatus: isParticipant ? 'Redirected to Razorpay' : 'Pending Acceptance',
         }),
       });
-    } catch (err) {
-      console.error('Registration submission error:', err);
-    } finally {
-      setIsSubmitting(false);
+      const result = await response.json();
+      if (!response.ok || result.success !== true || result.supabaseSaved !== true || !result.registration?.id) {
+        throw new Error(result.error || 'Registration save could not be confirmed. Please retry.');
+      }
       setRegistered(true);
-
-      // Only redirect participants to Razorpay payment page
       if (isParticipant) {
         window.open(generatedPaymentUrl, '_blank') || (window.location.href = generatedPaymentUrl);
       }
+    } catch (err) {
+      setRegistrationError(err instanceof Error ? err.message : 'Registration save could not be confirmed. Please retry.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -237,6 +242,9 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
             {/* Form */}
             <form onSubmit={handleRegister} className="space-y-4 text-left">
+              {registrationError && (
+                <p role="alert" className="text-sm text-red-700 bg-red-50 rounded-lg p-3">{registrationError}</p>
+              )}
               {/* Category & Currency */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
