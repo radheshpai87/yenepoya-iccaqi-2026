@@ -45,26 +45,17 @@ export const Publication: React.FC = () => {
           </div>
 
           {/* Indexing & Publishing Partners Showcase */}
-          <div className="pt-2 space-y-4">
+          <div className="pt-2 space-y-3">
             <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
               Referenced Indexing Services &amp; Archival:
             </span>
             
-            {/* Scopus, Wiley & i-manager Publications Banner */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shadow-2xs">
+            {/* Unified Indexing Services & Publishing Partners Collage */}
+            <div className="p-4 sm:p-8 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shadow-2xs">
               <img
-                src="/scopus-wiley-imanager-logo.png"
-                alt="Scopus, Wiley, and i-manager Publications"
-                className="h-12 sm:h-16 md:h-20 w-auto max-w-full object-contain"
-              />
-            </div>
-
-            {/* Academic Database Indexing Collage Banner */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shadow-2xs">
-              <img
-                src="/academic-database-logos-collage.png"
-                alt="Academic Database Logos Collage (ProQuest, PubMed, Crossref, EBSCO, Google Scholar, Dimensions, MIAR)"
-                className="w-full max-w-3xl h-auto object-contain"
+                src="/indexing-services-collage.png"
+                alt="Indexing Services & Academic Publishing Partners (Scopus, Wiley, i-manager, Google Scholar, PubMed, Crossref, EBSCO, Dimensions, MIAR)"
+                className="w-full max-w-4xl h-auto object-contain"
               />
             </div>
           </div>
