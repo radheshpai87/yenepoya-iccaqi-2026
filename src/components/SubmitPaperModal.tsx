@@ -13,7 +13,13 @@ import {
   Layers,
   Trash2,
   Eye,
-  RefreshCw
+  RefreshCw,
+  BookOpen,
+  ShieldCheck,
+  ArrowRight,
+  ArrowLeft,
+  FileCheck2,
+  Info
 } from 'lucide-react';
 
 interface SubmitPaperModalProps {
@@ -54,6 +60,30 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
       ? crypto.randomUUID()
       : 'REQ-' + Date.now() + '-' + Math.random()
   );
+  const [step, setStep] = useState<'guidelines' | 'form'>('guidelines');
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState<'cat1' | 'cat2'>('cat1');
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [ackError, setAckError] = useState('');
+
+  const handleProceedToForm = () => {
+    if (!acknowledged) {
+      setAckError('Please review the publication guidelines and check the acknowledgement box to proceed.');
+      return;
+    }
+    setAckError('');
+    if (selectedCategoryTab === 'cat1') {
+      setFormData((prev) => ({
+        ...prev,
+        publicationCategory: 'Category 1: Peer-Reviewed Journals (Indexed in Google Scholar, Crossref, MIAR, etc.)',
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        publicationCategory: 'Category 2: Scopus Indexed Journals / Book Chapters',
+      }));
+    }
+    setStep('form');
+  };
 
   if (!isOpen) return null;
 
@@ -201,7 +231,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
       />
 
       {/* Modal Container */}
-      <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-2xl w-full p-5 sm:p-8 z-10 border border-slate-200 overflow-y-auto max-h-[92vh] my-auto">
+      <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-3xl lg:max-w-4xl w-full p-5 sm:p-8 md:p-10 z-10 border border-slate-200 overflow-y-auto max-h-[92vh] my-auto">
         
         {/* Close Button */}
         <button
@@ -265,8 +295,294 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
               Done &amp; Return to Conference Site
             </button>
           </div>
+        ) : step === 'guidelines' ? (
+          <div className="space-y-6 text-left">
+            {/* Header */}
+            <div className="space-y-2.5 pr-8">
+              <div className="flex flex-wrap items-center gap-3">
+                <img
+                  src="/yenepoya-university-logonew3.svg"
+                  alt="Yenepoya (Deemed to be University)"
+                  className="h-7 w-auto object-contain"
+                />
+                <div className="h-4 w-[1px] bg-slate-300 hidden sm:block" />
+                <img
+                  src="/yenepoya-school-engineering-and-technologynew-02.svg"
+                  alt="Yenepoya School of Engineering & Technology"
+                  className="h-7 w-auto object-contain"
+                />
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
+                  <BookOpen className="w-4 h-4" />
+                </span>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
+                  Stage 1 of 2 • Guidelines &amp; Policy Acknowledgement
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
+                Paper Submission, Publication Guidelines and Registration Policy
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                ICCAQI 2026 invites original research contributions from academicians, researchers, industry professionals, research scholars, and students in the areas of Computing, Artificial Intelligence, Quantum Intelligence, and Emerging Technologies.
+              </p>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                The conference offers two distinct publication categories to accommodate the diverse publication requirements of researchers and authors. Authors are requested to carefully review the publication guidelines, eligibility criteria, plagiarism policies, registration fees, and publication charges before submitting their manuscripts.
+              </p>
+            </div>
+
+            {/* Category Selector Buttons */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">
+                Select Publication Category to View Specific Rules &amp; Guidelines:
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {/* Category 1 Button */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategoryTab('cat1')}
+                  className={`p-4 rounded-2xl border-2 text-left transition-all relative cursor-pointer ${
+                    selectedCategoryTab === 'cat1'
+                      ? 'border-[#7cb305] bg-gradient-to-br from-lime-50/80 to-white shadow-md ring-2 ring-[#7cb305]/20'
+                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                      selectedCategoryTab === 'cat1'
+                        ? 'bg-[#7cb305] text-white shadow-xs'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      Category I
+                    </span>
+                    {selectedCategoryTab === 'cat1' && (
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-[#7cb305]">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Selected
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                    CATEGORY I: PUBLICATION IN DOUBLE-BLIND PEER-REVIEWED JOURNALS
+                  </h4>
+                  <p className="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
+                    Indexed in Google Scholar, Crossref, MIAR, Ulrichsweb, EBSCO, DeepDyve, Dimensions &amp; TrendMD. Standard publication with assigned DOI.
+                  </p>
+                </button>
+
+                {/* Category 2 Button */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategoryTab('cat2')}
+                  className={`p-4 rounded-2xl border-2 text-left transition-all relative cursor-pointer ${
+                    selectedCategoryTab === 'cat2'
+                      ? 'border-[#7cb305] bg-gradient-to-br from-lime-50/80 to-white shadow-md ring-2 ring-[#7cb305]/20'
+                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                      selectedCategoryTab === 'cat2'
+                        ? 'bg-[#7cb305] text-white shadow-xs'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      Category II
+                    </span>
+                    {selectedCategoryTab === 'cat2' && (
+                      <span className="flex items-center gap-1 text-[11px] font-bold text-[#7cb305]">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Selected
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                    CATEGORY II: PUBLICATION IN SCOPUS-INDEXED BOOK CHAPTERS AND JOURNALS
+                  </h4>
+                  <p className="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
+                    Wiley Scopus-Indexed Book Series &amp; Selected Scopus Q3/Q4 Indexed Journals. High-impact research track.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Detailed Rules & Guidelines Container */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5 space-y-4">
+              {selectedCategoryTab === 'cat1' ? (
+                <div className="space-y-3.5">
+                  <div className="flex items-center gap-2 text-xs font-extrabold text-slate-900">
+                    <ShieldCheck className="w-4 h-4 text-[#7cb305]" />
+                    <span>Specific Guidelines for Category I: Peer-Reviewed Journals</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-[#7cb305]" />
+                        Indexing &amp; Digital Identifier
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Articles are assigned a verified Crossref Digital Object Identifier (DOI) and indexed in Google Scholar, Crossref, MIAR, Ulrichsweb, EBSCO, DeepDyve, Dimensions, and TrendMD.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-[#7cb305]" />
+                        Double-Blind Peer Review
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Rigorous double-blind peer-review conducted by minimum 2 independent international domain experts. Author names and affiliations must be omitted from review copies.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                        Plagiarism Policy (&lt;15%)
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Similarity index must be strictly below 15% (excluding references) via Turnitin / iThenticate. Plagiarized or unverified AI-generated submissions face immediate desk rejection.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-[#7cb305]" />
+                        Registration &amp; Publication Charges
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Conference registration fee includes presentation certificate, proceedings entry, and journal publication. No additional or hidden article publication charges (APC) for Category I.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3.5">
+                  <div className="flex items-center gap-2 text-xs font-extrabold text-slate-900">
+                    <ShieldCheck className="w-4 h-4 text-[#7cb305]" />
+                    <span>Specific Guidelines for Category II: Scopus-Indexed Chapters &amp; Journals</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-[#7cb305]" />
+                        Scopus Indexing &amp; Publishers
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Submissions will be published in Wiley Scopus-Indexed Book Series or recommended to partner Scopus Q3/Q4 Indexed Journals based on scope, review scores, and editorial acceptance.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-[#7cb305]" />
+                        Two-Tier Editorial Review
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Two-tier review: preliminary evaluation by ICCAQI Technical Program Committee, followed by publisher editorial peer review adhering to strict Scopus indexing criteria.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                        Plagiarism &amp; Research Rigor (&lt;15%)
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Turnitin / iThenticate similarity score must be strictly &lt;15% (with &lt;1% from any single source). Submissions require empirical validation and comparative benchmarking.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Info className="w-3.5 h-3.5 text-sky-600" />
+                        Registration &amp; Publisher Charges (APC)
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Conference registration is mandatory for presenting authors. For select open-access Scopus partner journals charging APC, authors will be communicated clearly upon review decision.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* General Policy Notice */}
+              <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between text-[11px] text-slate-600 gap-2">
+                <div>
+                  Submission Deadline: <strong className="text-slate-900">October 20, 2026</strong> • Notification: <strong className="text-slate-900">October 25, 2026</strong>
+                </div>
+                <div>
+                  Presentation Mode: <span className="font-semibold text-emerald-700">Hybrid (In-Person / Online)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Ack Error Message */}
+            {ackError && (
+              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center gap-2.5">
+                <AlertCircle className="w-4.5 h-4.5 shrink-0 text-rose-600" />
+                <span>{ackError}</span>
+              </div>
+            )}
+
+            {/* Explicit Acknowledgement Checkbox */}
+            <label className="flex items-start gap-3 p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/80 hover:bg-slate-100/70 hover:border-slate-300 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={acknowledged}
+                onChange={(e) => {
+                  setAcknowledged(e.target.checked);
+                  if (e.target.checked) setAckError('');
+                }}
+                className="mt-0.5 w-4 h-4 rounded text-[#7cb305] focus:ring-[#7cb305] border-slate-300 accent-[#7cb305]"
+              />
+              <span className="text-xs text-slate-700 leading-relaxed font-medium">
+                I have read, understood, and agree to the <strong>ICCAQI 2026 Paper Submission, Publication Guidelines and Registration Policy</strong> for <strong>{selectedCategoryTab === 'cat1' ? 'Category I (Peer-Reviewed Journals)' : 'Category II (Scopus-Indexed Chapters & Journals)'}</strong>. I certify that this manuscript is original, complies with the &lt;15% plagiarism threshold, and has not been submitted or published elsewhere.
+              </span>
+            </label>
+
+            {/* Navigation / Next Button */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+              <div className="text-xs text-slate-500 font-medium">
+                Selected Track:{' '}
+                <strong className="text-slate-900">
+                  {selectedCategoryTab === 'cat1' ? 'Category I: Peer-Reviewed Journals' : 'Category II: Scopus Indexed'}
+                </strong>
+              </div>
+              <button
+                type="button"
+                onClick={handleProceedToForm}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all cursor-pointer"
+              >
+                <span>Proceed to Manuscript Upload</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         ) : (
           <div>
+            {/* Stage / Policy banner and back button */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200 mb-5">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-semibold text-slate-500">Publication Track:</span>
+                <span className="font-bold text-slate-900 bg-lime-100/80 text-[#547903] px-2.5 py-0.5 rounded-full border border-lime-300">
+                  {formData.publicationCategory.includes('Category 1') ? 'Category I: Peer-Reviewed Journals' : 'Category II: Scopus Indexed'}
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Policy Acknowledged
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep('guidelines')}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Review Guidelines</span>
+              </button>
+            </div>
+
             {/* Header */}
             <div className="mb-6 space-y-2 pr-8">
               <div className="flex flex-wrap items-center gap-3">
@@ -286,8 +602,8 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                 <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
                   <FileText className="w-4 h-4" />
                 </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                  Paper Submission Portal
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
+                  Stage 2 of 2 • Manuscript Submission Form
                 </span>
               </div>
               <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">

@@ -106,7 +106,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       />
 
       {/* Modal Container */}
-      <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-2xl w-full p-5 sm:p-8 z-10 border border-slate-200 overflow-y-auto max-h-[92vh] my-auto">
+      <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-3xl lg:max-w-4xl w-full p-5 sm:p-8 md:p-10 z-10 border border-slate-200 overflow-y-auto max-h-[92vh] my-auto">
         
         {/* Close Button */}
         <button
