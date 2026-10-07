@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     const authorName = sanitizeText(formData.get('authorName') as string, 100);
     const email = sanitizeText(formData.get('email') as string, 254);
     const phone = sanitizeText(formData.get('phone') as string, 30);
+    const gender = sanitizeText(formData.get('gender') as string, 20) || 'Male';
     const institution = sanitizeText(formData.get('institution') as string, 200);
     const authorCategory = sanitizeText(formData.get('authorCategory') as string, 100) || 'Research Scholars / Academicians';
     const publicationCategory = sanitizeText(formData.get('publicationCategory') as string, 150) || 'Category 1: Peer-Reviewed Journals';
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
     const supabaseAdmin = getSupabaseAdminClient();
     const buffer = Buffer.from(await file.arrayBuffer());
     const hash = requestHash({
-      authorName, email, phone, institution, authorCategory, publicationCategory,
+      authorName, email, phone, gender, institution, authorCategory, publicationCategory,
       track, paperTitle, abstract, mode: mode || 'Hybrid',
       fileName: file.name, fileType: file.type,
     }, buffer);
@@ -121,7 +122,7 @@ export async function POST(request: Request) {
       track,
       paper_title: paperTitle,
       abstract,
-      participation_mode: mode || 'Hybrid',
+      participation_mode: `${mode || 'Offline'} | ${gender}`,
       file_url: fileUrl,
       review_status: 'Submitted',
       created_at: createdAt,

@@ -77,19 +77,31 @@ export async function GET() {
               }
             }
 
+            const rawMode = s.participation_mode || s.mode || 'Offline';
+            let cleanMode = rawMode;
+            let authorGender = s.gender || '';
+            if (rawMode.includes(' | ')) {
+              const parts = rawMode.split(' | ');
+              cleanMode = parts[0] || 'Offline';
+              if (!authorGender && parts[1]) {
+                authorGender = parts[1];
+              }
+            }
+
             return {
               id: s.id,
               submissionId: s.submission_id,
               authorName: s.author_name,
               email: s.email,
-              phone: s.phone,
+              phone: s.phone || '',
+              gender: authorGender || 'Not Specified',
               institution: s.institution,
               authorCategory: s.author_category || 'Research Scholars / Academicians',
               publicationCategory: s.publication_category || 'Category 1: Peer-Reviewed Journals',
               track: s.track,
               paperTitle: s.paper_title,
               abstract: s.abstract,
-              mode: s.participation_mode || s.mode || 'Offline',
+              mode: cleanMode,
               fileUrl: viewUrl,
               reviewStatus: s.review_status || 'Under Review',
               createdAt: s.created_at,

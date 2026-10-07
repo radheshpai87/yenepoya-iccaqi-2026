@@ -20,12 +20,14 @@ export interface SubmissionRecord {
   authorName: string;
   email: string;
   phone: string;
+  gender?: string;
   institution: string;
   authorCategory?: string;
   publicationCategory?: string;
   track: string;
   paperTitle: string;
   abstract: string;
+  mode?: string;
   fileUrl: string;
   reviewStatus: string;
   createdAt: string;

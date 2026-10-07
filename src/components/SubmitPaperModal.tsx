@@ -42,6 +42,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     authorName: '',
     email: '',
     phone: '',
+    gender: 'Male',
     institution: '',
     authorCategory: 'Research Scholars / Academicians',
     publicationCategory: 'Category 2: Scopus Indexed Journals / Book Chapters',
@@ -183,6 +184,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     data.append('authorName', formData.authorName);
     data.append('email', formData.email);
     data.append('phone', formData.phone);
+    data.append('gender', formData.gender);
     data.append('institution', formData.institution);
     data.append('authorCategory', formData.authorCategory);
     data.append('publicationCategory', formData.publicationCategory);
@@ -399,12 +401,21 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   </span>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1 sm:col-span-2">
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                     Presentation Mode
                   </span>
                   <span className="font-semibold text-slate-900 leading-snug block break-words">
                     {formData.mode === 'Offline' ? 'Offline (In-Person Presentation)' : 'Online (Virtual Presentation)'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Contact &amp; Gender
+                  </span>
+                  <span className="font-semibold text-slate-900 leading-snug block break-words">
+                    {formData.phone ? `${formData.phone} • ${formData.gender}` : formData.gender}
                   </span>
                 </div>
 
@@ -958,6 +969,39 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Mobile / Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    disabled={submitting}
+                    placeholder="e.g. +91 9876543210"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Gender *
+                  </label>
+                  <select
+                    value={formData.gender}
+                    disabled={submitting}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60 font-medium"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
               </div>
 
