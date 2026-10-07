@@ -110,6 +110,18 @@ export default function PortalAdminPage() {
   const [subStatusFilter, setSubStatusFilter] = useState('All');
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
+  // Bulk Email State
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailTargetType, setEmailTargetType] = useState<'verified_registrations' | 'accepted_submissions'>('verified_registrations');
+  const [emailSubject, setEmailSubject] = useState('ICCAQI 2026 — Official Registration Verification & Conference Information');
+  const [emailBody, setEmailBody] = useState(
+    `<p>We are pleased to inform you that your delegate registration for <strong>ICCAQI 2026</strong> at Yenepoya (Deemed to be University) has been officially verified.</p><p>Please find details regarding your participation below. We look forward to welcoming you to Mangaluru for the conference on <strong>November 6–7, 2026</strong>.</p>`
+  );
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSendReport, setEmailSendReport] = useState<any>(null);
+  const [emailError, setEmailError] = useState('');
+
   // Check auth session on load & set up live auto-sync without page reload
   useEffect(() => {
     checkSession();
@@ -407,6 +419,96 @@ export default function PortalAdminPage() {
     }
   };
 
+  const getTargetRecipients = () => {
+    if (emailTargetType === 'verified_registrations') {
+      return registrations
+        .filter((r) => r.paymentStatus === 'Verified')
+        .map((r) => ({
+          name: r.name,
+          email: r.email,
+          paperId: r.paperId,
+          institution: r.institution,
+        }));
+    } else {
+      return submissions
+        .filter((s) => s.reviewStatus === 'Accepted')
+        .map((s) => ({
+          name: s.authorName,
+          email: s.email,
+          paperId: s.submissionId,
+          institution: s.institution,
+        }));
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    setEmailError('');
+    setEmailSendReport(null);
+    setIsSendingEmail(true);
+
+    try {
+      const res = await fetch('/api/admin/send-bulk-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isTest: true,
+          testEmail: testEmailAddress,
+          subject: emailSubject,
+          messageBody: emailBody,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(data.message || 'Test preview email sent successfully!');
+      } else {
+        setEmailError(data.error || 'Failed to send test preview email.');
+      }
+    } catch (err) {
+      setEmailError('Network error while sending test preview email.');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  const handleSendBulkEmail = async () => {
+    const recipients = getTargetRecipients();
+    if (recipients.length === 0) {
+      alert(`No verified recipients found for ${emailTargetType === 'verified_registrations' ? 'Verified Delegate Registrations' : 'Accepted Paper Submissions'}.`);
+      return;
+    }
+
+    const confirmMsg = `Are you sure you want to dispatch bulk emails to all ${recipients.length} VERIFIED recipients via SMTP?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setEmailError('');
+    setEmailSendReport(null);
+    setIsSendingEmail(true);
+
+    try {
+      const res = await fetch('/api/admin/send-bulk-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipients,
+          subject: emailSubject,
+          messageBody: emailBody,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEmailSendReport(data.report);
+      } else {
+        setEmailError(data.error || 'Failed to complete bulk email dispatch.');
+      }
+    } catch (err) {
+      setEmailError('Server connection error during email queue processing.');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const exportRegistrationsCSV = () => {
     const headers = [
       'Registration ID',
@@ -686,6 +788,14 @@ export default function PortalAdminPage() {
               <FileSpreadsheet className="w-4.5 h-4.5 shrink-0 text-amber-600" />
               <span>Export CSV Reports</span>
             </button>
+
+            <button
+              onClick={() => setIsEmailModalOpen(true)}
+              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
+            >
+              <Mail className="w-4.5 h-4.5 shrink-0 text-[#7cb305]" />
+              <span>Broadcast Email</span>
+            </button>
           </nav>
         </div>
 
@@ -750,6 +860,16 @@ export default function PortalAdminPage() {
                   className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white transition-all"
                 />
               </div>
+
+              {/* Broadcast Email CTA Button */}
+              <button
+                onClick={() => setIsEmailModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                title="Broadcast SMTP email to verified delegates"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Broadcast Email ({registrations.filter((r) => r.paymentStatus === 'Verified').length})</span>
+              </button>
 
               {/* Refresh Button */}
               <button
@@ -1618,6 +1738,250 @@ export default function PortalAdminPage() {
         )}
 
       </div>
+
+      {/* ========================================================= */}
+      {/* BULK EMAIL DISPATCH COMPOSER MODAL FOR VERIFIED DELEGATES  */}
+      {/* ========================================================= */}
+      {isEmailModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 border border-slate-200 space-y-6 max-h-[92vh] overflow-y-auto my-auto text-left">
+            
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-[#7cb305]/10 text-[#7cb305]">
+                    <Mail className="w-4 h-4" />
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#7cb305]">
+                    SMTP Bulk Email Dispatch Gateway
+                  </span>
+                </div>
+                <h3 className="text-xl font-extrabold text-slate-900">
+                  Broadcast Email Communication
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Send throttled, personalized emails via SMTP without rate limit errors
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsEmailModalOpen(false)}
+                className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Target Audience Selector */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Target Recipient Group *
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEmailTargetType('verified_registrations')}
+                  className={`p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                    emailTargetType === 'verified_registrations'
+                      ? 'border-[#7cb305] bg-lime-50/70 shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                    <span>Verified Delegates Only</span>
+                    <span className="px-2 py-0.5 rounded-full bg-[#7cb305] text-white text-[10px]">
+                      {registrations.filter((r) => r.paymentStatus === 'Verified').length} Verified
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1">Paid / Verified Conference Participants</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEmailTargetType('accepted_submissions')}
+                  className={`p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                    emailTargetType === 'accepted_submissions'
+                      ? 'border-indigo-600 bg-indigo-50/70 shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                    <span>Accepted Paper Authors</span>
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px]">
+                      {submissions.filter((s) => s.reviewStatus === 'Accepted').length} Accepted
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1">Authors of Accepted Manuscripts</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Template Shortcuts */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Quick Template Presets
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailSubject('ICCAQI 2026 — Official Payment Receipt & Delegate Verification');
+                    setEmailBody(
+                      `<p>We are pleased to confirm that your delegate registration fee for <strong>ICCAQI 2026</strong> has been verified successfully.</p><p>Your official delegate badge and payment receipt will be issued at the conference desk upon arrival on <strong>November 6, 2026</strong>.</p>`
+                    );
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Payment Verified Receipt
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailSubject('ICCAQI 2026 — Official Paper Acceptance Notification');
+                    setEmailBody(
+                      `<p>We are delighted to inform you that your manuscript (Paper ID: <strong>{{paper_id}}</strong>) has been <strong>ACCEPTED</strong> for presentation at ICCAQI 2026.</p><p>Please prepare your final camera-ready PDF and presentation slides according to conference guidelines.</p>`
+                    );
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Paper Acceptance Notice
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailSubject('ICCAQI 2026 — Conference Schedule & Travel Advisory');
+                    setEmailBody(
+                      `<p>Greetings from Yenepoya School of Engineering & Technology, Mangaluru.</p><p>The technical program schedule for ICCAQI 2026 is now available. Hybrid session links for virtual attendees and campus directions for offline participants have been updated on our portal.</p>`
+                    );
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Schedule &amp; Travel Notice
+                </button>
+              </div>
+            </div>
+
+            {/* Email Subject Line */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                Email Subject Line *
+              </label>
+              <input
+                type="text"
+                required
+                disabled={isSendingEmail}
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                placeholder="Enter email subject line..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#7cb305] focus:outline-hidden bg-white"
+              />
+            </div>
+
+            {/* Email Message Content Body */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Email Message Body (HTML / Text) *
+                </label>
+                <span className="text-[10px] text-slate-500 font-mono">
+                  Tags: {"{{name}}"}, {"{{paper_id}}"}, {"{{institution}}"}
+                </span>
+              </div>
+              <textarea
+                rows={5}
+                required
+                disabled={isSendingEmail}
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-[#7cb305] focus:outline-hidden bg-white font-mono leading-relaxed"
+              />
+            </div>
+
+            {/* Test Email Section */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex-1 min-w-[220px]">
+                <span className="font-bold text-slate-800 block">Send Test Preview Email</span>
+                <span className="text-[11px] text-slate-500">Test formatting before launching to verified delegates</span>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="email"
+                  placeholder="Enter test email..."
+                  value={testEmailAddress}
+                  onChange={(e) => setTestEmailAddress(e.target.value)}
+                  className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs bg-white focus:outline-hidden focus:border-[#7cb305]"
+                />
+                <button
+                  type="button"
+                  disabled={isSendingEmail}
+                  onClick={handleSendTestEmail}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                >
+                  Send Test Preview
+                </button>
+              </div>
+            </div>
+
+            {/* Error Banner */}
+            {emailError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center gap-2 text-left">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{emailError}</span>
+              </div>
+            )}
+
+            {/* Dispatch Summary Report */}
+            {emailSendReport && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-1.5 text-left">
+                <div className="font-extrabold text-emerald-800 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Bulk Email Dispatch Successfully Completed</span>
+                </div>
+                <div className="text-emerald-700 font-medium">
+                  Sent <strong>{emailSendReport.successCount}</strong> of <strong>{emailSendReport.total}</strong> verified emails successfully.
+                </div>
+                {emailSendReport.failedCount > 0 && (
+                  <div className="text-rose-700 font-semibold pt-1">
+                    Notice: {emailSendReport.failedCount} addresses failed transmission (invalid domain or soft SMTP glitch).
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CTA Controls */}
+            <div className="pt-2 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsEmailModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSendingEmail}
+                onClick={handleSendBulkEmail}
+                className="px-6 py-2.5 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isSendingEmail ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Dispatching via SMTP (Paced)...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    <span>Launch Bulk Dispatch ({getTargetRecipients().length} Recipients)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
