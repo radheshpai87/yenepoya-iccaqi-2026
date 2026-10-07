@@ -14,6 +14,8 @@ const ASSETS_TO_PRELOAD = [
   '/yenepoya3image.jpeg',
   '/yiascm_kulur.png',
   '/event.png',
+  '/iccaqi-logo.png',
+  '/imanager-publications-logo.png',
 ];
 
 export const Preloader: React.FC = () => {

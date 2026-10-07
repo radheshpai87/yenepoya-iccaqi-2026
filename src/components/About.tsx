@@ -31,18 +31,37 @@ export const About: React.FC = () => {
 
         {/* Clean Editorial Intro */}
         <div className="bg-slate-50 rounded-3xl p-6 sm:p-10 border border-slate-200/80 mb-10 space-y-4">
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6 pb-4 border-b border-slate-200/80">
-            <img
-              src="/yenepoya-university-logonew3.svg"
-              alt="Yenepoya (Deemed to be University)"
-              className="h-9 sm:h-11 w-auto object-contain"
-            />
-            <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
-            <img
-              src="/yenepoya-school-engineering-and-technologynew-02.svg"
-              alt="Yenepoya School of Engineering & Technology"
-              className="h-9 sm:h-11 w-auto object-contain"
-            />
+          <div className="flex flex-wrap items-center justify-between gap-4 sm:gap-6 pb-4 border-b border-slate-200/80">
+            {/* Host Institution Logos */}
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+              <img
+                src="/yenepoya-university-logonew3.svg"
+                alt="Yenepoya (Deemed to be University)"
+                className="h-9 sm:h-11 w-auto object-contain"
+              />
+              <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
+              <img
+                src="/yenepoya-school-engineering-and-technologynew-02.svg"
+                alt="Yenepoya School of Engineering & Technology"
+                className="h-9 sm:h-11 w-auto object-contain"
+              />
+            </div>
+
+            {/* Conference Emblem & Publication Partner Logos */}
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+              <div className="h-7 w-[1.5px] bg-slate-200 hidden md:block" />
+              <img
+                src="/iccaqi-logo.png"
+                alt="ICCAQI 2026 Official Conference Logo"
+                className="h-10 sm:h-12 w-auto object-contain"
+              />
+              <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
+              <img
+                src="/imanager-publications-logo.png"
+                alt="i-manager Publications Partner"
+                className="h-9 sm:h-11 w-auto object-contain"
+              />
+            </div>
           </div>
 
           <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-normal">
