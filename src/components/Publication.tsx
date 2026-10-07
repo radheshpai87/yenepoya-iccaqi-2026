@@ -1,20 +1,6 @@
 import React from 'react';
-import { BookOpen, CheckCircle2 } from 'lucide-react';
 
 export const Publication: React.FC = () => {
-  const indexingList = [
-    'Scopus (Q3/Q4 Consideration)',
-    'Wiley Book Series',
-    'Google Scholar',
-    'Crossref & DOI',
-    'Dimensions',
-    'EBSCO',
-    'MIAR',
-    'Ulrichsweb',
-    'DeepDyve',
-    'TrendMD',
-  ];
-
   return (
     <section id="publication" className="py-20 md:py-24 bg-slate-50 border-b border-slate-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -58,20 +44,28 @@ export const Publication: React.FC = () => {
 
           </div>
 
-          {/* Indexing Badges */}
-          <div>
-            <span className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+          {/* Indexing & Publishing Partners Showcase */}
+          <div className="pt-2 space-y-4">
+            <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
               Referenced Indexing Services &amp; Archival:
             </span>
-            <div className="flex flex-wrap gap-2">
-              {indexingList.map((item, idx) => (
-                <span
-                  key={idx}
-                  className="px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200/80"
-                >
-                  {item}
-                </span>
-              ))}
+            
+            {/* Scopus, Wiley & i-manager Publications Banner */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shadow-2xs">
+              <img
+                src="/scopus-wiley-imanager-logo.png"
+                alt="Scopus, Wiley, and i-manager Publications"
+                className="h-12 sm:h-16 md:h-20 w-auto max-w-full object-contain"
+              />
+            </div>
+
+            {/* Academic Database Indexing Collage Banner */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shadow-2xs">
+              <img
+                src="/academic-database-logos-collage.png"
+                alt="Academic Database Logos Collage (ProQuest, PubMed, Crossref, EBSCO, Google Scholar, Dimensions, MIAR)"
+                className="w-full max-w-3xl h-auto object-contain"
+              />
             </div>
           </div>
 

@@ -16,6 +16,8 @@ const ASSETS_TO_PRELOAD = [
   '/event.png',
   '/iccaqi-logo.png',
   '/imanager-publications-logo.png',
+  '/scopus-wiley-imanager-logo.png',
+  '/academic-database-logos-collage.png',
 ];
 
 export const Preloader: React.FC = () => {
