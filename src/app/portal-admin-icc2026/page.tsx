@@ -426,6 +426,7 @@ export default function PortalAdminPage() {
       return registrations
         .filter((r) => r.paymentStatus === 'Verified')
         .map((r) => ({
+          id: r.id,
           name: r.name,
           email: r.email,
           paperId: r.paperId,
@@ -435,6 +436,7 @@ export default function PortalAdminPage() {
       return submissions
         .filter((s) => s.reviewStatus === 'Accepted')
         .map((s) => ({
+          id: s.id,
           name: s.authorName,
           email: s.email,
           paperId: s.submissionId,

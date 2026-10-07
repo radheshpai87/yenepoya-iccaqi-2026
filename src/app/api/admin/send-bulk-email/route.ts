@@ -78,7 +78,8 @@ export async function POST(request: Request) {
         recipient.name || 'Delegate',
         cleanBody,
         recipient.paperId || '',
-        recipient.institution || ''
+        recipient.institution || '',
+        recipient.id || recipient.registrationId || recipient.paperId || ''
       );
 
       while (attempts < 2 && !sentSuccessfully) {

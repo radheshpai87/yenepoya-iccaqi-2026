@@ -28,16 +28,42 @@ export function getSmtpTransporter() {
 /**
  * Render official Yenepoya ICCAQI 2026 responsive HTML email wrapper
  */
+/**
+ * Render official Yenepoya ICCAQI 2026 responsive HTML email wrapper
+ */
 export function renderEmailHtml(
   name: string,
   messageBody: string,
   paperId?: string,
-  institution?: string
+  institution?: string,
+  registrationId?: string
 ): string {
-  const processedBody = messageBody
+  const regId = registrationId || paperId || '';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://iccaqi.in';
+  const paymentUrl = `${baseUrl.replace(/\/$/, '')}/complete-payment?id=${encodeURIComponent(regId)}`;
+
+  let processedBody = messageBody
     .replace(/{{name}}/g, name)
     .replace(/{{paper_id}}/g, paperId || 'N/A')
-    .replace(/{{institution}}/g, institution || '');
+    .replace(/{{registration_id}}/g, regId || 'N/A')
+    .replace(/{{institution}}/g, institution || '')
+    .replace(/{{payment_url}}/g, paymentUrl);
+
+  // If body doesn't explicitly contain {{payment_url}}, append a clean CTA button block at bottom
+  const hasPaymentLinkTag = messageBody.includes('{{payment_url}}') || messageBody.includes('/complete-payment');
+  
+  const ctaButtonBlock = !hasPaymentLinkTag && regId
+    ? `
+      <div style="text-align: center; margin: 28px 0 16px 0;">
+        <a href="${paymentUrl}" target="_blank" style="background-color: #7cb305; color: #ffffff; font-weight: 800; font-size: 14px; text-decoration: none; padding: 14px 28px; border-radius: 12px; display: inline-block; shadow: 0 4px 12px rgba(124, 179, 5, 0.25);">
+          Complete Registration &amp; Upload Payment Proof &rarr;
+        </a>
+        <p style="margin: 8px 0 0 0; font-size: 11px; color: #64748b;">
+          Direct Link: <a href="${paymentUrl}" style="color: #7cb305; text-decoration: underline;">${paymentUrl}</a>
+        </p>
+      </div>
+    `
+    : '';
 
   return `
 <!DOCTYPE html>
@@ -74,6 +100,8 @@ export function renderEmailHtml(
               <div style="margin: 20px 0;">
                 ${processedBody}
               </div>
+
+              ${ctaButtonBlock}
 
               <div style="background-color: #f8fafc; border-left: 4px solid #7cb305; padding: 14px 16px; border-radius: 6px; margin: 24px 0; font-size: 12px; color: #475569;">
                 <strong>Event Reference:</strong> International Conference on Computing, AI, Quantum Intelligence and Future Technologies (ICCAQI 2026)<br/>
