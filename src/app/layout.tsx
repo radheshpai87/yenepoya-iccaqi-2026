@@ -45,6 +45,9 @@ export const metadata: Metadata = {
     title: 'ICCAQI 2026 | International Conference on Computing, AI & Quantum Intelligence',
     description: 'November 6–7, 2026 • Yenepoya (Deemed to be University), Mangaluru, India. Hybrid Mode (In-Person & Online) • Scopus Publication Tracks.',
   },
+  verification: {
+    google: '2woGajKPbMH025rhKAz9DV9mVQQhPIfhNs8uQVazris',
+  },
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -123,6 +126,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
       <head>
+        <meta
+          name="google-site-verification"
+          content="2woGajKPbMH025rhKAz9DV9mVQQhPIfhNs8uQVazris"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdConference) }}
