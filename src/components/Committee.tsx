@@ -36,6 +36,12 @@ export const Committee: React.FC = () => {
       designation: 'Associate Professor, Department of CSE',
       affiliation: 'Yenepoya School of Engineering & Technology',
     },
+    {
+      role: 'Chair, Advisory Committee',
+      name: 'Dr. Rakesh K K',
+      designation: 'Senior Assistant Professor, Dept. of Computer Science',
+      affiliation: 'YIASCM',
+    },
   ];
 
   return (
@@ -103,7 +109,7 @@ export const Committee: React.FC = () => {
           <h4 className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
             Organizing Team
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {leadership.map((lead, idx) => (
               <div
                 key={idx}
