@@ -472,13 +472,17 @@ function CompletePaymentContent() {
                   <button
                     type="button"
                     onClick={() => {
-                      alert(`Razorpay Payment Checkout for ${delegate.amount} (${delegate.currency}) initialized. Complete transaction and upload receipt screenshot below.`);
+                      const razorpayUrl = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || 'https://razorpay.me/@yenepoyauniversity';
+                      window.open(razorpayUrl, '_blank');
                     }}
                     className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>Pay {delegate.amount} via Razorpay</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>Pay {delegate.amount} via Razorpay &rarr;</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </button>
+                  <p className="text-[10px] text-sky-700 font-medium text-center">
+                    Opens secure Razorpay gateway. After paying, take a screenshot of your receipt and upload it in Step 3 below.
+                  </p>
                 </div>
               </div>
             </div>

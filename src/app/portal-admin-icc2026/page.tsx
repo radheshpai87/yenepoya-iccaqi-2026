@@ -118,7 +118,7 @@ export default function PortalAdminPage() {
   const [emailTargetType, setEmailTargetType] = useState<'verified_registrations' | 'accepted_submissions'>('verified_registrations');
   const [emailSubject, setEmailSubject] = useState('ICCAQI 2026 — Official Registration Verification & Conference Information');
   const [emailBody, setEmailBody] = useState(
-    `<p>We are pleased to inform you that your delegate registration for <strong>ICCAQI 2026</strong> at Yenepoya (Deemed to be University) has been officially verified.</p><p>Please find details regarding your participation below. We look forward to welcoming you to Mangaluru for the conference on <strong>November 6–7, 2026</strong>.</p>`
+    `<p>We are pleased to inform you that your delegate registration for <strong>ICCAQI 2026</strong> at Yenepoya (Deemed to be University) has been <strong>OFFICIALLY VERIFIED & CONFIRMED</strong>.</p><div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin: 16px 0; font-size: 13px;"><p style="margin: 0 0 6px 0;"><strong>Delegate Name:</strong> {{name}}</p><p style="margin: 0 0 6px 0;"><strong>Registration Reference ID:</strong> {{registration_id}}</p><p style="margin: 0 0 6px 0;"><strong>Institution / University:</strong> {{institution}}</p><p style="margin: 0;"><strong>Associated Paper ID:</strong> {{paper_id}}</p></div><p>We look forward to welcoming you to Mangaluru for the conference on <strong>November 6–7, 2026</strong>.</p>`
   );
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -2037,9 +2037,9 @@ export default function PortalAdminPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setEmailSubject('ICCAQI 2026 — Official Payment Receipt & Delegate Verification');
+                    setEmailSubject('ICCAQI 2026 — Official Registration Verification & Payment Receipt');
                     setEmailBody(
-                      `<p>We are pleased to confirm that your delegate registration fee for <strong>ICCAQI 2026</strong> has been verified successfully.</p><p>Your official delegate badge and payment receipt will be issued at the conference desk upon arrival on <strong>November 6, 2026</strong>.</p>`
+                      `<p>We are pleased to inform you that your delegate registration fee for <strong>ICCAQI 2026</strong> at Yenepoya (Deemed to be University) has been <strong>OFFICIALLY VERIFIED & CONFIRMED</strong>.</p><div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin: 16px 0; font-size: 13px;"><p style="margin: 0 0 6px 0;"><strong>Delegate Name:</strong> {{name}}</p><p style="margin: 0 0 6px 0;"><strong>Registration Reference ID:</strong> {{registration_id}}</p><p style="margin: 0 0 6px 0;"><strong>Institution / University:</strong> {{institution}}</p><p style="margin: 0;"><strong>Associated Paper ID:</strong> {{paper_id}}</p></div><p>Your delegate badge and official payment receipt will be issued at the conference desk upon arrival on <strong>November 6, 2026</strong>.</p>`
                     );
                   }}
                   className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
