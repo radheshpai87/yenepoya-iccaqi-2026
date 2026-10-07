@@ -66,8 +66,6 @@ export async function POST(request: Request) {
       total: validRecipients.length,
       successCount: 0,
       failedCount: 0,
-      successful: [] as string[],
-      failed: [] as { email: string; reason: string }[],
     };
 
     // Paced queue processing to eliminate SMTP rate limit errors
@@ -95,14 +93,12 @@ export async function POST(request: Request) {
 
           sentSuccessfully = true;
           report.successCount++;
-          report.successful.push(recipient.email);
         } catch (sendErr: any) {
           console.warn(`SMTP send warning for ${recipient.email} (Attempt ${attempts}):`, sendErr.message);
           if (attempts < 2) {
             await sleep(1500); // Wait 1.5s before retrying
           } else {
             report.failedCount++;
-            report.failed.push({ email: recipient.email, reason: sendErr.message || 'SMTP transmission error' });
           }
         }
       }

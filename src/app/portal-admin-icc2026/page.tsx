@@ -2051,45 +2051,52 @@ export default function PortalAdminPage() {
             )}
 
             {/* Dispatch Summary Report */}
-            {emailSendReport && (
-              <div className={`p-4 rounded-2xl border text-xs space-y-2 text-left ${
-                emailSendReport.successCount > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'
-              }`}>
-                <div className={`font-extrabold flex items-center gap-1.5 ${
-                  emailSendReport.successCount > 0 ? 'text-emerald-800' : 'text-rose-800'
-                }`}>
-                  {emailSendReport.successCount > 0 ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-rose-600" />
-                  )}
-                  <span>
-                    {emailSendReport.successCount > 0
-                      ? 'Bulk Email Dispatch Completed'
-                      : 'Email Transmission Failed'}
-                  </span>
-                </div>
-                <div className={emailSendReport.successCount > 0 ? 'text-emerald-700 font-medium' : 'text-rose-700 font-medium'}>
-                  Sent <strong>{emailSendReport.successCount}</strong> of <strong>{emailSendReport.total}</strong> verified emails successfully.
-                </div>
-                {emailSendReport.failedCount > 0 && (
-                  <div className="space-y-1.5 pt-2 border-t border-rose-200/80">
-                    <div className="text-rose-800 font-bold flex items-center gap-1.5">
-                      <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                      <span>{emailSendReport.failedCount} recipient(s) failed:</span>
-                    </div>
-                    <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                      {emailSendReport.failed?.map((f: any, idx: number) => (
-                        <div key={idx} className="p-2.5 rounded-xl bg-white/80 border border-rose-200 text-[11px] text-rose-900 leading-snug space-y-0.5">
-                          <div className="font-bold text-slate-900">{f.email}</div>
-                          <div className="text-rose-700 font-mono text-[10px] break-words">{f.reason}</div>
-                        </div>
-                      ))}
-                    </div>
+            {emailSendReport && (() => {
+              const allSent = emailSendReport.failedCount === 0;
+              const partiallySent = emailSendReport.successCount > 0 && !allSent;
+              const tone = allSent
+                ? 'bg-emerald-50 border-emerald-200'
+                : partiallySent
+                  ? 'bg-amber-50 border-amber-200'
+                  : 'bg-rose-50 border-rose-200';
+              const headingTone = allSent
+                ? 'text-emerald-800'
+                : partiallySent
+                  ? 'text-amber-800'
+                  : 'text-rose-800';
+              const detailTone = allSent
+                ? 'text-emerald-700'
+                : partiallySent
+                  ? 'text-amber-700'
+                  : 'text-rose-700';
+
+              return (
+                <div className={`p-4 rounded-2xl border text-xs space-y-1.5 text-left ${tone}`} role="status">
+                  <div className={`font-extrabold flex items-center gap-1.5 ${headingTone}`}>
+                    {allSent ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <AlertCircle className={`w-4 h-4 shrink-0 ${partiallySent ? 'text-amber-600' : 'text-rose-600'}`} />
+                    )}
+                    <span>
+                      {allSent
+                        ? 'Emails sent successfully'
+                        : partiallySent
+                          ? 'Email sending partially completed'
+                          : 'Email sending failed'}
+                    </span>
                   </div>
-                )}
-              </div>
-            )}
+                  <div className={`${detailTone} font-medium`}>
+                    Sent <strong>{emailSendReport.successCount}</strong> of <strong>{emailSendReport.total}</strong> emails.
+                  </div>
+                  {emailSendReport.failedCount > 0 && (
+                    <div className={`${detailTone} font-medium`}>
+                      {emailSendReport.failedCount} {emailSendReport.failedCount === 1 ? 'email could' : 'emails could'} not be sent. Check your email settings and try again.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* CTA Controls */}
             <div className="pt-2 flex items-center justify-end gap-3">
