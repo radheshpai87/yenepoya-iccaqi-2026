@@ -8,17 +8,20 @@ import {
   Globe2, 
   BookOpen, 
   Sparkles,
-  Award
+  Award,
+  CreditCard
 } from 'lucide-react';
 
 interface HeroProps {
   onOpenSubmitModal: () => void;
+  onOpenRegisterModal: () => void;
   onOpenBrochureModal: () => void;
   onExploreDetails: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
   onOpenSubmitModal,
+  onOpenRegisterModal,
   onOpenBrochureModal,
   onExploreDetails,
 }) => {
@@ -139,7 +142,7 @@ export const Hero: React.FC<HeroProps> = ({
         </div>
 
         {/* Primary Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 pt-3 sm:pt-4 max-w-md sm:max-w-none mx-auto w-full">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-2.5 sm:gap-3.5 pt-3 sm:pt-4 max-w-2xl mx-auto w-full">
           <button
             onClick={onOpenSubmitModal}
             className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-full text-xs sm:text-sm font-bold text-white bg-[#7cb305] hover:bg-[#689803] shadow-lg shadow-lime-900/30 transition-all duration-200 cursor-pointer active:scale-95"
@@ -149,8 +152,16 @@ export const Hero: React.FC<HeroProps> = ({
           </button>
 
           <button
+            onClick={onOpenRegisterModal}
+            className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3.5 rounded-full text-xs sm:text-sm font-bold text-white bg-[#0284c7] hover:bg-[#0369a1] shadow-lg shadow-sky-950/40 transition-all duration-200 cursor-pointer active:scale-95"
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>Register as Participant</span>
+          </button>
+
+          <button
             onClick={onExploreDetails}
-            className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3.5 rounded-full text-xs sm:text-sm font-semibold text-white bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-3.5 rounded-full text-xs sm:text-sm font-semibold text-white bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 shadow-sm transition-all cursor-pointer"
           >
             <span>Conference Overview</span>
           </button>

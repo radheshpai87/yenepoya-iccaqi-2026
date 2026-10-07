@@ -121,42 +121,30 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </nav>
 
-            {/* Header Right Action (Visible on tablet & desktop) */}
-            <div className="hidden md:flex items-center gap-2 lg:gap-2.5">
+            {/* Header Right Action */}
+            <div className="hidden sm:flex items-center gap-2.5">
               <button
                 onClick={onOpenBrochureModal}
-                className="text-xs font-semibold text-slate-600 hover:text-slate-950 px-2.5 py-2 rounded-full transition-colors cursor-pointer"
+                className="text-xs font-semibold text-slate-600 hover:text-slate-950 px-3 py-2 rounded-full transition-colors cursor-pointer"
               >
                 Brochure
               </button>
               <button
-                onClick={onOpenRegisterModal}
-                className="inline-flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-full text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95 whitespace-nowrap"
-              >
-                <span>Register (₹300)</span>
-              </button>
-              <button
                 onClick={onOpenSubmitModal}
-                className="inline-flex items-center gap-1.5 px-3.5 lg:px-4 py-2 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95 whitespace-nowrap"
               >
                 <span>Submit Paper</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Mobile / Compact Header Action Bar (< md) */}
-            <div className="flex md:hidden items-center gap-1.5">
-              <button
-                onClick={onOpenRegisterModal}
-                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold bg-[#0284c7] text-white shadow-xs whitespace-nowrap active:scale-95"
-              >
-                Register ₹300
-              </button>
+            {/* Mobile Hamburger Toggle (< sm) */}
+            <div className="flex sm:hidden items-center gap-2">
               <button
                 onClick={onOpenSubmitModal}
-                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold bg-[#7cb305] text-white shadow-xs whitespace-nowrap active:scale-95"
+                className="px-3 py-1.5 rounded-full text-xs font-bold bg-[#7cb305] text-white shadow-xs whitespace-nowrap active:scale-95"
               >
-                Submit
+                Submit Paper
               </button>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

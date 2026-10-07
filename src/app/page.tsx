@@ -69,6 +69,7 @@ export default function HomePage() {
         {/* Modern Hero with Background College Photo Carousel */}
         <Hero
           onOpenSubmitModal={handleOpenSubmitModal}
+          onOpenRegisterModal={() => setRegisterModalOpen(true)}
           onOpenBrochureModal={() => setBrochureModalOpen(true)}
           onExploreDetails={handleExploreDetails}
         />
