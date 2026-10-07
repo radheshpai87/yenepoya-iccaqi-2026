@@ -143,23 +143,15 @@ export async function POST(request: Request) {
       created_at: createdAt,
     };
 
-    const { data: savedData, error: submissionError } = await supabaseAdmin
-      .from('paper_submissions')
-      .insert([submissionRecord])
-      .select()
-      .single();
-    if (submissionError || !savedData) {
-      // A network failure may follow a committed insert. Preserve the manuscript
-      // rather than deleting a file that a durable record could reference.
-      console.error('Submission database save failed:', submissionError);
+    const { data: savedData, error: saveError } = await supabaseAdmin.rpc('save_paper_submission', {
+      p_submission: submissionRecord,
+      p_registration: regRecord,
+    });
+    if (saveError || !savedData) {
+      // Preserve the file on ambiguous network failures: the transaction might
+      // have committed even when its response did not reach this server.
+      console.error('Atomic submission save failed:', saveError);
       throw new ApiError(503, 'Unable to confirm your submission save. Please retry with the same details and file.');
-    }
-    const { error: registrationError } = await supabaseAdmin
-      .from('registrations')
-      .insert([regRecord]);
-    if (registrationError) {
-      console.error('Linked registration save failed:', registrationError);
-      throw new ApiError(503, 'Unable to confirm your linked registration save. Please retry with the same details and file.');
     }
 
     const responsePayload = {

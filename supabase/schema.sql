@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS public.paper_submissions (
     email TEXT NOT NULL,
     phone TEXT,
     institution TEXT NOT NULL,
+    author_category TEXT,
+    publication_category TEXT,
     track TEXT NOT NULL,
     paper_title TEXT NOT NULL,
     abstract TEXT NOT NULL,
@@ -71,3 +73,6 @@ WITH CHECK (bucket_id = 'manuscripts');
 -- 7. Enable Realtime Publications for Database Tables
 ALTER PUBLICATION supabase_realtime ADD TABLE public.registrations;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.paper_submissions;
+
+-- After this base setup, apply every SQL file in supabase/migrations in filename order.
+-- See supabase/README.md for existing-database upgrade instructions.

@@ -26,6 +26,13 @@ function loadModule(file, mocks, cache = new Map()) {
 function backend(options = {}) {
   const writes = [];
   const client = {
+    async rpc(name, args) {
+      assert.equal(name, 'save_paper_submission');
+      if (options.failTable) return { data: null, error: { message: 'simulated transaction rollback' } };
+      writes.push({ table: 'paper_submissions', records: [args.p_submission] });
+      writes.push({ table: 'registrations', records: [args.p_registration] });
+      return { data: { id: 'saved-id', ...args.p_submission }, error: null };
+    },
     from(table) {
       return {
         insert(records) {
@@ -147,4 +154,11 @@ test('database outages return a retryable error without backend details', async 
   assert.equal(body.success, false);
   assert.match(body.error, /retry/i);
   assert.doesNotMatch(body.error, /simulated outage/);
+});
+
+test('submission uses one atomic RPC and never writes a partial pair on failure', async () => {
+  const b = backend({ failTable: 'registrations' });
+  const response = await b.route('submit-paper').POST(submissionRequest());
+  assert.equal(response.status, 503);
+  assert.equal(b.writes.filter((w) => w.table).length, 0);
 });
