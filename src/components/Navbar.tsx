@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const lenis = (window as any).__lenis;
       if (lenis) {
-        lenis.scrollTo(target, { offset: -70, duration: 1.1 });
+        lenis.scrollTo(target, { offset: -70, duration: 0.6 });
       } else {
         const topOffset = 70;
         const elementPosition = target.getBoundingClientRect().top;
@@ -91,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const lenis = (window as any).__lenis;
-                if (lenis) lenis.scrollTo(0, { duration: 1.1 });
+                if (lenis) lenis.scrollTo(0, { duration: 0.6 });
                 else window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className="flex items-center focus:outline-hidden"
