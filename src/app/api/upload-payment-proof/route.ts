@@ -58,22 +58,37 @@ export async function POST(request: Request) {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Upload to "manuscripts" storage bucket or "payment-receipts"
-        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-          .from('manuscripts')
-          .upload(`receipts/${safeFileName}`, buffer, {
+        // Try dedicated "payment-receipts" storage bucket first, fallback to "manuscripts"
+        let bucketName = 'payment-receipts';
+        let filePath = safeFileName;
+
+        let uploadRes = await supabaseAdmin.storage
+          .from(bucketName)
+          .upload(filePath, buffer, {
             contentType: file.type || 'image/png',
             upsert: true,
           });
 
-        if (!uploadError && uploadData) {
+        if (uploadRes.error) {
+          // Fallback to manuscripts bucket under receipts/
+          bucketName = 'manuscripts';
+          filePath = `receipts/${safeFileName}`;
+          uploadRes = await supabaseAdmin.storage
+            .from(bucketName)
+            .upload(filePath, buffer, {
+              contentType: file.type || 'image/png',
+              upsert: true,
+            });
+        }
+
+        if (!uploadRes.error && uploadRes.data) {
           const { data: signedData } = await supabaseAdmin.storage
-            .from('manuscripts')
-            .createSignedUrl(uploadData.path, 3600 * 24 * 365); // 1-year URL
+            .from(bucketName)
+            .createSignedUrl(uploadRes.data.path, 3600 * 24 * 365); // 1-year URL
 
           proofUrl = signedData?.signedUrl || '';
         } else {
-          console.warn('Supabase receipt storage upload notice:', uploadError);
+          console.warn('Supabase receipt storage upload notice:', uploadRes.error);
         }
 
         // 4. Update Database Record in Supabase registrations table
