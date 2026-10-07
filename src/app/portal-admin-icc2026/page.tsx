@@ -42,7 +42,9 @@ import {
   Filter,
   GripVertical,
   Trash2,
-  Menu
+  Menu,
+  MapPin,
+  Video
 } from 'lucide-react';
 
 interface Registration {
@@ -550,6 +552,49 @@ export default function PortalAdminPage() {
     document.body.removeChild(link);
   };
 
+  const exportSubmissionsCSV = () => {
+    const headers = [
+      'Submission ID',
+      'Paper Title',
+      'Author Name',
+      'Email Address',
+      'Phone Number',
+      'Institution / University',
+      'Author Category',
+      'Publication Category',
+      'Conference Track',
+      'Presentation Mode',
+      'Review Status',
+      'Submission Date',
+      'Manuscript URL',
+    ];
+
+    const rows = filteredSubmissions.map((s) => [
+      `"${s.submissionId}"`,
+      `"${(s.paperTitle || '').replace(/"/g, '""')}"`,
+      `"${(s.authorName || '').replace(/"/g, '""')}"`,
+      `"${s.email || ''}"`,
+      `"${s.phone || ''}"`,
+      `"${(s.institution || '').replace(/"/g, '""')}"`,
+      `"${s.authorCategory || 'N/A'}"`,
+      `"${s.publicationCategory || 'Category 1: Peer-Reviewed Journals'}"`,
+      `"${(s.track || '').replace(/"/g, '""')}"`,
+      `"${s.mode || 'Offline'}"`,
+      `"${s.reviewStatus || 'Submitted'}"`,
+      `"${new Date(s.createdAt).toLocaleString()}"`,
+      `"${s.fileUrl || ''}"`,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `ICCAQI_2026_Submissions_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const getInitials = (name: string) => {
     if (!name) return 'A';
     const parts = name.trim().split(' ');
@@ -782,11 +827,17 @@ export default function PortalAdminPage() {
             </button>
 
             <button
-              onClick={exportRegistrationsCSV}
+              onClick={() => {
+                if (activeTab === 'submissions') {
+                  exportSubmissionsCSV();
+                } else {
+                  exportRegistrationsCSV();
+                }
+              }}
               className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
             >
               <FileSpreadsheet className="w-4.5 h-4.5 shrink-0 text-amber-600" />
-              <span>Export CSV Reports</span>
+              <span>Export CSV ({activeTab === 'submissions' ? 'Submissions' : 'Registrations'})</span>
             </button>
 
             <button
@@ -1054,6 +1105,14 @@ export default function PortalAdminPage() {
                       <option value="Accepted">Accepted</option>
                       <option value="Rejected">Rejected</option>
                     </select>
+
+                    <button
+                      onClick={exportSubmissionsCSV}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                      <span>Export CSV</span>
+                    </button>
                   </>
                 )}
               </div>
@@ -1117,9 +1176,16 @@ export default function PortalAdminPage() {
                               </td>
 
                               {/* Category & Mode */}
-                              <td className="py-3.5 px-4 space-y-0.5">
+                              <td className="py-3.5 px-4 space-y-1">
                                 <div className="font-semibold text-slate-800 truncate max-w-[150px]">{reg.category}</div>
-                                <div className="text-[11px] text-slate-500">{reg.mode}</div>
+                                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-sm ${
+                                  reg.mode === 'Online'
+                                    ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                                    : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                }`}>
+                                  {reg.mode === 'Online' ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />}
+                                  {reg.mode || 'Offline'}
+                                </span>
                               </td>
 
                               {/* Fee */}
@@ -1249,9 +1315,17 @@ export default function PortalAdminPage() {
                                             ? 'bg-amber-50 text-amber-800 border border-amber-200'
                                             : 'bg-blue-50 text-blue-800 border border-blue-200'
                                         }`}>
-                                          {sub.publicationCategory.includes('Category 2') ? 'Cat 2: Scopus / Wiley' : 'Cat 1: Peer-Reviewed'}
+                                          {sub.publicationCategory.includes('Category 2') ? 'Cat 2: Scopus' : 'Cat 1: Peer-Reviewed'}
                                         </span>
                                       )}
+                                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-sm ${
+                                        sub.mode === 'Online'
+                                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                                          : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                      }`}>
+                                        {sub.mode === 'Online' ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />}
+                                        {sub.mode === 'Online' ? 'Online' : 'Offline'}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
@@ -1483,7 +1557,16 @@ export default function PortalAdminPage() {
                     <div className="grid grid-cols-2 gap-3.5 p-4 rounded-2xl bg-sky-50/40 border border-sky-100">
                       <div>
                         <span className="text-slate-500 font-medium">Participation Mode</span>
-                        <div className="font-bold text-slate-900 mt-0.5 text-sm">{selectedRegistration.mode}</div>
+                        <div className="font-bold text-slate-900 mt-1 text-xs flex items-center gap-1.5">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold text-[11px] ${
+                            selectedRegistration.mode === 'Online'
+                              ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                              : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          }`}>
+                            {selectedRegistration.mode === 'Online' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                            {selectedRegistration.mode || 'Offline'}
+                          </span>
+                        </div>
                       </div>
 
                       <div>
@@ -1492,6 +1575,13 @@ export default function PortalAdminPage() {
                           {selectedRegistration.amount} ({selectedRegistration.currency})
                         </div>
                       </div>
+                    </div>
+
+                    <div className="flex items-center justify-between px-1 text-slate-500 text-[11px]">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" /> Registered: {new Date(selectedRegistration.createdAt).toLocaleString()}
+                      </span>
+                      <span className="font-semibold text-slate-700">Category: {selectedRegistration.category}</span>
                     </div>
                   </div>
 
@@ -1653,6 +1743,13 @@ export default function PortalAdminPage() {
                       <span className="font-bold text-slate-900">{selectedSubmission.email}</span>
                     </div>
 
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-emerald-600" /> Author Phone
+                      </span>
+                      <span className="font-bold text-slate-900">{selectedSubmission.phone || 'Not Provided'}</span>
+                    </div>
+
                     <div className="pt-2.5 border-t border-slate-200 space-y-0.5">
                       <span className="text-slate-500 font-medium flex items-center gap-1.5">
                         <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University
@@ -1665,6 +1762,26 @@ export default function PortalAdminPage() {
                         <Users className="w-3.5 h-3.5 text-purple-600" /> Author Category
                       </span>
                       <span className="font-bold text-slate-900">{selectedSubmission.authorCategory || 'Research Scholars / Academicians'}</span>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        {selectedSubmission.mode === 'Online' ? <Video className="w-3.5 h-3.5 text-purple-600" /> : <MapPin className="w-3.5 h-3.5 text-teal-600" />} Presentation Mode
+                      </span>
+                      <span className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md text-[11px] ${
+                        selectedSubmission.mode === 'Online'
+                          ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                          : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      }`}>
+                        {selectedSubmission.mode === 'Online' ? 'Online (Virtual)' : 'Offline (In-Person)'}
+                      </span>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-slate-500" /> Submitted On
+                      </span>
+                      <span className="font-semibold text-slate-700">{new Date(selectedSubmission.createdAt).toLocaleString()}</span>
                     </div>
 
                     <div className="pt-2.5 border-t border-slate-200 space-y-1">

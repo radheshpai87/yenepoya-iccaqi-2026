@@ -89,6 +89,7 @@ export async function GET() {
               track: s.track,
               paperTitle: s.paper_title,
               abstract: s.abstract,
+              mode: s.participation_mode || s.mode || 'Offline',
               fileUrl: viewUrl,
               reviewStatus: s.review_status || 'Under Review',
               createdAt: s.created_at,
