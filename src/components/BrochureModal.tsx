@@ -62,8 +62,12 @@ export const BrochureModal: React.FC<BrochureModalProps> = ({ isOpen, onClose })
         {/* Poster Image Preview */}
         <div className="flex-1 overflow-y-auto py-4 flex justify-center bg-slate-100 rounded-2xl my-4 border border-slate-200">
           <img
-            src="/iccaqi-2026-poster.png"
+            src="/iccaqi-2026-poster.webp"
             alt="ICCAQI 2026 Official Poster - Yenepoya School of Engineering & Technology"
+            width={1200}
+            height={1600}
+            loading="lazy"
+            decoding="async"
             className="max-w-full h-auto rounded-xl shadow-md object-contain"
           />
         </div>

@@ -53,8 +53,12 @@ export const Publication: React.FC = () => {
             {/* Unified Indexing Services & Publishing Partners Collage */}
             <div className="p-4 sm:p-8 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shadow-2xs">
               <img
-                src="/indexing-services-collage.png"
+                src="/indexing-services-collage.webp"
                 alt="Indexing Services & Academic Publishing Partners (Scopus, Wiley, i-manager, Google Scholar, PubMed, Crossref, EBSCO, Dimensions, MIAR)"
+                width={1600}
+                height={400}
+                loading="lazy"
+                decoding="async"
                 className="w-full max-w-4xl h-auto object-contain"
               />
             </div>

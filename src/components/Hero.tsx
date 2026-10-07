@@ -27,11 +27,11 @@ export const Hero: React.FC<HeroProps> = ({
 }) => {
   const campusImages = [
     {
-      src: '/yenepoya_aerial.png',
+      src: '/yenepoya_aerial.webp',
       alt: 'Yenepoya University Aerial Campus View',
     },
     {
-      src: '/yiascm_balmatta.png',
+      src: '/yiascm_balmatta.webp',
       alt: 'Yenepoya Campus',
     },
     {
@@ -39,15 +39,15 @@ export const Hero: React.FC<HeroProps> = ({
       alt: 'Yenepoya University Infrastructure',
     },
     {
-      src: '/yenepoya3image.jpeg',
+      src: '/yenepoya3image.webp',
       alt: 'Yenepoya University Academic Blocks',
     },
     {
-      src: '/yiascm_kulur.png',
+      src: '/yiascm_kulur.webp',
       alt: 'Yenepoya University Kulur Campus',
     },
     {
-      src: '/event.png',
+      src: '/event.webp',
       alt: 'Yenepoya International Conference Event',
     },
   ];
@@ -78,6 +78,10 @@ export const Hero: React.FC<HeroProps> = ({
             <img
               src={img.src}
               alt={img.alt}
+              width={1920}
+              height={1080}
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              decoding="async"
               className="w-full h-full object-cover object-center"
             />
           </div>
@@ -96,6 +100,8 @@ export const Hero: React.FC<HeroProps> = ({
           <img
             src="/yenepoya-school-engineering-and-technologynew-white.svg"
             alt="Yenepoya School of Engineering & Technology"
+            width={260}
+            height={56}
             className="h-9 sm:h-12 md:h-14 w-auto object-contain drop-shadow-sm"
           />
           <div className="h-6 sm:h-8 w-[1px] bg-white/25 hidden xs:block" />
@@ -104,20 +110,21 @@ export const Hero: React.FC<HeroProps> = ({
           </span>
         </div>
 
-        {/* Main Title & Acronym */}
+        {/* Main Title & Acronym - Semantic Unified H1 for High-Impact SEO */}
         <div className="space-y-2 sm:space-y-3">
-          <div className="flex items-center justify-center gap-2 sm:gap-4">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white drop-shadow-md">
-              ICCAQI
-            </h1>
-            <span className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-[#94cf1b] tracking-tight drop-shadow-md">
-              2026
+          <h1 className="space-y-2 sm:space-y-3">
+            <span className="flex items-center justify-center gap-2 sm:gap-4">
+              <span className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white drop-shadow-md">
+                ICCAQI
+              </span>
+              <span className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-[#94cf1b] tracking-tight drop-shadow-md">
+                2026
+              </span>
             </span>
-          </div>
-
-          <h2 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-white max-w-3xl mx-auto leading-snug drop-shadow-xs px-1">
-            International Conference on Computing, AI, Quantum Intelligence and Future Technologies
-          </h2>
+            <span className="block text-base sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-white max-w-3xl mx-auto leading-snug drop-shadow-xs px-1">
+              International Conference on Computing, AI, Quantum Intelligence and Future Technologies
+            </span>
+          </h1>
         </div>
 
         {/* Short Editorial Description */}

@@ -12,10 +12,12 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yenepoya.edu.in/iccaqi-2026';
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://yenepoya.edu.in'),
+  metadataBase: new URL(siteUrl),
   title: 'ICCAQI 2026 | International Conference on Computing, AI, Quantum Intelligence and Future Technologies',
-  description: 'Official portal of ICCAQI 2026 organized by Yenepoya School of Engineering & Technology, Yenepoya (Deemed to be University), Mangaluru, Karnataka, India. November 6–7, 2026 (Hybrid Mode).',
+  description: 'Official portal of ICCAQI 2026 at Yenepoya University, Mangaluru, India. Nov 6–7, 2026 (Hybrid). Scopus & Peer-Reviewed publication tracks. Submit papers now.',
   keywords: [
     'ICCAQI 2026',
     'Yenepoya University',
@@ -32,13 +34,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ICCAQI 2026 | International Conference on Computing, AI, Quantum Intelligence and Future Technologies',
     description: 'Join global researchers at ICCAQI 2026 organized by Yenepoya School of Engineering & Technology, Yenepoya (Deemed to be University), Mangaluru, India. Hybrid Mode (In-Person & Online) • November 6–7, 2026 • Scopus & Peer-Reviewed Publication Tracks.',
-    url: 'https://yenepoya.edu.in/iccaqi-2026',
+    url: siteUrl,
     siteName: 'ICCAQI 2026',
     locale: 'en_US',
     type: 'website',
   },
   alternates: {
-    canonical: 'https://yenepoya.edu.in/iccaqi-2026',
+    canonical: siteUrl,
   },
   twitter: {
     card: 'summary_large_image',
@@ -70,8 +72,8 @@ const jsonLdConference = {
   endDate: '2026-11-07T18:00:00+05:30',
   eventAttendanceMode: 'https://schema.org/MixedEventAttendanceMode',
   eventStatus: 'https://schema.org/EventScheduled',
-  url: 'https://yenepoya.edu.in/iccaqi-2026',
-  image: 'https://yenepoya.edu.in/iccaqi-2026-poster.png',
+  url: siteUrl,
+  image: `${siteUrl}/opengraph-image`,
   location: [
     {
       '@type': 'Place',
@@ -87,7 +89,7 @@ const jsonLdConference = {
     },
     {
       '@type': 'VirtualLocation',
-      url: 'https://yenepoya.edu.in/iccaqi-2026',
+      url: siteUrl,
     },
   ],
   organizer: {
@@ -100,18 +102,51 @@ const jsonLdConference = {
     },
   },
   offers: {
-    '@type': 'Offer',
-    url: 'https://yenepoya.edu.in/iccaqi-2026#registration',
-    price: '1500',
+    '@type': 'AggregateOffer',
+    url: `${siteUrl}#registration`,
     priceCurrency: 'INR',
-    availability: 'https://schema.org/InStock',
-    validFrom: '2026-03-01',
+    lowPrice: '500',
+    highPrice: '1500',
+    offerCount: 3,
+    offers: [
+      {
+        '@type': 'Offer',
+        name: 'Students (UG / PG) Delegate',
+        price: '500',
+        priceCurrency: 'INR',
+        availability: 'https://schema.org/InStock',
+        validFrom: '2026-03-01',
+        url: `${siteUrl}#registration`,
+      },
+      {
+        '@type': 'Offer',
+        name: 'Research Scholars / Academicians Delegate',
+        price: '750',
+        priceCurrency: 'INR',
+        availability: 'https://schema.org/InStock',
+        validFrom: '2026-03-01',
+        url: `${siteUrl}#registration`,
+      },
+      {
+        '@type': 'Offer',
+        name: 'Industry Delegate',
+        price: '1500',
+        priceCurrency: 'INR',
+        availability: 'https://schema.org/InStock',
+        validFrom: '2026-03-01',
+        url: `${siteUrl}#registration`,
+      },
+    ],
   },
   about: [
     'Artificial Intelligence and Machine Learning',
     'Quantum Computing and Quantum Intelligence',
+    'Data Science, Big Data and Analytics',
+    'Emerging Computing Technologies',
     'Cyber-Physical Systems and IoT',
-    'Next-Generation Computing Architectures',
+    'Smart Systems and Intelligent Applications',
+    'AI for Healthcare and Biomedical Applications',
+    'Ethics, Society and Future Technologies',
   ],
 };
 
@@ -126,10 +161,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
       <head>
-        <meta
-          name="google-site-verification"
-          content="2woGajKPbMH025rhKAz9DV9mVQQhPIfhNs8uQVazris"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdConference) }}

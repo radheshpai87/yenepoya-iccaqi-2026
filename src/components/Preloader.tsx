@@ -8,15 +8,15 @@ const ASSETS_TO_PRELOAD = [
   '/yenepoya-emblem.svg',
   '/yenepoya-university-logonew3-white.svg',
   '/yenepoya-school-engineering-and-technologynew-white.svg',
-  '/yenepoya_aerial.png',
-  '/yiascm_balmatta.png',
+  '/yenepoya_aerial.webp',
+  '/yiascm_balmatta.webp',
   '/yenepoya2image.webp',
-  '/yenepoya3image.jpeg',
-  '/yiascm_kulur.png',
-  '/event.png',
+  '/yenepoya3image.webp',
+  '/yiascm_kulur.webp',
+  '/event.webp',
   '/iccaqi-logo.png',
   '/imanager-publications-logo.png',
-  '/indexing-services-collage.png',
+  '/indexing-services-collage.webp',
 ];
 
 export const Preloader: React.FC = () => {
