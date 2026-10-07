@@ -21,7 +21,10 @@ import {
   ArrowLeft,
   FileCheck2,
   Info,
-  Lock
+  Lock,
+  Copy,
+  Calendar,
+  Mail
 } from 'lucide-react';
 
 interface SubmitPaperModalProps {
@@ -57,6 +60,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const [uploadStep, setUploadStep] = useState<string>('');
   const [submitted, setSubmitted] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
+  const [copiedId, setCopiedId] = useState(false);
   const attempt = useRef<(RequestAttempt & { file: File }) | null>(null);
   const [step, setStep] = useState<'guidelines' | 'form'>('guidelines');
   const [category2Consent, setCategory2Consent] = useState<'yes' | 'no'>('no');
@@ -267,57 +271,184 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
         >
 
         {submitted ? (
-          <div className="text-center py-6 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
+          <div className="max-w-2xl mx-auto py-2 sm:py-4 space-y-6 text-center">
+            {/* Header with badge & title */}
+            <div className="space-y-3">
+              <div className="relative inline-flex items-center justify-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-inner ring-8 ring-emerald-50">
+                  <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12" />
+                </div>
+              </div>
 
-            <div className="space-y-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
-                Submission Acknowledged
-              </span>
-              <h3 className="text-2xl font-extrabold text-slate-900">
-                Paper Submitted Successfully!
-              </h3>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left space-y-1.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Submission ID:</span>
-                <span className="font-mono font-bold text-slate-900">{submissionId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Track:</span>
-                <span className="font-semibold text-emerald-700 truncate max-w-[200px]">{formData.track}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Primary Author:</span>
-                <span className="font-semibold text-slate-900">{formData.authorName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Author Category:</span>
-                <span className="font-semibold text-slate-900 truncate max-w-[200px]">{formData.authorCategory}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Publication Track:</span>
-                <span className="font-semibold text-sky-800 truncate max-w-[200px]">{formData.publicationCategory}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Confirmation Sent To:</span>
-                <span className="font-semibold text-slate-900">{formData.email}</span>
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100/70 border border-emerald-200">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Submission Acknowledged</span>
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Paper Submitted Successfully!
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                  Your manuscript has been logged into the technical review system. A confirmation email has been dispatched to <strong>{formData.email}</strong>.
+                </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 max-w-md mx-auto">
-              Your manuscript has been logged into the ICCAQI 2026 technical review system. Notification of Acceptance will be communicated by <strong>October 25, 2026</strong>.
-            </p>
+            {/* Official Submission Reference Box */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white shadow-lg border border-slate-700/60 text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1 min-w-0">
+                  <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block font-mono">
+                    Official Submission Reference ID
+                  </span>
+                  <div className="font-mono text-sm sm:text-base font-extrabold text-lime-400 select-all break-all sm:break-normal">
+                    {submissionId}
+                  </div>
+                  <p className="text-[11px] text-slate-300">
+                    Quote this ID in all future correspondence with the conference committee.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                      navigator.clipboard.writeText(submissionId);
+                      setCopiedId(true);
+                      setTimeout(() => setCopiedId(false), 2000);
+                    }
+                  }}
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 text-xs font-bold text-white transition-all border border-white/10 shrink-0 cursor-pointer shadow-xs"
+                >
+                  {copiedId ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-lime-400" />
+                      <span className="text-lime-400 font-semibold">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy ID</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
 
-            <button
-              onClick={onClose}
-              className="mt-4 px-6 py-2.5 rounded-xl text-xs font-bold bg-[#7cb305] text-white hover:bg-[#689803]"
-            >
-              Done &amp; Return to Conference Site
-            </button>
+            {/* Receipt Summary Card */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:p-6 text-left shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-[#7cb305]" />
+                  Manuscript Registration Details
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Status: Under Review
+                </span>
+              </div>
+
+              {/* Title highlight */}
+              {formData.paperTitle && (
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Paper Title
+                  </span>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug break-words">
+                    {formData.paperTitle}
+                  </p>
+                </div>
+              )}
+
+              {/* Responsive grid for metadata */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Conference Track
+                  </span>
+                  <span className="font-semibold text-emerald-800 leading-snug block break-words">
+                    {formData.track}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Publication Category
+                  </span>
+                  <span className="font-semibold text-sky-800 leading-snug block break-words">
+                    {formData.publicationCategory}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Primary Author
+                  </span>
+                  <span className="font-bold text-slate-900 leading-snug block break-words">
+                    {formData.authorName}
+                  </span>
+                  <span className="text-[11px] text-slate-500 block">
+                    {formData.authorCategory}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Institution / University
+                  </span>
+                  <span className="font-semibold text-slate-800 leading-snug block break-words">
+                    {formData.institution || 'Yenepoya (Deemed to be University)'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1 sm:col-span-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Confirmation &amp; Manuscript Document
+                  </span>
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+                    <span className="font-medium text-slate-800 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-slate-500" />
+                      {formData.email}
+                    </span>
+                    {fileName && (
+                      <span className="text-[11px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 flex items-center gap-1">
+                        <FileCheck2 className="w-3 h-3 text-[#7cb305]" />
+                        {fileName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Next Steps Callout */}
+            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 text-left space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
+                <Calendar className="w-4 h-4 text-emerald-700" />
+                <span>Next Steps &amp; Review Schedule</span>
+              </div>
+              <ul className="text-xs text-emerald-950 space-y-1.5 leading-relaxed pl-5 list-disc">
+                <li>
+                  Your manuscript is being routed to the <strong>Conference Review Committee</strong> for technical evaluation.
+                </li>
+                <li>
+                  Official <strong>Notification of Acceptance</strong> will be communicated via email by <strong>October 25, 2026</strong>.
+                </li>
+                <li>
+                  Upon acceptance notification, authors will receive payment instructions and their designated presentation schedule.
+                </li>
+              </ul>
+            </div>
+
+            {/* CTA Close Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3.5 px-8 rounded-xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all cursor-pointer"
+              >
+                <span>Done &amp; Return to Conference Site</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ) : step === 'guidelines' ? (
           <div className="space-y-6 text-left">
