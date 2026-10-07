@@ -185,6 +185,7 @@ export default function PortalAdminPage() {
               paperId: r.paper_id || '',
               paymentStatus: r.payment_status || 'Pending',
               createdAt: r.created_at,
+              notes: r.notes || '',
             };
             setRegistrations((prev) => {
               if (
@@ -210,6 +211,7 @@ export default function PortalAdminPage() {
                       paymentStatus: r.payment_status || item.paymentStatus,
                       name: r.name || item.name,
                       email: r.email || item.email,
+                      notes: r.notes !== undefined ? r.notes : item.notes,
                     }
                   : item
               )
@@ -1682,6 +1684,61 @@ export default function PortalAdminPage() {
                     ) : (
                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center italic">
                         No Paper ID attached. Listener / Attendee Delegate.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payment Receipt / Screenshot Verification Card */}
+                  <div className="space-y-3 pt-3 border-t border-slate-100">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-[#7cb305]" /> Payment Proof &amp; Verification
+                    </span>
+
+                    {selectedRegistration.notes ? (
+                      <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-3 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-amber-900 flex items-center gap-1.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            Proof Submitted
+                          </span>
+                          <span className="text-[11px] font-mono font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
+                            {selectedRegistration.notes.match(/Ref:\s*([^.\s]+)/i)?.[1] ? `Ref: ${selectedRegistration.notes.match(/Ref:\s*([^.\s]+)/i)?.[1]}` : 'Uploaded'}
+                          </span>
+                        </div>
+
+                        {selectedRegistration.notes.match(/Image:\s*(https?:\/\/[^\s]+)/i)?.[1] ? (
+                          <div className="space-y-2">
+                            <a
+                              href={selectedRegistration.notes.match(/Image:\s*(https?:\/\/[^\s]+)/i)![1]}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block relative rounded-xl overflow-hidden border border-amber-300 group bg-slate-900"
+                            >
+                              <img
+                                src={selectedRegistration.notes.match(/Image:\s*(https?:\/\/[^\s]+)/i)![1]}
+                                alt="Payment Proof Screenshot"
+                                className="w-full max-h-48 object-contain bg-slate-950 group-hover:scale-105 transition-transform duration-200"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                              <div className="p-2.5 bg-slate-900/90 text-white font-bold text-[11px] flex items-center justify-between border-t border-slate-800">
+                                <span className="flex items-center gap-1.5">
+                                  <ExternalLink className="w-3.5 h-3.5 text-[#7cb305]" /> View Full Resolution Payment Receipt Screenshot
+                                </span>
+                                <span className="bg-[#7cb305] text-white text-[10px] px-2 py-0.5 rounded font-extrabold">Open File</span>
+                              </div>
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="text-slate-700 bg-white p-2.5 rounded-xl border border-amber-200 font-mono text-[11px] break-all">
+                            {selectedRegistration.notes}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center italic">
+                        No payment proof screenshot uploaded yet for this delegate.
                       </div>
                     )}
                   </div>

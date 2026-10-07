@@ -50,6 +50,7 @@ export async function GET() {
           paperId: r.paper_id,
           paymentStatus: r.payment_status || 'Pending',
           createdAt: r.created_at,
+          notes: r.notes || '',
         }));
       }
 
