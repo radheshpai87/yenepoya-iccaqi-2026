@@ -40,7 +40,7 @@ export default function HomePage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const lenis = (window as any).__lenis;
       if (lenis) {
-        lenis.scrollTo(el, { offset: -70, duration: 0.6 });
+        lenis.scrollTo(el, { offset: -70, duration: 1 });
       } else {
         const topOffset = 70;
         const elementPosition = el.getBoundingClientRect().top;

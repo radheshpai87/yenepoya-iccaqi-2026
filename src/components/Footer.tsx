@@ -18,7 +18,7 @@ export const Footer: React.FC<FooterProps> = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lenis = (window as any).__lenis;
     if (lenis) {
-      lenis.scrollTo(0, { duration: 0.6 });
+      lenis.scrollTo(0, { duration: 1 });
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
