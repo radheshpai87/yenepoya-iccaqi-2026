@@ -122,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
 
             {/* Header Right Action */}
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2.5">
               <button
                 onClick={onOpenBrochureModal}
                 className="text-xs font-semibold text-slate-600 hover:text-slate-950 px-2.5 py-2 rounded-full transition-colors cursor-pointer"
@@ -131,16 +131,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={onOpenRegisterModal}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 transition-all cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
               >
-                <span>Register</span>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200/70">
-                  ₹300
-                </span>
+                <span>Register (₹300)</span>
               </button>
               <button
                 onClick={onOpenSubmitModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs hover:shadow-sm transition-all duration-200 cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
               >
                 <span>Submit Paper</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -151,14 +148,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex lg:hidden items-center gap-2">
               <button
                 onClick={onOpenRegisterModal}
-                className="sm:hidden px-2.5 py-1.5 rounded-full text-[11px] font-semibold text-slate-700 border border-slate-200 bg-slate-100 flex items-center gap-1"
+                className="sm:hidden px-3 py-1.5 rounded-full text-xs font-bold bg-[#0284c7] text-white shadow-xs"
               >
-                <span>Register</span>
-                <span className="font-bold text-emerald-700 text-[10px]">₹300</span>
+                ₹300
               </button>
               <button
                 onClick={onOpenSubmitModal}
-                className="sm:hidden px-3 py-1.5 rounded-full text-xs font-bold bg-[#7cb305] text-white"
+                className="sm:hidden px-3 py-1.5 rounded-full text-xs font-bold bg-[#7cb305] text-white shadow-xs"
               >
                 Submit
               </button>
@@ -202,17 +198,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setMobileMenuOpen(false);
                   onOpenRegisterModal();
                 }}
-                className="w-full py-3 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs text-center flex items-center justify-center gap-1.5"
+                className="w-full py-3 rounded-xl text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-md text-center"
               >
-                <span>Register as Participant</span>
-                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded-sm">₹300</span>
+                Register as Participant (₹300)
               </button>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenSubmitModal();
                 }}
-                className="w-full py-3 rounded-xl text-xs font-bold bg-[#7cb305] text-white shadow-xs text-center"
+                className="w-full py-3 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md text-center"
               >
                 Submit Paper
               </button>
