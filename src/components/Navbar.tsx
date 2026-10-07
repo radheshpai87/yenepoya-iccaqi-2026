@@ -121,8 +121,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </nav>
 
-            {/* Header Right Action */}
-            <div className="hidden sm:flex items-center gap-2.5">
+            {/* Header Right Action (Visible on tablet & desktop) */}
+            <div className="hidden md:flex items-center gap-2 lg:gap-2.5">
               <button
                 onClick={onOpenBrochureModal}
                 className="text-xs font-semibold text-slate-600 hover:text-slate-950 px-2.5 py-2 rounded-full transition-colors cursor-pointer"
@@ -131,36 +131,36 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={onOpenRegisterModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-full text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95 whitespace-nowrap"
               >
                 <span>Register (₹300)</span>
               </button>
               <button
                 onClick={onOpenSubmitModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3.5 lg:px-4 py-2 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95 whitespace-nowrap"
               >
                 <span>Submit Paper</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Mobile Hamburger Toggle */}
-            <div className="flex lg:hidden items-center gap-2">
+            {/* Mobile / Compact Header Action Bar (< md) */}
+            <div className="flex md:hidden items-center gap-1.5">
               <button
                 onClick={onOpenRegisterModal}
-                className="sm:hidden px-3 py-1.5 rounded-full text-xs font-bold bg-[#0284c7] text-white shadow-xs"
+                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold bg-[#0284c7] text-white shadow-xs whitespace-nowrap active:scale-95"
               >
-                ₹300
+                Register ₹300
               </button>
               <button
                 onClick={onOpenSubmitModal}
-                className="sm:hidden px-3 py-1.5 rounded-full text-xs font-bold bg-[#7cb305] text-white shadow-xs"
+                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold bg-[#7cb305] text-white shadow-xs whitespace-nowrap active:scale-95"
               >
                 Submit
               </button>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-hidden"
+                className="p-1.5 sm:p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-hidden"
                 aria-label="Toggle Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

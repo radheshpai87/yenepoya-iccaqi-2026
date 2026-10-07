@@ -41,7 +41,8 @@ import {
   Download,
   Filter,
   GripVertical,
-  Trash2
+  Trash2,
+  Menu
 } from 'lucide-react';
 
 interface Registration {
@@ -99,6 +100,7 @@ export default function PortalAdminPage() {
   // Resizable Split Pane Width State (in pixels)
   const [splitPanelWidth, setSplitPanelWidth] = useState<number>(500);
   const [isResizing, setIsResizing] = useState<boolean>(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -593,23 +595,41 @@ export default function PortalAdminPage() {
       {/* ========================================================= */}
       {/* 1. SOLID CLEAN SIDEBAR WITH YENEPOYA OFFICIAL LOGO AT TOP  */}
       {/* ========================================================= */}
-      <aside className="w-64 bg-white border-r border-slate-200/90 flex flex-col justify-between shrink-0 min-h-screen sticky top-0 h-screen z-40 shadow-xs">
+      {/* Mobile Backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed lg:sticky top-0 h-screen w-64 bg-white border-r border-slate-200/90 flex flex-col justify-between shrink-0 z-50 shadow-xs transition-transform duration-300 ${
+        mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
         <div>
           {/* Top Logo & Brand Info with Official Yenepoya Logo */}
-          <div className="h-20 px-5 flex items-center gap-3 border-b border-slate-100">
-            <img
-              src="/yenepoya-university-logonew3.svg"
-              alt="Yenepoya (Deemed to be University)"
-              className="h-9 w-auto object-contain shrink-0"
-            />
-            <div className="overflow-hidden border-l border-slate-200 pl-3">
-              <span className="font-extrabold text-xs tracking-tight text-slate-900 block leading-tight">
-                ICCAQI 2026
-              </span>
-              <span className="text-[9px] font-bold tracking-widest text-[#7cb305] uppercase block font-mono">
-                Admin Portal
-              </span>
+          <div className="h-20 px-5 flex items-center justify-between border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <img
+                src="/yenepoya-university-logonew3.svg"
+                alt="Yenepoya (Deemed to be University)"
+                className="h-9 w-auto object-contain shrink-0"
+              />
+              <div className="overflow-hidden border-l border-slate-200 pl-3">
+                <span className="font-extrabold text-xs tracking-tight text-slate-900 block leading-tight">
+                  ICCAQI 2026
+                </span>
+                <span className="text-[9px] font-bold tracking-widest text-[#7cb305] uppercase block font-mono">
+                  Admin Portal
+                </span>
+              </div>
             </div>
+            <button
+              onClick={() => setMobileSidebarOpen(false)}
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Navigation Items (Capsule Pill active state) */}
@@ -700,9 +720,16 @@ export default function PortalAdminPage() {
         <div className="flex-1 min-w-0 flex flex-col min-h-screen overflow-y-auto">
           
           {/* TOP HEADER BAR */}
-          <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                aria-label="Open sidebar menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
                 {activeTab === 'registrations' ? 'Delegate Registrations' : 'Paper Submissions'}
               </h1>
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -711,13 +738,13 @@ export default function PortalAdminPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Search Box */}
-              <div className="relative w-48 sm:w-64">
+              <div className="relative w-36 sm:w-64">
                 <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search name, email, institution..."
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white transition-all"
@@ -728,7 +755,7 @@ export default function PortalAdminPage() {
               <button
                 onClick={fetchDashboardData}
                 title="Refresh Live Data"
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer shrink-0"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin' : ''}`} />
               </button>
@@ -1209,25 +1236,34 @@ export default function PortalAdminPage() {
           </main>
         </div>
 
-        {/* RIGHT PANEL: RESIZABLE SPLIT DETAILS PANE (IN-LAYOUT, NOT OVERLAYING!) */}
+        {/* RIGHT PANEL: RESIZABLE SPLIT DETAILS PANE (IN-LAYOUT ON DESKTOP, FULL-SCREEN DRAWER ON MOBILE) */}
         {isSplitOpen && (
           <>
-            {/* DRAGGABLE RESIZER VERTICAL DIVIDER HANDLE */}
+            {/* DRAGGABLE RESIZER VERTICAL DIVIDER HANDLE (Hidden on mobile) */}
             <div
               onMouseDown={(e) => {
                 e.preventDefault();
                 setIsResizing(true);
               }}
-              className="w-2.5 hover:w-3.5 bg-slate-200 hover:bg-[#7cb305] cursor-col-resize h-screen sticky top-0 shrink-0 transition-colors flex items-center justify-center group z-30 select-none border-x border-slate-300/80 shadow-xs"
+              className="hidden lg:flex w-2.5 hover:w-3.5 bg-slate-200 hover:bg-[#7cb305] cursor-col-resize h-screen sticky top-0 shrink-0 transition-colors items-center justify-center group z-30 select-none border-x border-slate-300/80 shadow-xs"
               title="Click and drag horizontally to resize left admin page and right details panel"
             >
               <GripVertical className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
             </div>
 
+            {/* Mobile backdrop for details pane */}
+            <div
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden"
+              onClick={() => {
+                setSelectedRegistration(null);
+                setSelectedSubmission(null);
+              }}
+            />
+
             {/* RIGHT DETAILS PANE */}
             <div
-              style={{ width: `${splitPanelWidth}px` }}
-              className="shrink-0 h-screen sticky top-0 bg-white border-l border-slate-200 overflow-y-auto p-6 space-y-6 shadow-xl z-20 text-left transition-all"
+              style={{ width: typeof window !== 'undefined' && window.innerWidth < 1024 ? '100%' : `${splitPanelWidth}px` }}
+              className="fixed lg:sticky top-0 right-0 h-screen w-full lg:w-auto shrink-0 bg-white border-l border-slate-200 overflow-y-auto p-4 sm:p-6 space-y-6 shadow-2xl z-50 lg:z-20 text-left transition-all max-w-full"
             >
               {/* REGISTRATION SPLIT DETAILS */}
               {activeTab === 'registrations' && selectedRegistration && (
