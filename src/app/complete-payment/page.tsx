@@ -511,8 +511,16 @@ function CompletePaymentContent() {
                   <button
                     type="button"
                     onClick={() => {
-                      const razorpayUrl = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || 'https://razorpay.me/@yenepoyauniversity';
-                      window.open(razorpayUrl, '_blank');
+                      const rzpBase = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || 'https://pages.razorpay.com/pl_ThkevehUyi20yw/view';
+                      const params = new URLSearchParams();
+                      const cleanAmount = (delegate.amount || '').replace(/[^0-9]/g, '');
+                      if (cleanAmount) params.set('amount', cleanAmount);
+                      if (delegate.name) params.set('name', delegate.name);
+                      if (delegate.email) params.set('email', delegate.email);
+                      if (delegate.phone) params.set('phone', delegate.phone);
+
+                      const targetUrl = rzpBase.includes('?') ? `${rzpBase}&${params.toString()}` : `${rzpBase}?${params.toString()}`;
+                      window.open(targetUrl, '_blank') || (window.location.href = targetUrl);
                     }}
                     className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
@@ -520,7 +528,7 @@ function CompletePaymentContent() {
                     <ExternalLink className="w-3.5 h-3.5" />
                   </button>
                   <p className="text-[10px] text-sky-700 font-medium text-center">
-                    Opens secure Razorpay gateway. After paying, take a screenshot of your receipt and upload it in Step 3 below.
+                    Opens official Yenepoya Razorpay gateway with prefilled details. After paying, upload receipt screenshot below.
                   </p>
                 </div>
               </div>
