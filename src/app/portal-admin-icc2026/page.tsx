@@ -67,6 +67,8 @@ interface Submission {
   email: string;
   phone: string;
   institution: string;
+  authorCategory?: string;
+  publicationCategory?: string;
   track: string;
   paperTitle: string;
   abstract: string;
@@ -214,6 +216,8 @@ export default function PortalAdminPage() {
               email: s.email,
               phone: s.phone || '',
               institution: s.institution,
+              authorCategory: s.author_category || 'Research Scholars / Academicians',
+              publicationCategory: s.publication_category || 'Category 1: Peer-Reviewed Journals',
               track: s.track,
               paperTitle: s.paper_title,
               abstract: s.abstract,
@@ -1086,6 +1090,22 @@ export default function PortalAdminPage() {
                                     <div className="text-[11px] text-slate-500 truncate max-w-[280px]">
                                       {sub.authorName} • {sub.institution}
                                     </div>
+                                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                      {sub.authorCategory && (
+                                        <span className="inline-block text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-sm">
+                                          {sub.authorCategory}
+                                        </span>
+                                      )}
+                                      {sub.publicationCategory && (
+                                        <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-sm ${
+                                          sub.publicationCategory.includes('Category 2')
+                                            ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                                            : 'bg-blue-50 text-blue-800 border border-blue-200'
+                                        }`}>
+                                          {sub.publicationCategory.includes('Category 2') ? 'Cat 2: Scopus / Wiley' : 'Cat 1: Peer-Reviewed'}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </td>
@@ -1482,6 +1502,22 @@ export default function PortalAdminPage() {
                         <Building className="w-3.5 h-3.5 text-amber-600" /> Institution / University
                       </span>
                       <div className="font-bold text-slate-900">{selectedSubmission.institution}</div>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-purple-600" /> Author Category
+                      </span>
+                      <span className="font-bold text-slate-900">{selectedSubmission.authorCategory || 'Research Scholars / Academicians'}</span>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-slate-200 space-y-1">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        <Award className="w-3.5 h-3.5 text-emerald-600" /> Publication Track
+                      </span>
+                      <div className="font-bold text-emerald-800 text-[11.5px] bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                        {selectedSubmission.publicationCategory || 'Category 1: Peer-Reviewed Journals'}
+                      </div>
                     </div>
                   </div>
 

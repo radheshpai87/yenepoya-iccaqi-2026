@@ -32,6 +32,8 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     email: '',
     phone: '',
     institution: '',
+    authorCategory: 'Research Scholars / Academicians',
+    publicationCategory: 'Category 2: Scopus Indexed Journals / Book Chapters',
     paperTitle: '',
     track: preselectedTrack || 'Artificial Intelligence and Machine Learning',
     abstract: '',
@@ -132,6 +134,8 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     data.append('email', formData.email);
     data.append('phone', formData.phone);
     data.append('institution', formData.institution);
+    data.append('authorCategory', formData.authorCategory);
+    data.append('publicationCategory', formData.publicationCategory);
     data.append('track', formData.track);
     data.append('paperTitle', formData.paperTitle);
     data.append('abstract', formData.abstract);
@@ -235,6 +239,14 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
               <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Primary Author:</span>
                 <span className="font-semibold text-slate-900">{formData.authorName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Author Category:</span>
+                <span className="font-semibold text-slate-900 truncate max-w-[200px]">{formData.authorCategory}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Publication Track:</span>
+                <span className="font-semibold text-sky-800 truncate max-w-[200px]">{formData.publicationCategory}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Confirmation Sent To:</span>
@@ -355,6 +367,43 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Author Category *
+                  </label>
+                  <select
+                    value={formData.authorCategory}
+                    disabled={submitting}
+                    onChange={(e) => setFormData({ ...formData, authorCategory: e.target.value })}
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60 font-medium"
+                  >
+                    <option value="Students (UG / PG)">Students (UG / PG)</option>
+                    <option value="Research Scholars / Academicians">Research Scholars / Academicians</option>
+                    <option value="Industry Delegates">Industry Delegates</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Target Publication Category *
+                  </label>
+                  <select
+                    value={formData.publicationCategory}
+                    disabled={submitting}
+                    onChange={(e) => setFormData({ ...formData, publicationCategory: e.target.value })}
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60 font-medium"
+                  >
+                    <option value="Category 1: Peer-Reviewed Journals (Indexed in Google Scholar, Crossref, MIAR, etc.)">
+                      Category 1: Peer-Reviewed Journals (Crossref / Google Scholar / DOI)
+                    </option>
+                    <option value="Category 2: Scopus Indexed Journals / Book Chapters">
+                      Category 2: Scopus Indexed Journals / Book Chapters (Wiley)
+                    </option>
+                  </select>
                 </div>
               </div>
 

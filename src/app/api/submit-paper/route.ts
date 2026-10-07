@@ -33,6 +33,8 @@ export async function POST(request: Request) {
     const email = sanitizeText(formData.get('email') as string, 254);
     const phone = sanitizeText(formData.get('phone') as string, 30);
     const institution = sanitizeText(formData.get('institution') as string, 200);
+    const authorCategory = sanitizeText(formData.get('authorCategory') as string, 100) || 'Research Scholars / Academicians';
+    const publicationCategory = sanitizeText(formData.get('publicationCategory') as string, 150) || 'Category 1: Peer-Reviewed Journals';
     const track = sanitizeText(formData.get('track') as string, 150);
     const paperTitle = sanitizeText(formData.get('paperTitle') as string, 300);
     const abstract = sanitizeText(formData.get('abstract') as string, 5000);
@@ -113,12 +115,21 @@ export async function POST(request: Request) {
 
     const createdAt = new Date().toISOString();
 
+    const categoryFeeMap: Record<string, string> = {
+      'Students (UG / PG)': '₹500',
+      'Research Scholars / Academicians': '₹750',
+      'Industry Delegates': '₹1,500',
+    };
+    const feeAmount = categoryFeeMap[authorCategory] || '₹750';
+
     const submissionRecord = {
       submission_id: submissionId,
       author_name: authorName,
       email,
       phone: phone || '',
       institution,
+      author_category: authorCategory,
+      publication_category: publicationCategory,
       track,
       paper_title: paperTitle,
       abstract,
@@ -133,9 +144,9 @@ export async function POST(request: Request) {
       email,
       phone: phone || '',
       institution,
-      category: 'Paper Author / Research Scholar',
+      category: authorCategory || 'Research Scholars / Academicians',
       currency: 'INR',
-      amount: '₹750',
+      amount: feeAmount,
       mode: mode || 'Hybrid',
       paper_id: submissionId,
       paper_title: paperTitle,
@@ -194,6 +205,8 @@ export async function POST(request: Request) {
       email,
       phone: phone || '',
       institution,
+      authorCategory,
+      publicationCategory,
       track,
       paperTitle,
       abstract,
@@ -208,9 +221,9 @@ export async function POST(request: Request) {
       email,
       phone: phone || '',
       institution,
-      category: 'Paper Author / Research Scholar',
+      category: authorCategory || 'Research Scholars / Academicians',
       currency: 'INR',
-      amount: '₹750',
+      amount: feeAmount,
       mode: mode || 'Hybrid',
       paperId: submissionId,
       paperTitle,

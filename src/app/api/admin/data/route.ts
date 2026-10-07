@@ -84,6 +84,8 @@ export async function GET() {
               email: s.email,
               phone: s.phone,
               institution: s.institution,
+              authorCategory: s.author_category || 'Research Scholars / Academicians',
+              publicationCategory: s.publication_category || 'Category 1: Peer-Reviewed Journals',
               track: s.track,
               paperTitle: s.paper_title,
               abstract: s.abstract,

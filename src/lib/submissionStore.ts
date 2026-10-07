@@ -21,6 +21,8 @@ export interface SubmissionRecord {
   email: string;
   phone: string;
   institution: string;
+  authorCategory?: string;
+  publicationCategory?: string;
   track: string;
   paperTitle: string;
   abstract: string;
