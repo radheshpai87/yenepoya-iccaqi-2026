@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
-import { addLocalSubmission, addLocalRegistration } from '@/lib/submissionStore';
 import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
 import { isValidEmail, sanitizeText, validateUploadedFile, validateFileMagicBytes } from '@/lib/validation';
 import { getIdempotentResponse, setIdempotentResponse } from '@/lib/idempotency';
@@ -39,7 +38,10 @@ export async function POST(request: Request) {
     const paperTitle = sanitizeText(formData.get('paperTitle') as string, 300);
     const abstract = sanitizeText(formData.get('abstract') as string, 5000);
     const mode = sanitizeText(formData.get('mode') as string, 100);
-    const file = formData.get('file') as File | null;
+    const file = formData.get('file');
+    if (!(file instanceof File) || file.size === 0) {
+      return NextResponse.json({ error: 'A nonempty manuscript file is required' }, { status: 400 });
+    }
 
     if (!authorName || !email || !paperTitle || !abstract || !track) {
       return NextResponse.json(
@@ -75,43 +77,28 @@ export async function POST(request: Request) {
       }
     }
 
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+    const supabaseAdmin = getSupabaseAdminClient();
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const submissionId = `ICCAQI-2026-${randomNum}`;
-    let fileUrl = '/sample-manuscript.pdf';
-    let uploadedStoragePath: string | null = null;
-
-    // 5. Upload manuscript file to Supabase Storage
-    if (isSupabaseConfigured() && file && file.size > 0) {
-      try {
-        const supabaseAdmin = getSupabaseAdminClient();
-        const fileExt = file.name.split('.').pop() || 'pdf';
-        const safeFileName = `${submissionId}_${Date.now()}.${fileExt}`;
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-
-        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-          .from('manuscripts')
-          .upload(safeFileName, buffer, {
-            contentType: file.type || 'application/pdf',
-            upsert: true,
-          });
-
-        if (!uploadError && uploadData) {
-          uploadedStoragePath = uploadData.path;
-          const { data: publicUrlData } = supabaseAdmin.storage
-            .from('manuscripts')
-            .getPublicUrl(uploadData.path);
-
-          if (publicUrlData) {
-            fileUrl = publicUrlData.publicUrl;
-          }
-        } else {
-          console.warn('Supabase storage upload notice:', uploadError);
-        }
-      } catch (uploadErr) {
-        console.error('Supabase storage upload error:', uploadErr);
-      }
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+    const storagePath = `${submissionId}_${Date.now()}.${fileExt}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+      .from('manuscripts')
+      .upload(storagePath, buffer, {
+        contentType: file.type || 'application/pdf',
+        upsert: false,
+      });
+    if (uploadError || !uploadData) {
+      throw new Error('Manuscript storage save failed', { cause: uploadError });
     }
+    const { data: publicUrlData } = supabaseAdmin.storage
+      .from('manuscripts')
+      .getPublicUrl(uploadData.path);
+    const fileUrl = publicUrlData.publicUrl;
 
     const createdAt = new Date().toISOString();
 
@@ -154,96 +141,29 @@ export async function POST(request: Request) {
       created_at: createdAt,
     };
 
-    let supabaseSaved = false;
-    let savedData = null;
-
-    // 6. Insert into PostgreSQL Database with Orphan Cleanup Safety
-    if (isSupabaseConfigured()) {
-      try {
-        const supabaseAdmin = getSupabaseAdminClient();
-        
-        const { data: subData, error: subError } = await supabaseAdmin
-          .from('paper_submissions')
-          .insert([submissionRecord])
-          .select()
-          .single();
-
-        if (!subError && subData) {
-          supabaseSaved = true;
-          savedData = subData;
-
-          // Insert into registrations table as well
-          await supabaseAdmin
-            .from('registrations')
-            .insert([regRecord]);
-        } else {
-          console.warn('Supabase paper_submissions insert notice:', subError);
-          // Clean up orphaned storage object if database insert failed
-          if (uploadedStoragePath) {
-            await supabaseAdmin.storage.from('manuscripts').remove([uploadedStoragePath]);
-            console.info('Orphaned storage object cleaned up:', uploadedStoragePath);
-          }
-        }
-      } catch (err) {
-        console.error('Supabase client exception during paper insert:', err);
-        // Clean up orphaned storage object on exception
-        if (uploadedStoragePath) {
-          try {
-            const supabaseAdmin = getSupabaseAdminClient();
-            await supabaseAdmin.storage.from('manuscripts').remove([uploadedStoragePath]);
-          } catch {
-            // Ignore cleanup errors
-          }
-        }
-      }
+    const { data: savedData, error: submissionError } = await supabaseAdmin
+      .from('paper_submissions')
+      .insert([submissionRecord])
+      .select()
+      .single();
+    if (submissionError || !savedData) {
+      // A network failure may follow a committed insert. Preserve the manuscript
+      // rather than deleting a file that a durable record could reference.
+      throw new Error('Submission database save failed', { cause: submissionError });
     }
-
-    const localRecord = {
-      id: savedData?.id || 'SUB-' + Date.now(),
-      submissionId,
-      authorName,
-      email,
-      phone: phone || '',
-      institution,
-      authorCategory,
-      publicationCategory,
-      track,
-      paperTitle,
-      abstract,
-      fileUrl,
-      reviewStatus: 'Submitted',
-      createdAt,
-    };
-
-    const localRegRecord = {
-      id: 'REG-' + Date.now(),
-      name: authorName,
-      email,
-      phone: phone || '',
-      institution,
-      category: authorCategory || 'Research Scholars / Academicians',
-      currency: 'INR',
-      amount: feeAmount,
-      mode: mode || 'Hybrid',
-      paperId: submissionId,
-      paperTitle,
-      paymentStatus: 'Pending',
-      createdAt,
-    };
-
-    if (!supabaseSaved) {
-      addLocalSubmission(localRecord);
-      addLocalRegistration(localRegRecord);
+    const { error: registrationError } = await supabaseAdmin
+      .from('registrations')
+      .insert([regRecord]);
+    if (registrationError) {
+      throw new Error('Linked registration save failed', { cause: registrationError });
     }
 
     const responsePayload = {
       success: true,
-      submissionId: savedData?.submission_id || submissionId,
-      submission: savedData || localRecord,
-      supabaseSaved,
-      message: supabaseSaved
-        ? 'Manuscript submitted successfully and saved to Supabase'
-        : 'Manuscript submission logged in server portal',
+      submissionId: savedData.submission_id,
+      submission: savedData,
+      supabaseSaved: true,
+      message: 'Manuscript and linked registration saved to Supabase',
     };
 
     // Cache idempotent response if requestId present
