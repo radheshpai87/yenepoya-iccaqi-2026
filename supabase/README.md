@@ -19,3 +19,19 @@ network failures, so an acknowledged/committed submission never loses its file
 through premature cleanup. Unreferenced uploads can need later reconciliation.
 
 These repository migrations do not automatically modify your hosted database.
+
+`202610070002_durable_idempotency.sql` adds a private `api_requests` table and
+service-role-only RPCs protected by transaction-scoped advisory locks. Identical
+requests with the same UUID return their originally saved record, including after
+server restarts and concurrent retries. A reused UUID with different normalized
+fields or manuscript bytes returns HTTP 409. Each API now requires a UUID
+`requestId`; deploy the API and updated forms together. The forms retain that UUID
+for unchanged retry attempts and generate a new one when the input changes.
+New keys represent new submissions; this does not deduplicate separate intentional
+submissions by email address. Submission reference IDs now use UUIDs rather than
+four-digit random numbers. Never delete retry records while clients may retry.
+
+Run the isolated API tests with `node tests/persistence.test.cjs`. They simulate
+failures without contacting the hosted project. Database behavior checks are in
+`tests/persistence.sql`; run them only on a disposable PostgreSQL/Supabase test
+database after the base schema and both migrations. They roll back their fixtures.

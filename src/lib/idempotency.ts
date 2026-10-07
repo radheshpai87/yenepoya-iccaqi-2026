@@ -1,48 +1,48 @@
-/**
- * Server-side Idempotency Cache to prevent duplicate submissions on double-clicks
- */
+import { createHash } from 'node:crypto';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { ApiError } from '@/lib/apiErrors';
 
-interface IdempotentRecord {
-  result: any;
-  timestamp: number;
+export function validateRequestId(value: unknown): string {
+  if (typeof value !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+    throw new ApiError(400, 'A valid UUID requestId is required for safe retries');
+  }
+  return value.toLowerCase();
 }
 
-const idempotencyCache = new Map<string, IdempotentRecord>();
-
-// Cache TTL: 5 minutes (300,000 ms)
-const CACHE_TTL_MS = 5 * 60 * 1000;
-
-export function getIdempotentResponse(requestId: string): any | null {
-  if (!requestId) return null;
-
-  const record = idempotencyCache.get(requestId);
-  if (!record) return null;
-
-  // Check if record is still valid within 5-minute TTL
-  if (Date.now() - record.timestamp < CACHE_TTL_MS) {
-    return record.result;
-  }
-
-  // Expired record
-  idempotencyCache.delete(requestId);
-  return null;
+// Hash normalized business fields, excluding generated IDs/timestamps/URLs.
+// Manuscript bytes participate in the hash, so a key cannot replay another file.
+export function requestHash(fields: Record<string, unknown>, file?: Buffer): string {
+  const hash = createHash('sha256').update(JSON.stringify(fields));
+  if (file) hash.update(file);
+  return hash.digest('hex');
 }
 
-export function setIdempotentResponse(requestId: string, result: any): void {
-  if (!requestId) return;
-
-  // Garbage collect expired entries if cache grows
-  if (idempotencyCache.size > 500) {
-    const now = Date.now();
-    for (const [key, value] of idempotencyCache.entries()) {
-      if (now - value.timestamp >= CACHE_TTL_MS) {
-        idempotencyCache.delete(key);
-      }
-    }
+export async function getSavedResponse(
+  client: SupabaseClient,
+  operation: 'registration' | 'submission',
+  requestId: string,
+  hash: string,
+): Promise<Record<string, unknown> | null> {
+  const { data, error } = await client.from('api_requests')
+    .select('request_hash,response')
+    .eq('operation', operation)
+    .eq('request_id', requestId)
+    .maybeSingle();
+  if (error) {
+    console.error('Persistent retry lookup failed:', error);
+    throw new ApiError(503, 'Saving is temporarily unavailable. Please retry with the same details.');
   }
+  if (!data) return null;
+  if (data.request_hash !== hash) {
+    throw new ApiError(409, 'This retry contains different details or a different file. Please start a new submission.');
+  }
+  return data.response;
+}
 
-  idempotencyCache.set(requestId, {
-    result,
-    timestamp: Date.now(),
-  });
+export function throwSaveError(error: { message: string } | null): never {
+  if (error?.message === 'IDEMPOTENCY_CONFLICT') {
+    throw new ApiError(409, 'This retry contains different details or a different file. Please start a new submission.');
+  }
+  console.error('Durable save failed:', error);
+  throw new ApiError(503, 'Unable to confirm your save. Please retry with the same details.');
 }

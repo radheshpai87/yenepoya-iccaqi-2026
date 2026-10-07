@@ -1,9 +1,10 @@
+import { randomUUID } from 'node:crypto';
 import { ApiError, apiErrorResponse, readFormData } from '@/lib/apiErrors';
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
 import { isValidEmail, sanitizeText, validateUploadedFile, validateFileMagicBytes } from '@/lib/validation';
-import { getIdempotentResponse, setIdempotentResponse } from '@/lib/idempotency';
+import { validateRequestId, requestHash, getSavedResponse, throwSaveError } from '@/lib/idempotency';
 
 export async function POST(request: Request) {
   try {
@@ -19,15 +20,7 @@ export async function POST(request: Request) {
 
     const formData = await readFormData(request);
     
-    const requestId = sanitizeText(formData.get('requestId') as string, 100);
-    
-    // 2. Double-Click Idempotency Protection
-    if (requestId) {
-      const cached = getIdempotentResponse(requestId);
-      if (cached) {
-        return NextResponse.json(cached);
-      }
-    }
+    const requestId = validateRequestId(formData.get('requestId'));
 
     const authorName = sanitizeText(formData.get('authorName') as string, 100);
     const email = sanitizeText(formData.get('email') as string, 254);
@@ -82,11 +75,17 @@ export async function POST(request: Request) {
       throw new ApiError(503, 'Saving is temporarily unavailable. Please try again later.');
     }
     const supabaseAdmin = getSupabaseAdminClient();
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const submissionId = `ICCAQI-2026-${randomNum}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const hash = requestHash({
+      authorName, email, phone, institution, authorCategory, publicationCategory,
+      track, paperTitle, abstract, mode: mode || 'Hybrid',
+      fileName: file.name, fileType: file.type,
+    }, buffer);
+    const previous = await getSavedResponse(supabaseAdmin, 'submission', requestId, hash);
+    if (previous) return submissionResponse(previous);
+    const submissionId = `ICCAQI-2026-${randomUUID()}`;
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
     const storagePath = `${submissionId}_${Date.now()}.${fileExt}`;
-    const buffer = Buffer.from(await file.arrayBuffer());
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from('manuscripts')
       .upload(storagePath, buffer, {
@@ -144,31 +143,41 @@ export async function POST(request: Request) {
     };
 
     const { data: savedData, error: saveError } = await supabaseAdmin.rpc('save_paper_submission', {
+      p_request_id: requestId,
+      p_request_hash: hash,
       p_submission: submissionRecord,
       p_registration: regRecord,
     });
-    if (saveError || !savedData) {
-      // Preserve the file on ambiguous network failures: the transaction might
-      // have committed even when its response did not reach this server.
-      console.error('Atomic submission save failed:', saveError);
-      throw new ApiError(503, 'Unable to confirm your submission save. Please retry with the same details and file.');
+    if (saveError || typeof savedData?.id !== 'string' || typeof savedData?.submission_id !== 'string' || typeof savedData?.file_url !== 'string') {
+      // Preserve the file on ambiguous failures: the transaction may be committed.
+      // A retry with the same key recovers the saved response from PostgreSQL.
+      throwSaveError(saveError);
     }
-
-    const responsePayload = {
-      success: true,
-      submissionId: savedData.submission_id,
-      submission: savedData,
-      supabaseSaved: true,
-      message: 'Manuscript and linked registration saved to Supabase',
-    };
-
-    // Cache idempotent response if requestId present
-    if (requestId) {
-      setIdempotentResponse(requestId, responsePayload);
+    if (savedData.file_url !== fileUrl) {
+      // A concurrent identical request already committed its own manuscript.
+      // Only remove this attempt's extra file, never the winning file.
+      try {
+        const { error } = await supabaseAdmin.storage.from('manuscripts').remove([uploadData.path]);
+        if (error) console.warn('Redundant upload cleanup failed:', error);
+      } catch (error) {
+        console.warn('Redundant upload cleanup failed:', error);
+      }
     }
-
-    return NextResponse.json(responsePayload);
+    return submissionResponse(savedData);
   } catch (err) {
     return apiErrorResponse(err, 'submit-paper request failed:');
   }
+}
+
+function submissionResponse(savedData: Record<string, unknown>) {
+  if (typeof savedData.id !== 'string' || typeof savedData.submission_id !== 'string' || typeof savedData.file_url !== 'string') {
+    throw new ApiError(503, 'Submission save could not be confirmed. Please retry with the same details and file.');
+  }
+  return NextResponse.json({
+    success: true,
+    submissionId: savedData.submission_id,
+    submission: savedData,
+    supabaseSaved: true,
+    message: 'Manuscript and linked registration saved to Supabase',
+  });
 }

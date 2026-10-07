@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { requestAttempt, type RequestAttempt } from '@/lib/clientRequestId';
 import { 
   X, 
   UserCheck, 
@@ -39,6 +40,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState('');
   const [registrationError, setRegistrationError] = useState('');
+  const attempt = useRef<RequestAttempt | null>(null);
 
   // Lock body scroll and pause Lenis while modal is open so mouse wheel scrolls inside modal
   useEffect(() => {
@@ -84,22 +86,15 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     setPaymentUrl(generatedPaymentUrl);
 
     try {
+      const payload = {
+        ...formData, category, currency: delegateType, amount, mode,
+        paymentStatus: isParticipant ? 'Redirected to Razorpay' : 'Pending Acceptance',
+      };
+      attempt.current = requestAttempt(attempt.current, JSON.stringify(payload));
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          institution: formData.institution,
-          category,
-          currency: delegateType,
-          amount,
-          mode,
-          paperId: formData.paperId,
-          paperTitle: formData.paperTitle,
-          paymentStatus: isParticipant ? 'Redirected to Razorpay' : 'Pending Acceptance',
-        }),
+        body: JSON.stringify({ ...payload, requestId: attempt.current.requestId }),
       });
       const result = await response.json();
       if (!response.ok || result.success !== true || result.supabaseSaved !== true || !result.registration?.id) {

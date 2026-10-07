@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { requestAttempt, type RequestAttempt } from '@/lib/clientRequestId';
 import { 
   X, 
   Send, 
@@ -56,11 +57,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const [uploadStep, setUploadStep] = useState<string>('');
   const [submitted, setSubmitted] = useState(false);
   const [submissionId, setSubmissionId] = useState('');
-  const [requestId] = useState<string>(() =>
-    typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : 'REQ-' + Date.now() + '-' + Math.random()
-  );
+  const attempt = useRef<(RequestAttempt & { file: File }) | null>(null);
   const [step, setStep] = useState<'guidelines' | 'form'>('guidelines');
   const [category3Consent, setCategory3Consent] = useState<'yes' | 'no'>('no');
   const [acknowledged, setAcknowledged] = useState(false);
@@ -153,6 +150,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setUploadError('');
+    if (submitting) return;
 
     if (!selectedFile) {
       setUploadError('Please choose or drag & drop your manuscript file before submitting.');
@@ -169,7 +167,15 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     setUploadStep('Connecting to server upload gateway...');
 
     const data = new FormData();
-    data.append('requestId', requestId);
+    try {
+      const previous = attempt.current?.file === selectedFile ? attempt.current : null;
+      attempt.current = { ...requestAttempt(previous, JSON.stringify(formData)), file: selectedFile };
+      data.append('requestId', attempt.current.requestId);
+    } catch {
+      setUploadError('Unable to prepare a safe submission. Please use an up-to-date browser.');
+      setSubmitting(false);
+      return;
+    }
     data.append('authorName', formData.authorName);
     data.append('email', formData.email);
     data.append('phone', formData.phone);

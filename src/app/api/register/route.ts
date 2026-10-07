@@ -1,3 +1,4 @@
+import { validateRequestId, requestHash, throwSaveError } from '@/lib/idempotency';
 import { ApiError, apiErrorResponse, readJsonObject } from '@/lib/apiErrors';
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
     }
 
     const body = await readJsonObject(request);
+    const requestId = validateRequestId(body.requestId);
     const name = sanitizeText(body.name, 100);
     const email = sanitizeText(body.email, 254);
     const phone = sanitizeText(body.phone, 30);
@@ -54,22 +56,18 @@ export async function POST(request: Request) {
       paper_id: paperId || '',
       paper_title: paperTitle || '',
       payment_status: 'Pending',
-      created_at: new Date().toISOString(),
     };
 
     if (!isSupabaseConfigured()) {
       throw new ApiError(503, 'Saving is temporarily unavailable. Please try again later.');
     }
     const supabaseAdmin = getSupabaseAdminClient();
-    const { data, error } = await supabaseAdmin
-      .from('registrations')
-      .insert([regRecord])
-      .select()
-      .single();
-    if (error || !data) {
-      console.error('Registration database save failed:', error);
-      throw new ApiError(503, 'Unable to confirm your registration save. Please retry with the same details.');
-    }
+    const { data, error } = await supabaseAdmin.rpc('save_registration', {
+      p_request_id: requestId,
+      p_request_hash: requestHash(regRecord),
+      p_registration: { ...regRecord, created_at: new Date().toISOString() },
+    });
+    if (error || !data?.id) throwSaveError(error);
 
     return NextResponse.json({
       success: true,
