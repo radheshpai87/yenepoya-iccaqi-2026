@@ -66,6 +66,12 @@ function CompletePaymentContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedProofUrl, setSubmittedProofUrl] = useState('');
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  const isDelegateNameInvalid = attemptedSubmit && !delegate.name.trim();
+  const isDelegateEmailInvalid = attemptedSubmit && (!delegate.email.trim() || !delegate.email.includes('@'));
+  const isDelegateInstitutionInvalid = attemptedSubmit && !delegate.institution.trim();
+  const isFileInvalid = attemptedSubmit && !selectedFile;
 
   useEffect(() => {
     fetchDelegateDetails();
@@ -177,10 +183,16 @@ function CompletePaymentContent() {
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAttemptedSubmit(true);
     setUploadError('');
 
     if (!selectedFile) {
-      setUploadError('Please select or drag & drop your payment receipt screenshot before submitting.');
+      setUploadError('Payment receipt screenshot is required. Please upload your file below.');
+      return;
+    }
+
+    if (!delegate.name.trim() || !delegate.email.trim() || !delegate.institution.trim()) {
+      setUploadError('Please fill in mandatory delegate details (Name, Email, Institution) highlighted in red above.');
       return;
     }
 
@@ -347,8 +359,17 @@ function CompletePaymentContent() {
                         value={delegate.name}
                         onChange={(e) => setDelegate({ ...delegate, name: e.target.value })}
                         placeholder="Enter full name..."
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-slate-50 focus:bg-white focus:border-[#7cb305] focus:outline-hidden"
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-hidden transition-all ${
+                          isDelegateNameInvalid
+                            ? 'border-rose-500 bg-rose-50/25 ring-2 ring-rose-200 text-rose-950 placeholder:text-rose-300'
+                            : 'border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-[#7cb305]'
+                        }`}
                       />
+                      {isDelegateNameInvalid && (
+                        <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 shrink-0" /> Delegate name is required
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -361,8 +382,17 @@ function CompletePaymentContent() {
                         value={delegate.email}
                         onChange={(e) => setDelegate({ ...delegate, email: e.target.value })}
                         placeholder="Enter email address..."
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-slate-50 focus:bg-white focus:border-[#7cb305] focus:outline-hidden"
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-hidden transition-all ${
+                          isDelegateEmailInvalid
+                            ? 'border-rose-500 bg-rose-50/25 ring-2 ring-rose-200 text-rose-950 placeholder:text-rose-300'
+                            : 'border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-[#7cb305]'
+                        }`}
                       />
+                      {isDelegateEmailInvalid && (
+                        <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 shrink-0" /> Valid email address is required
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -390,8 +420,17 @@ function CompletePaymentContent() {
                         value={delegate.institution}
                         onChange={(e) => setDelegate({ ...delegate, institution: e.target.value })}
                         placeholder="Enter university / institution..."
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-slate-50 focus:bg-white focus:border-[#7cb305] focus:outline-hidden"
+                        className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-hidden transition-all ${
+                          isDelegateInstitutionInvalid
+                            ? 'border-rose-500 bg-rose-50/25 ring-2 ring-rose-200 text-rose-950 placeholder:text-rose-300'
+                            : 'border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-[#7cb305]'
+                        }`}
                       />
+                      {isDelegateInstitutionInvalid && (
+                        <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 shrink-0" /> Institution is required
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -565,14 +604,26 @@ function CompletePaymentContent() {
                   </div>
                 ) : (
                   /* Drag & Drop Upload Zone */
-                  <label className="border-2 border-dashed border-slate-300 hover:border-[#7cb305] rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all text-center bg-slate-50/50 hover:bg-slate-50">
-                    <UploadCloud className="w-8 h-8 text-slate-400 mb-2" />
-                    <span className="text-xs font-bold text-slate-800">
+                  <label className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all text-center ${
+                    isFileInvalid
+                      ? 'border-rose-500 bg-rose-50/60 ring-2 ring-rose-200 shadow-sm'
+                      : 'border-slate-300 hover:border-[#7cb305] bg-slate-50/50 hover:bg-slate-50'
+                  }`}>
+                    <UploadCloud className={`w-8 h-8 mb-2 transition-all ${
+                      isFileInvalid ? 'text-rose-500' : 'text-slate-400'
+                    }`} />
+                    <span className={`text-xs font-bold ${isFileInvalid ? 'text-rose-700' : 'text-slate-800'}`}>
                       Click or Drag &amp; Drop Payment Screenshot Image Here
                     </span>
-                    <span className="text-[11px] text-slate-500 mt-1">
+                    <span className="text-[11px] text-slate-500 mt-1 font-medium">
                       Supports JPG, PNG, WEBP, or PDF • Max file size: 10 MB
                     </span>
+                    {isFileInvalid && (
+                      <span className="text-xs font-bold text-rose-600 mt-2 flex items-center gap-1.5 animate-pulse bg-rose-100/80 px-3 py-1 rounded-full border border-rose-200">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        Payment receipt screenshot is required. Please upload your file.
+                      </span>
+                    )}
                     <input
                       type="file"
                       accept="image/*,.pdf"

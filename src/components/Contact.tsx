@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Phone, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -12,13 +12,24 @@ export const Contact: React.FC = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  const isNameInvalid = attemptedSubmit && !formData.name.trim();
+  const isEmailInvalid = attemptedSubmit && (!formData.email.trim() || !formData.email.includes('@'));
+  const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
+  const isMessageInvalid = attemptedSubmit && !formData.message.trim();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setAttemptedSubmit(true);
+    if (!formData.name.trim() || !formData.email.trim() || !formData.institution.trim() || !formData.message.trim()) {
+      return;
+    }
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       setSubmitted(true);
+      setAttemptedSubmit(false);
     }, 800);
   };
 
@@ -126,8 +137,17 @@ export const Contact: React.FC = () => {
                       placeholder="Dr. John Doe"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                      className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                        isNameInvalid
+                          ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                          : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                      }`}
                     />
+                    {isNameInvalid && (
+                      <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" /> Your name is required
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -140,8 +160,17 @@ export const Contact: React.FC = () => {
                       placeholder="john@university.edu"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                      className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                        isEmailInvalid
+                          ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                          : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                      }`}
                     />
+                    {isEmailInvalid && (
+                      <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" /> Valid email address is required
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -155,8 +184,17 @@ export const Contact: React.FC = () => {
                     placeholder="e.g. Yenepoya (Deemed to be University)"
                     value={formData.institution}
                     onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                      isInstitutionInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isInstitutionInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Institution is required
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -169,8 +207,17 @@ export const Contact: React.FC = () => {
                     placeholder="Your inquiry or track question..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                      isMessageInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isMessageInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Message is required
+                    </p>
+                  )}
                 </div>
 
                 <button

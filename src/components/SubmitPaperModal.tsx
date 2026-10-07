@@ -67,6 +67,15 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const [category2Consent, setCategory2Consent] = useState<'yes' | 'no'>('no');
   const [acknowledged, setAcknowledged] = useState(false);
   const [ackError, setAckError] = useState('');
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  const isAuthorNameInvalid = attemptedSubmit && !formData.authorName.trim();
+  const isEmailInvalid = attemptedSubmit && (!formData.email.trim() || !formData.email.includes('@'));
+  const isPhoneInvalid = attemptedSubmit && !formData.phone.trim();
+  const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
+  const isTitleInvalid = attemptedSubmit && !formData.paperTitle.trim();
+  const isAbstractInvalid = attemptedSubmit && !formData.abstract.trim();
+  const isFileInvalid = attemptedSubmit && !selectedFile;
 
   // Lock body scroll and pause Lenis while modal is open so mouse wheel scrolls inside modal
   useEffect(() => {
@@ -154,11 +163,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setAttemptedSubmit(true);
     setUploadError('');
     if (submitting) return;
 
+    if (!formData.authorName.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.institution.trim() || !formData.paperTitle.trim() || !formData.abstract.trim()) {
+      setUploadError('Please complete all mandatory fields highlighted in red below.');
+      return;
+    }
+
     if (!selectedFile) {
-      setUploadError('Please choose or drag & drop your manuscript file before submitting.');
+      setUploadError('Manuscript file is required. Please upload or drag & drop your document (highlighted in red below).');
       return;
     }
 
@@ -938,8 +953,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     placeholder="e.g. Dr. John Doe"
                     value={formData.authorName}
                     onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all disabled:opacity-60 ${
+                      isAuthorNameInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isAuthorNameInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Author name is required
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -953,8 +977,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     placeholder="e.g. author@university.edu"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all disabled:opacity-60 ${
+                      isEmailInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isEmailInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Valid email address is required
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -970,8 +1003,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     placeholder="e.g. +91 9876543210"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all disabled:opacity-60 ${
+                      isPhoneInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isPhoneInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Mobile / phone number is required
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1053,8 +1095,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     placeholder="e.g. Yenepoya (Deemed to be University)"
                     value={formData.institution}
                     onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all disabled:opacity-60 ${
+                      isInstitutionInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isInstitutionInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Institution / University is required
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1135,8 +1186,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   placeholder="Enter full paper title..."
                   value={formData.paperTitle}
                   onChange={(e) => setFormData({ ...formData, paperTitle: e.target.value })}
-                  className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
+                  className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all disabled:opacity-60 ${
+                    isTitleInvalid
+                      ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                      : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                  }`}
                 />
+                {isTitleInvalid && (
+                  <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" /> Manuscript title is required
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1150,8 +1210,17 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   placeholder="Provide concise summary of problem, methodology, findings, and technical novelty..."
                   value={formData.abstract}
                   onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
-                  className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white disabled:opacity-60"
+                  className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all disabled:opacity-60 ${
+                    isAbstractInvalid
+                      ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                      : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                  }`}
                 />
+                {isAbstractInvalid && (
+                  <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" /> Abstract is required
+                  </p>
+                )}
               </div>
 
               {/* File Upload Section */}
@@ -1228,18 +1297,28 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`border-2 border-dashed rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all text-center ${
-                      isDragging
+                      isFileInvalid
+                        ? 'border-rose-500 bg-rose-50/60 ring-2 ring-rose-200 shadow-sm'
+                        : isDragging
                         ? 'border-[#7cb305] bg-lime-50/80 scale-[1.01]'
                         : 'border-slate-200 hover:border-[#7cb305] bg-slate-50/50 hover:bg-slate-50'
                     }`}
                   >
-                    <UploadCloud className={`w-8 h-8 transition-all mb-1.5 ${isDragging ? 'text-[#7cb305] scale-110' : 'text-slate-400 group-hover:text-[#7cb305]'}`} />
-                    <span className="text-xs font-bold text-slate-800">
+                    <UploadCloud className={`w-8 h-8 transition-all mb-1.5 ${
+                      isFileInvalid ? 'text-rose-500' : isDragging ? 'text-[#7cb305] scale-110' : 'text-slate-400 group-hover:text-[#7cb305]'
+                    }`} />
+                    <span className={`text-xs font-bold ${isFileInvalid ? 'text-rose-700' : 'text-slate-800'}`}>
                       {isDragging ? 'Drop your manuscript file here' : 'Click or Drag & Drop manuscript file here'}
                     </span>
                     <span className="text-[11px] text-slate-500 mt-1 font-medium">
                       PDF (.pdf), Word (.doc/.docx), LaTeX (.tex/.zip) • Max file size: 10 MB
                     </span>
+                    {isFileInvalid && (
+                      <span className="text-xs font-bold text-rose-600 mt-2 flex items-center gap-1.5 animate-pulse bg-rose-100/80 px-3 py-1 rounded-full border border-rose-200">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        Manuscript document is required. Please upload your file.
+                      </span>
+                    )}
                     <input
                       type="file"
                       accept=".pdf,.doc,.docx,.tex,.zip"

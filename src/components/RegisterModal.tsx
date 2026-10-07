@@ -40,7 +40,13 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState('');
   const [registrationError, setRegistrationError] = useState('');
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const attempt = useRef<RequestAttempt | null>(null);
+
+  const isNameInvalid = attemptedSubmit && !formData.name.trim();
+  const isEmailInvalid = attemptedSubmit && (!formData.email.trim() || !formData.email.includes('@'));
+  const isPhoneInvalid = attemptedSubmit && !formData.phone.trim();
+  const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
 
   // Lock body scroll and pause Lenis while modal is open so mouse wheel scrolls inside modal
   useEffect(() => {
@@ -69,8 +75,15 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAttemptedSubmit(true);
     if (isSubmitting) return;
     setRegistrationError('');
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.institution.trim()) {
+      setRegistrationError('Please fill in all mandatory fields highlighted in red below.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const amount = delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd;
@@ -296,8 +309,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     placeholder="e.g. John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                      isNameInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isNameInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Full name is required
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -310,8 +332,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     placeholder="e.g. john@university.edu"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                      isEmailInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isEmailInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Valid email address is required
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -326,8 +357,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     placeholder="e.g. +91 98765 43210"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                      isPhoneInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isPhoneInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Phone number is required
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -340,8 +380,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     placeholder="e.g. Yenepoya (Deemed to be University)"
                     value={formData.institution}
                     onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                      isInstitutionInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
+                        : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
+                    }`}
                   />
+                  {isInstitutionInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Institution is required
+                    </p>
+                  )}
                 </div>
               </div>
 
