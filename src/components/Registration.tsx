@@ -5,9 +5,13 @@ import { Check, CreditCard } from 'lucide-react';
 
 interface RegistrationProps {
   onOpenSubmitModal: () => void;
+  onOpenRegisterModal: () => void;
 }
 
-export const Registration: React.FC<RegistrationProps> = ({ onOpenSubmitModal }) => {
+export const Registration: React.FC<RegistrationProps> = ({ 
+  onOpenSubmitModal,
+  onOpenRegisterModal 
+}) => {
   const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
 
   const tiers = [
@@ -17,6 +21,8 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenSubmitModal })
       feeInr: '₹300',
       feeUsd: '$5.00',
       highlight: false,
+      isParticipant: true,
+      note: 'Direct registration & payment',
     },
     {
       title: 'Students (UG / PG)',
@@ -24,6 +30,8 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenSubmitModal })
       feeInr: '₹500',
       feeUsd: '$10.00',
       highlight: true,
+      isParticipant: false,
+      note: 'Pay upon paper acceptance',
     },
     {
       title: 'Research Scholars / Faculty',
@@ -31,6 +39,8 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenSubmitModal })
       feeInr: '₹750',
       feeUsd: '$15.00',
       highlight: false,
+      isParticipant: false,
+      note: 'Pay upon paper acceptance',
     },
     {
       title: 'Industry Delegates',
@@ -38,6 +48,8 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenSubmitModal })
       feeInr: '₹1,500',
       feeUsd: '$20.00',
       highlight: false,
+      isParticipant: false,
+      note: 'Pay upon paper acceptance',
     },
   ];
 
@@ -80,7 +92,7 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenSubmitModal })
           </div>
         </div>
 
-        {/* 4 Clean Cards without payment/register button */}
+        {/* 4 Clean Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {tiers.map((t, idx) => (
             <div
@@ -107,24 +119,49 @@ export const Registration: React.FC<RegistrationProps> = ({ onOpenSubmitModal })
                 }`}>
                   {currency === 'INR' ? t.feeInr : t.feeUsd}
                 </div>
-                <span className="text-[11px] text-slate-500 block">
+                <span className="text-[11px] text-slate-500 block mb-4">
                   Inclusive of GST
                 </span>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 mt-2">
+                {t.isParticipant ? (
+                  <button
+                    onClick={onOpenRegisterModal}
+                    className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Register (₹300)</span>
+                  </button>
+                ) : (
+                  <div className="text-[11px] text-slate-500 font-medium text-center py-2 bg-slate-50 rounded-xl border border-slate-200/60">
+                    Pay upon acceptance
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
 
         {/* Instructions & Next Steps */}
-        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 text-center max-w-2xl mx-auto space-y-3">
-          <p className="text-xs text-slate-600 leading-relaxed">
-            * <strong>Payment Procedure:</strong> As per the conference guidelines, <em>&ldquo;Register upon intimation of acceptance.&rdquo;</em> There is no direct online payment gateway checkout on this website. Official payment account details and invoice instructions will be communicated directly to accepted authors.
+        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 max-w-2xl mx-auto space-y-3">
+          <p className="text-xs text-slate-600 leading-relaxed text-center">
+            * <strong>Paper Authors:</strong> Register and pay only upon intimation of acceptance. Paper submission is free at this stage.
+            <br />
+            * <strong>Attendees / Observers:</strong> Click &ldquo;Register as Participant&rdquo; to complete immediate registration with Razorpay payment (₹300).
           </p>
 
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={onOpenRegisterModal}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-xs transition-colors cursor-pointer"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Register as Participant (₹300)</span>
+            </button>
             <button
               onClick={onOpenSubmitModal}
-              className="inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs transition-colors cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs transition-colors cursor-pointer"
             >
               Submit Your Research Paper
             </button>

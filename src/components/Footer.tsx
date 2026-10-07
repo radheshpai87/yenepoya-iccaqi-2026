@@ -6,11 +6,13 @@ import { ArrowUp } from 'lucide-react';
 interface FooterProps {
   onOpenBrochureModal: () => void;
   onOpenSubmitModal: () => void;
+  onOpenRegisterModal: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onOpenBrochureModal,
   onOpenSubmitModal,
+  onOpenRegisterModal,
 }) => {
   const scrollToTop = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,6 +46,12 @@ export const Footer: React.FC<FooterProps> = ({
             className="text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             Brochure
+          </button>
+          <button
+            onClick={onOpenRegisterModal}
+            className="font-medium text-sky-400 hover:text-sky-300 transition-colors cursor-pointer"
+          >
+            Register (₹300)
           </button>
           <button
             onClick={onOpenSubmitModal}

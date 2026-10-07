@@ -7,11 +7,13 @@ import { Menu, X, ArrowUpRight } from 'lucide-react';
 interface NavbarProps {
   onOpenSubmitModal: () => void;
   onOpenBrochureModal: () => void;
+  onOpenRegisterModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenSubmitModal,
   onOpenBrochureModal,
+  onOpenRegisterModal,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -120,12 +122,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
 
             {/* Header Right Action */}
-            <div className="hidden sm:flex items-center gap-2.5">
+            <div className="hidden sm:flex items-center gap-2">
               <button
                 onClick={onOpenBrochureModal}
-                className="text-xs font-semibold text-slate-600 hover:text-slate-950 px-3 py-2 rounded-full transition-colors cursor-pointer"
+                className="text-xs font-semibold text-slate-600 hover:text-slate-950 px-2.5 py-2 rounded-full transition-colors cursor-pointer"
               >
                 Brochure
+              </button>
+              <button
+                onClick={onOpenRegisterModal}
+                className="text-xs font-bold text-[#0284c7] hover:bg-sky-50 px-3 py-2 rounded-full transition-colors cursor-pointer border border-sky-200"
+              >
+                Register (₹300)
               </button>
               <button
                 onClick={onOpenSubmitModal}
@@ -138,6 +146,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Mobile Hamburger Toggle */}
             <div className="flex lg:hidden items-center gap-2">
+              <button
+                onClick={onOpenRegisterModal}
+                className="sm:hidden px-2.5 py-1.5 rounded-full text-[11px] font-bold text-[#0284c7] border border-sky-200 bg-sky-50"
+              >
+                ₹300
+              </button>
               <button
                 onClick={onOpenSubmitModal}
                 className="sm:hidden px-3 py-1.5 rounded-full text-xs font-bold bg-[#7cb305] text-white"
@@ -179,6 +193,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <div className="pt-4 border-t border-slate-100 space-y-2">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenRegisterModal();
+                }}
+                className="w-full py-3 rounded-xl text-xs font-bold bg-[#0284c7] text-white shadow-xs text-center"
+              >
+                Register as Participant (₹300)
+              </button>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
