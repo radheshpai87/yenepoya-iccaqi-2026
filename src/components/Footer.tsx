@@ -49,7 +49,7 @@ export const Footer: React.FC<FooterProps> = ({
           </button>
           <button
             onClick={onOpenRegisterModal}
-            className="font-medium text-sky-400 hover:text-sky-300 transition-colors cursor-pointer"
+            className="font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
           >
             Register (₹300)
           </button>

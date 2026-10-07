@@ -347,8 +347,8 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
               {/* Informational Callout based on Category */}
               {isParticipant ? (
-                <div className="p-3.5 rounded-xl bg-sky-50/90 border border-sky-200 text-xs text-sky-950 flex items-start gap-2.5">
-                  <CreditCard className="w-4 h-4 text-[#0284c7] shrink-0 mt-0.5" />
+                <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200/90 text-xs text-emerald-950 flex items-start gap-2.5">
+                  <CreditCard className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <span className="font-bold block text-slate-900">
                       Razorpay Payment for Participants (₹300)
@@ -378,7 +378,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-md transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all cursor-pointer disabled:opacity-50"
                   >
                     <CreditCard className="w-4 h-4" />
                     <span>{isSubmitting ? 'Opening Razorpay Gateway...' : 'Proceed to Pay ₹300 via Razorpay'}</span>

@@ -131,9 +131,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={onOpenRegisterModal}
-                className="text-xs font-bold text-[#0284c7] hover:bg-sky-50 px-3 py-2 rounded-full transition-colors cursor-pointer border border-sky-200"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 transition-all cursor-pointer active:scale-95"
               >
-                Register (₹300)
+                <span>Register</span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200/70">
+                  ₹300
+                </span>
               </button>
               <button
                 onClick={onOpenSubmitModal}
@@ -148,9 +151,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex lg:hidden items-center gap-2">
               <button
                 onClick={onOpenRegisterModal}
-                className="sm:hidden px-2.5 py-1.5 rounded-full text-[11px] font-bold text-[#0284c7] border border-sky-200 bg-sky-50"
+                className="sm:hidden px-2.5 py-1.5 rounded-full text-[11px] font-semibold text-slate-700 border border-slate-200 bg-slate-100 flex items-center gap-1"
               >
-                ₹300
+                <span>Register</span>
+                <span className="font-bold text-emerald-700 text-[10px]">₹300</span>
               </button>
               <button
                 onClick={onOpenSubmitModal}
@@ -198,9 +202,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setMobileMenuOpen(false);
                   onOpenRegisterModal();
                 }}
-                className="w-full py-3 rounded-xl text-xs font-bold bg-[#0284c7] text-white shadow-xs text-center"
+                className="w-full py-3 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs text-center flex items-center justify-center gap-1.5"
               >
-                Register as Participant (₹300)
+                <span>Register as Participant</span>
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded-sm">₹300</span>
               </button>
               <button
                 onClick={() => {

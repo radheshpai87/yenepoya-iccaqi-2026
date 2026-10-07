@@ -128,9 +128,9 @@ export const Registration: React.FC<RegistrationProps> = ({
                 {t.isParticipant ? (
                   <button
                     onClick={onOpenRegisterModal}
-                    className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-98"
                   >
-                    <CreditCard className="w-3.5 h-3.5" />
+                    <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Register (₹300)</span>
                   </button>
                 ) : (
@@ -154,9 +154,9 @@ export const Registration: React.FC<RegistrationProps> = ({
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={onOpenRegisterModal}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-xs transition-colors cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors cursor-pointer"
             >
-              <CreditCard className="w-4 h-4" />
+              <CreditCard className="w-4 h-4 text-emerald-400" />
               <span>Register as Participant (₹300)</span>
             </button>
             <button
