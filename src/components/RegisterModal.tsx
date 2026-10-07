@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   UserCheck, 
@@ -38,6 +38,20 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [registered, setRegistered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState('');
+
+  // Lock body scroll and pause Lenis while modal is open so mouse wheel scrolls inside modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const lenis = (window as any).__lenis;
+    if (lenis) lenis.stop();
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      if (lenis) lenis.start();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -98,7 +112,10 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div
+      data-lenis-prevent="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto overscroll-contain"
+    >
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs transition-opacity"
@@ -106,7 +123,11 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       />
 
       {/* Modal Container */}
-      <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-3xl lg:max-w-4xl w-full p-5 sm:p-8 md:p-10 z-10 border border-slate-200 overflow-y-auto max-h-[92vh] my-auto">
+      <div
+        data-lenis-prevent="true"
+        onWheel={(e) => e.stopPropagation()}
+        className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-3xl lg:max-w-4xl w-full p-5 sm:p-8 md:p-10 z-10 border border-slate-200 overflow-y-auto overscroll-contain max-h-[90vh] my-auto"
+      >
         
         {/* Close Button */}
         <button
