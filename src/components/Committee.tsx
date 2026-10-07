@@ -17,7 +17,7 @@ export const Committee: React.FC = () => {
     { name: 'Dr. Aswini Dutt R', designation: 'Registrar' },
   ];
 
-  const leadership = [
+  const organizingTeam = [
     {
       role: 'Organizing Chair',
       name: 'Dr. Rajesh Gratian D\'Souza',
@@ -32,6 +32,15 @@ export const Committee: React.FC = () => {
     },
     {
       role: 'Chief Coordinator',
+      name: 'Dr. Mohammed Sidheeque',
+      designation: 'Associate Professor, Department of CSE',
+      affiliation: 'Yenepoya School of Engineering & Technology',
+    },
+  ];
+
+  const advisoryAndCoordination = [
+    {
+      role: 'Chair, Advisory Committee',
       name: 'Dr. Mohammed Sidheeque',
       designation: 'Associate Professor, Department of CSE',
       affiliation: 'Yenepoya School of Engineering & Technology',
@@ -104,13 +113,35 @@ export const Committee: React.FC = () => {
           </div>
         </div>
 
-        {/* Organizing Chairs */}
-        <div>
+        {/* Organizing Team */}
+        <div className="mb-10">
           <h4 className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
             Organizing Team
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {leadership.map((lead, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {organizingTeam.map((lead, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1"
+              >
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
+                  {lead.role}
+                </span>
+                <h5 className="text-sm font-bold text-slate-900">{lead.name}</h5>
+                <p className="text-xs text-slate-600 font-medium">{lead.designation}</p>
+                <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-100">{lead.affiliation}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Advisory Committee & Coordination Section */}
+        <div>
+          <h4 className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+            Advisory Committee &amp; Coordination
+          </h4>
+          <div className="max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {advisoryAndCoordination.map((lead, idx) => (
               <div
                 key={idx}
                 className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1"
