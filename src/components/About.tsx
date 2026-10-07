@@ -81,10 +81,10 @@ export const About: React.FC = () => {
           </div>
 
           <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-normal">
-            We cordially invite you to submit your original, unpublished, and high-quality research work to this international conference. The conference aims to provide a global platform for researchers, academicians, industry professionals, and students to share innovative ideas, research findings, and practical experiences in the areas of <strong>Computing, AI, Quantum Intelligence and Future Technologies</strong>.
+            ICCAQI 2026 is an international conference organized by the Yenepoya School of Engineering &amp; Technology (YSET), Yenepoya (Deemed to be University), Mangaluru, Karnataka, India, bringing together researchers, academicians, industry professionals, innovators, research scholars, and students to share ideas, research findings, emerging technologies, and innovative solutions in computing and next-generation technologies.
           </p>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            Hosted in the coastal academic hub of Mangaluru, Karnataka, ICCAQI 2026 connects researchers across continents through physical and virtual hybrid presentations, rigorous peer review, and indexed publication pathways.
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            The conference focuses on the rapidly evolving landscape of <strong>Computing, Artificial Intelligence, Quantum Intelligence, and Future Technologies</strong>. It aims to provide a platform for meaningful academic exchange, interdisciplinary collaboration, research dissemination, and industry–academia interaction.
           </p>
         </div>
 
