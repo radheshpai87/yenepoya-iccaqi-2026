@@ -62,7 +62,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
       : 'REQ-' + Date.now() + '-' + Math.random()
   );
   const [step, setStep] = useState<'guidelines' | 'form'>('guidelines');
-  const [optedCategory3, setOptedCategory3] = useState(false);
+  const [category3Consent, setCategory3Consent] = useState<'yes' | 'no'>('no');
   const [acknowledged, setAcknowledged] = useState(false);
   const [ackError, setAckError] = useState('');
 
@@ -88,9 +88,9 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     setAckError('');
     setFormData((prev) => ({
       ...prev,
-      publicationCategory: optedCategory3
-        ? 'Category I & II + Category III (Opted for Scopus Chapters/Journals)'
-        : 'Category I & II (Proceedings & Double-Blind Peer-Reviewed Journals)',
+      publicationCategory: category3Consent === 'yes'
+        ? 'Category I & II + Category III (Opted for Scopus Chapters/Journals - Yes)'
+        : 'Category I & II: Proceedings & Double-Blind Peer-Reviewed Journals (No Category III)',
     }));
     setStep('form');
   };
@@ -572,24 +572,77 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
             {/* Consents & Acknowledgements */}
             <div className="space-y-3 pt-2">
-              {/* Option Consent for Category 3 */}
-              <label className="flex items-start gap-3 p-4 rounded-2xl border-2 border-sky-200 bg-sky-50/60 hover:bg-sky-50 cursor-pointer transition-colors">
-                <input
-                  type="checkbox"
-                  checked={optedCategory3}
-                  onChange={(e) => setOptedCategory3(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300 accent-sky-600 cursor-pointer"
-                />
+              {/* Category III Consent Option (Yes / No Buttons) */}
+              <div className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/70 space-y-3">
                 <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-sky-950 flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                    Consent for Category III: Scopus-Indexed Book Chapters and Journals (Optional)
+                    Category III Willingness / Consent (Scopus-Indexed Chapters &amp; Journals)
                   </span>
-                  <p className="text-[11px] text-sky-800 leading-relaxed">
-                    I express my willingness to be considered for <strong>CATEGORY III (Scopus-Indexed Book Chapters and Journals)</strong>, and agree to the applicable additional publication charges/APC (₹9,750 for Book Chapter / ₹30,000–₹50,000 for Journal) if selected.
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Do you consent and wish to be considered for <strong>Category III (Scopus-Indexed Book Chapters / Journals)</strong>? Additional APC applies only if selected.
                   </p>
                 </div>
-              </label>
+
+                {/* Interactive Yes / No Selection Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setCategory3Consent('yes')}
+                    className={`p-3 rounded-xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer ${
+                      category3Consent === 'yes'
+                        ? 'border-sky-500 bg-sky-50/90 shadow-sm ring-1 ring-sky-500/30'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+                    }`}
+                  >
+                    <div
+                      className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                        category3Consent === 'yes' ? 'border-sky-600 bg-sky-600' : 'border-slate-400 bg-white'
+                      }`}
+                    >
+                      {category3Consent === 'yes' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs font-bold ${category3Consent === 'yes' ? 'text-sky-950' : 'text-slate-800'}`}>
+                          YES — I Consent to Category III
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+                        Opt-in for Scopus book chapters / journals evaluation. Additional APC applies upon selection.
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCategory3Consent('no')}
+                    className={`p-3 rounded-xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer ${
+                      category3Consent === 'no'
+                        ? 'border-[#7cb305] bg-lime-50/90 shadow-sm ring-1 ring-[#7cb305]/30'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+                    }`}
+                  >
+                    <div
+                      className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                        category3Consent === 'no' ? 'border-[#7cb305] bg-[#7cb305]' : 'border-slate-400 bg-white'
+                      }`}
+                    >
+                      {category3Consent === 'no' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs font-bold ${category3Consent === 'no' ? 'text-slate-900' : 'text-slate-800'}`}>
+                          NO — Standard Track Only
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+                        Category I Proceedings &amp; Category II Double-Blind Peer-Reviewed Journals (No extra APC).
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </div>
 
               {/* Mandatory Policy Acknowledgement */}
               <label className="flex items-start gap-3 p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/80 hover:bg-slate-100/70 hover:border-slate-300 cursor-pointer transition-colors">
@@ -617,12 +670,14 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
             {/* CTA Button */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <div className="text-xs text-slate-500 font-medium">
-                {optedCategory3 ? (
+                {category3Consent === 'yes' ? (
                   <span className="text-sky-700 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Category III Scopus Consideration Opted
+                    <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" /> Category III Scopus Consideration: <strong>YES (Consented)</strong>
                   </span>
                 ) : (
-                  <span>Standard Track: Category I (Proceedings) &amp; Category II (Peer-Reviewed Journals)</span>
+                  <span className="text-slate-700 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#7cb305]" /> Publication Track: <strong>Standard Category I &amp; II (NO Category III)</strong>
+                  </span>
                 )}
               </div>
               <button
@@ -643,8 +698,8 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                 <span className="font-semibold text-slate-500">Publication Option:</span>
                 <span className="font-bold text-slate-900 bg-lime-100/80 text-[#547903] px-2.5 py-0.5 rounded-full border border-lime-300 flex items-center gap-1.5">
                   <Lock className="w-3 h-3 text-[#547903]" />
-                  {optedCategory3
-                    ? 'Category I & II + Category III (Scopus Opted)'
+                  {category3Consent === 'yes'
+                    ? 'Category I & II + Category III (Scopus Opted: YES)'
                     : 'Category I & II (Proceedings & Peer-Reviewed Journals)'}
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
@@ -807,7 +862,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     </div>
                   </div>
                   <p className="text-[10px] text-slate-500 mt-1">
-                    {optedCategory3
+                    {category3Consent === 'yes'
                       ? '✓ Category III (Scopus) willingness consented. Additional APC applies upon selection.'
                       : 'Category I & II standard track (No additional APC).'}
                   </p>
