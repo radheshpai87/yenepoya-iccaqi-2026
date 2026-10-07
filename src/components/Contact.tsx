@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Phone, Globe, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, Send, CheckCircle2 } from 'lucide-react';
 
 export const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -77,18 +77,6 @@ export const Contact: React.FC = () => {
                   <span className="block text-[10px] text-slate-400 uppercase font-bold">Phone</span>
                   <a href="tel:+919895102959" className="font-semibold text-[#0284c7] hover:underline">
                     +91 98951 02959
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-700">
-                  <Globe className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="block text-[10px] text-slate-400 uppercase font-bold">Website</span>
-                  <a href="https://yenepoya.edu.in/iccaqi-2026" target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-800 hover:underline">
-                    yenepoya.edu.in/iccaqi-2026
                   </a>
                 </div>
               </div>
