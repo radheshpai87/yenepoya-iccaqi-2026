@@ -41,12 +41,6 @@ export const Committee: React.FC = () => {
   const advisoryAndCoordination = [
     {
       role: 'Chair, Advisory Committee',
-      name: 'Dr. Mohammed Sidheeque',
-      designation: 'Associate Professor, Department of CSE',
-      affiliation: 'Yenepoya School of Engineering & Technology',
-    },
-    {
-      role: 'Chair, Advisory Committee',
       name: 'Dr. Rakesh K K',
       designation: 'Senior Assistant Professor, Dept. of Computer Science',
       affiliation: 'YIASCM',
@@ -140,11 +134,11 @@ export const Committee: React.FC = () => {
           <h4 className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
             Advisory Committee &amp; Coordination
           </h4>
-          <div className="max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="max-w-2xl mx-auto flex justify-center">
             {advisoryAndCoordination.map((lead, idx) => (
               <div
                 key={idx}
-                className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1"
+                className="w-full sm:w-[calc(50%-0.5rem)] bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1"
               >
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
                   {lead.role}

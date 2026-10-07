@@ -56,6 +56,17 @@ export const Contact: React.FC = () => {
               </p>
             </div>
 
+            <div className="w-full max-w-sm mx-auto rounded-xl bg-white border border-slate-200/80 p-3 shadow-2xs text-center">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">
+                Chair, Advisory Committee
+              </span>
+              <h3 className="text-sm font-bold text-slate-900 mt-1">Dr. Mohammed Sidheeque</h3>
+              <p className="text-xs text-slate-600 mt-1">Associate Professor, Department of CSE</p>
+              <p className="text-[11px] text-slate-400 pt-2 mt-2 border-t border-slate-100">
+                Yenepoya School of Engineering &amp; Technology
+              </p>
+            </div>
+
             <div className="space-y-3 text-xs pt-4 border-t border-slate-200">
               <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700">
