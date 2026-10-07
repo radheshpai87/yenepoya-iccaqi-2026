@@ -29,20 +29,11 @@ export const metadata: Metadata = {
     'Scopus Indexed',
     'Call for Papers'
   ],
-  authors: [{ name: 'Yenepoya School of Engineering & Technology' }],
   openGraph: {
-    title: 'ICCAQI 2026 | International Conference on Computing, AI & Quantum Intelligence',
-    description: 'November 6–7, 2026 • Yenepoya (Deemed to be University), Mangaluru, India. Hybrid Mode.',
+    title: 'ICCAQI 2026 | International Conference on Computing, AI, Quantum Intelligence and Future Technologies',
+    description: 'Join global researchers at ICCAQI 2026 organized by Yenepoya School of Engineering & Technology, Yenepoya (Deemed to be University), Mangaluru, India. Hybrid Mode (In-Person & Online) • November 6–7, 2026 • Scopus & Peer-Reviewed Publication Tracks.',
     url: 'https://yenepoya.edu.in/iccaqi-2026',
     siteName: 'ICCAQI 2026',
-    images: [
-      {
-        url: '/iccaqi-2026-poster.png',
-        width: 1024,
-        height: 1536,
-        alt: 'ICCAQI 2026 Official Conference Poster',
-      },
-    ],
     locale: 'en_US',
     type: 'website',
   },
@@ -52,8 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'ICCAQI 2026 | International Conference on Computing, AI & Quantum Intelligence',
-    description: 'November 6–7, 2026 • Yenepoya (Deemed to be University), Mangaluru, India. Hybrid Mode.',
-    images: ['/iccaqi-2026-poster.png'],
+    description: 'November 6–7, 2026 • Yenepoya (Deemed to be University), Mangaluru, India. Hybrid Mode (In-Person & Online) • Scopus Publication Tracks.',
   },
   icons: {
     icon: [
