@@ -4,10 +4,11 @@ import nodemailer from 'nodemailer';
  * Configure Nodemailer SMTP Transporter with connection pooling and rate throttling
  */
 export function getSmtpTransporter() {
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const host = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
   const port = Number(process.env.SMTP_PORT) || 465;
-  const user = process.env.SMTP_USER || '';
-  const pass = process.env.SMTP_PASS || '';
+  const user = (process.env.SMTP_USER || '').trim();
+  // Strip all whitespaces, quotation marks and invisible chars
+  const pass = (process.env.SMTP_PASS || '').replace(/[\s"']/g, '');
 
   return nodemailer.createTransport({
     host,
