@@ -244,21 +244,27 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
         onClick={onClose}
       />
 
-      {/* Modal Container */}
+      {/* Modal Card */}
       <div
         data-lenis-prevent="true"
         onWheel={(e) => e.stopPropagation()}
-        className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-3xl lg:max-w-4xl w-full p-5 sm:p-8 md:p-10 z-10 border border-slate-200 overflow-y-auto overscroll-contain max-h-[90vh] my-auto"
+        className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-3xl lg:max-w-4xl w-full z-10 border border-slate-200 overflow-hidden max-h-[90vh] my-auto flex flex-col"
       >
-        
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors z-20"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors z-30"
           aria-label="Close Modal"
         >
           <X className="w-5 h-5" />
         </button>
+
+        {/* Scrollable Modal Content */}
+        <div
+          data-lenis-prevent="true"
+          onWheel={(e) => e.stopPropagation()}
+          className="overflow-y-auto overscroll-contain p-5 sm:p-8 md:p-10 flex-1"
+        >
 
         {submitted ? (
           <div className="text-center py-6 space-y-4">
@@ -1061,6 +1067,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
           </div>
         )}
 
+        </div>
       </div>
     </div>
   );
