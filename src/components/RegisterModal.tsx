@@ -27,7 +27,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 }) => {
   const [category, setCategory] = useState('Participants only');
   const [delegateType, setDelegateType] = useState<'INR' | 'USD'>('INR');
-  const [mode, setMode] = useState('In-Person (Mangaluru Campus)');
+  const [mode, setMode] = useState<'Offline' | 'Online'>('Offline');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -173,6 +173,12 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Delegate:</span>
                 <span className="font-semibold text-slate-900">{formData.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Participation Mode:</span>
+                <span className="font-semibold text-slate-900">
+                  {mode === 'Offline' ? 'Offline (In-Person)' : 'Online (Virtual)'}
+                </span>
               </div>
             </div>
 
@@ -342,35 +348,45 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               {/* Attendance Mode */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Preferred Mode of Participation
+                  Participation Mode *
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer text-xs font-medium transition-colors ${
-                    mode === 'In-Person (Mangaluru Campus)' ? 'border-emerald-500 bg-emerald-50/50 text-emerald-900' : 'border-slate-200'
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer text-xs transition-all ${
+                    mode === 'Offline'
+                      ? 'border-[#7cb305] bg-lime-50/80 text-slate-900 shadow-xs ring-1 ring-[#7cb305]/30'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                   }`}>
                     <input
                       type="radio"
                       name="mode"
-                      value="In-Person (Mangaluru Campus)"
-                      checked={mode === 'In-Person (Mangaluru Campus)'}
-                      onChange={(e) => setMode(e.target.value)}
-                      className="text-emerald-600"
+                      value="Offline"
+                      checked={mode === 'Offline'}
+                      onChange={() => setMode('Offline')}
+                      className="text-[#7cb305] accent-[#7cb305]"
                     />
-                    <span>In-Person (Offline)</span>
+                    <div>
+                      <span className="font-bold block">Offline (In-Person)</span>
+                      <span className="text-[11px] text-slate-500 font-normal">Attend at Yenepoya campus, Mangaluru</span>
+                    </div>
                   </label>
 
-                  <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer text-xs font-medium transition-colors ${
-                    mode === 'Virtual (Online Video Session)' ? 'border-sky-500 bg-sky-50/50 text-sky-900' : 'border-slate-200'
+                  <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer text-xs transition-all ${
+                    mode === 'Online'
+                      ? 'border-sky-500 bg-sky-50/80 text-slate-900 shadow-xs ring-1 ring-sky-500/30'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                   }`}>
                     <input
                       type="radio"
                       name="mode"
-                      value="Virtual (Online Video Session)"
-                      checked={mode === 'Virtual (Online Video Session)'}
-                      onChange={(e) => setMode(e.target.value)}
-                      className="text-sky-600"
+                      value="Online"
+                      checked={mode === 'Online'}
+                      onChange={() => setMode('Online')}
+                      className="text-sky-600 accent-sky-600"
                     />
-                    <span>Virtual (Online Hybrid)</span>
+                    <div>
+                      <span className="font-bold block">Online (Virtual)</span>
+                      <span className="text-[11px] text-slate-500 font-normal">Attend remotely via live video session</span>
+                    </div>
                   </label>
                 </div>
               </div>

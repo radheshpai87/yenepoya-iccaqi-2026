@@ -48,7 +48,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     paperTitle: '',
     track: preselectedTrack || 'Artificial Intelligence and Machine Learning',
     abstract: '',
-    mode: 'Hybrid (Online / Offline)',
+    mode: 'Offline',
   });
 
   const [fileName, setFileName] = useState<string | null>(null);
@@ -396,6 +396,15 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   </span>
                   <span className="font-semibold text-slate-800 leading-snug block break-words">
                     {formData.institution || 'Yenepoya (Deemed to be University)'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1 sm:col-span-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Presentation Mode
+                  </span>
+                  <span className="font-semibold text-slate-900 leading-snug block break-words">
+                    {formData.mode === 'Offline' ? 'Offline (In-Person Presentation)' : 'Online (Virtual Presentation)'}
                   </span>
                 </div>
 
@@ -1034,6 +1043,54 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                       </option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* Presentation Mode Selection */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Presentation Mode *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer text-xs transition-all ${
+                    formData.mode === 'Offline'
+                      ? 'border-[#7cb305] bg-lime-50/80 text-slate-900 shadow-xs ring-1 ring-[#7cb305]/30'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="presentationMode"
+                      value="Offline"
+                      disabled={submitting}
+                      checked={formData.mode === 'Offline'}
+                      onChange={() => setFormData({ ...formData, mode: 'Offline' })}
+                      className="text-[#7cb305] accent-[#7cb305]"
+                    />
+                    <div>
+                      <span className="font-bold block">Offline (In-Person Presentation)</span>
+                      <span className="text-[11px] text-slate-500 font-normal">Present at Yenepoya University campus, Mangaluru</span>
+                    </div>
+                  </label>
+
+                  <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer text-xs transition-all ${
+                    formData.mode === 'Online'
+                      ? 'border-sky-500 bg-sky-50/80 text-slate-900 shadow-xs ring-1 ring-sky-500/30'
+                      : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="presentationMode"
+                      value="Online"
+                      disabled={submitting}
+                      checked={formData.mode === 'Online'}
+                      onChange={() => setFormData({ ...formData, mode: 'Online' })}
+                      className="text-sky-600 accent-sky-600"
+                    />
+                    <div>
+                      <span className="font-bold block">Online (Virtual Presentation)</span>
+                      <span className="text-[11px] text-slate-500 font-normal">Present remotely via live video session</span>
+                    </div>
+                  </label>
                 </div>
               </div>
 
