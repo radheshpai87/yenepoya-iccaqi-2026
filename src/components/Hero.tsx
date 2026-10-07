@@ -92,14 +92,14 @@ export const Hero: React.FC<HeroProps> = ({
       <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-20 space-y-8">
         
         {/* Institutional Pill with Yenepoya School of Engineering and Technology Logo */}
-        <div className="inline-flex max-w-full items-center justify-center gap-2 sm:gap-4 px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-slate-900/75 backdrop-blur-md border border-white/20 shadow-lg">
+        <div className="inline-flex max-w-full items-center justify-center gap-3 sm:gap-5 px-4 sm:px-7 py-2.5 sm:py-3.5 rounded-2xl sm:rounded-full bg-slate-900/80 backdrop-blur-md border border-white/25 shadow-xl">
           <img
             src="/yenepoya-school-engineering-and-technologynew-white.svg"
             alt="Yenepoya School of Engineering & Technology"
-            className="h-6 sm:h-8 w-auto max-w-[190px] sm:max-w-none object-contain drop-shadow-xs"
+            className="h-9 sm:h-12 md:h-14 w-auto object-contain drop-shadow-sm"
           />
-          <div className="h-4 sm:h-5 w-[1px] bg-white/25 hidden xs:block" />
-          <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shrink-0">
+          <div className="h-6 sm:h-8 w-[1px] bg-white/25 hidden xs:block" />
+          <span className="text-xs sm:text-sm font-semibold px-2.5 sm:px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shrink-0">
             NAAC Grade &apos;A+&apos;
           </span>
         </div>
