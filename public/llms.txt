@@ -1,0 +1,47 @@
+# ICCAQI 2026: International Conference on Computing, AI, Quantum Intelligence and Future Technologies
+
+> Organized by Yenepoya School of Engineering & Technology, Yenepoya (Deemed to be University), Mangaluru, Karnataka, India.
+> Conference Dates: November 6–7, 2026
+> Participation Mode: Hybrid (In-Person at Mangaluru Campus & Virtual Online Presentations)
+> Official Website: https://yenepoya.edu.in/iccaqi-2026
+> Secretariat Email: iccaqi2026@yenepoya.edu.in
+
+## Conference Overview
+ICCAQI 2026 invites original research contributions from academicians, researchers, industry professionals, research scholars, and students in the areas of Computing, Artificial Intelligence, Quantum Intelligence, and Emerging Technologies.
+
+## Conference Tracks
+- **Track 1: Artificial Intelligence and Machine Learning**
+  Deep learning architectures, neural networks, natural language processing, computer vision, automated reasoning, reinforcement learning, explainable AI, and trustworthy AI.
+- **Track 2: Quantum Computing and Quantum Intelligence**
+  Quantum algorithms, quantum cryptography, quantum machine learning, quantum error correction, fault-tolerant quantum architectures, and quantum information science.
+- **Track 3: Cyber-Physical Systems and IoT**
+  Smart sensor networks, edge intelligence, industrial automation, robotics, autonomous systems, embedded intelligence, and secure IoT architectures.
+- **Track 4: Next-Generation Computing Architectures**
+  High-performance computing (HPC), distributed ledger technologies, cloud-native virtualization, green computing, neuromorphic computing, and 6G communication networks.
+
+## Important Dates (Deadlines)
+- Full Paper Submission: October 10, 2026
+- Acceptance Notification: October 20, 2026
+- Registration Deadline: October 25, 2026
+- Conference Dates: November 6–7, 2026
+
+## Publication Opportunities
+- **Category I: Conference Proceedings & Double-Blind Peer-Reviewed Journals**
+  - Abstracts published in conference proceedings with free soft copy & e-certificate.
+  - Consideration in associated double-blind peer-reviewed journals without additional APC.
+  - Plagiarism index below 20%, AI-generated content below 30%.
+- **Category II: Scopus-Indexed Book Chapters and Journals (Optional Pathway)**
+  - Optional publication pathway in Scopus-indexed book series chapters or journals.
+  - Scopus Book Chapter: ₹9,750 additional publication charge.
+  - Scopus Journal: ₹30,000 – ₹50,000 depending on Scopus quartile (Q1–Q4).
+  - Stricter plagiarism threshold: Plagiarism below 10%, AI-generated content 0%.
+
+## Registration Fees
+- Students / Research Scholars: ₹1,500 (Domestic) / $50 (International)
+- Academicians / Faculty: ₹2,000 (Domestic) / $75 (International)
+- Industry Professionals: ₹3,000 (Domestic) / $100 (International)
+- Attendee / Listener Only: ₹1,000 (Domestic) / $30 (International)
+
+## Venue
+- Yenepoya School of Engineering & Technology
+- Yenepoya (Deemed to be University), University Road, Deralakatte, Mangaluru, Karnataka, India — 575018

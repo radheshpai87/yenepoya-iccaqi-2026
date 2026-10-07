@@ -46,6 +46,15 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  alternates: {
+    canonical: 'https://yenepoya.edu.in/iccaqi-2026',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ICCAQI 2026 | International Conference on Computing, AI & Quantum Intelligence',
+    description: 'November 6–7, 2026 • Yenepoya (Deemed to be University), Mangaluru, India. Hybrid Mode.',
+    images: ['/iccaqi-2026-poster.png'],
+  },
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -58,6 +67,61 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLdConference = {
+  '@context': 'https://schema.org',
+  '@type': 'EducationEvent',
+  name: 'ICCAQI 2026 - International Conference on Computing, AI, Quantum Intelligence and Future Technologies',
+  alternateName: 'ICCAQI 2026',
+  description: 'International Conference on Computing, AI, Quantum Intelligence and Future Technologies organized by Yenepoya School of Engineering & Technology, Yenepoya (Deemed to be University), Mangaluru, India.',
+  startDate: '2026-11-06T09:00:00+05:30',
+  endDate: '2026-11-07T18:00:00+05:30',
+  eventAttendanceMode: 'https://schema.org/MixedEventAttendanceMode',
+  eventStatus: 'https://schema.org/EventScheduled',
+  url: 'https://yenepoya.edu.in/iccaqi-2026',
+  image: 'https://yenepoya.edu.in/iccaqi-2026-poster.png',
+  location: [
+    {
+      '@type': 'Place',
+      name: 'Yenepoya School of Engineering & Technology',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'University Road, Deralakatte',
+        addressLocality: 'Mangaluru',
+        addressRegion: 'Karnataka',
+        postalCode: '575018',
+        addressCountry: 'IN',
+      },
+    },
+    {
+      '@type': 'VirtualLocation',
+      url: 'https://yenepoya.edu.in/iccaqi-2026',
+    },
+  ],
+  organizer: {
+    '@type': 'CollegeOrUniversity',
+    name: 'Yenepoya (Deemed to be University)',
+    url: 'https://yenepoya.edu.in',
+    department: {
+      '@type': 'EducationalOrganization',
+      name: 'Yenepoya School of Engineering & Technology',
+    },
+  },
+  offers: {
+    '@type': 'Offer',
+    url: 'https://yenepoya.edu.in/iccaqi-2026#registration',
+    price: '1500',
+    priceCurrency: 'INR',
+    availability: 'https://schema.org/InStock',
+    validFrom: '2026-03-01',
+  },
+  about: [
+    'Artificial Intelligence and Machine Learning',
+    'Quantum Computing and Quantum Intelligence',
+    'Cyber-Physical Systems and IoT',
+    'Next-Generation Computing Architectures',
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -68,6 +132,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdConference) }}
+        />
+      </head>
       <body className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900">
         {children}
       </body>
