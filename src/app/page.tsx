@@ -17,6 +17,7 @@ import { SubmitPaperModal } from '@/components/SubmitPaperModal';
 import { RegisterModal } from '@/components/RegisterModal';
 import { BrochureModal } from '@/components/BrochureModal';
 import { SmoothScroll } from '@/components/SmoothScroll';
+import { Preloader } from '@/components/Preloader';
 
 export default function HomePage() {
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
@@ -55,6 +56,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+      {/* Initial Asset Preloader */}
+      <Preloader />
+
       {/* Lenis Smooth Scrolling Engine */}
       <SmoothScroll />
 
