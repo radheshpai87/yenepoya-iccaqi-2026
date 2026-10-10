@@ -22,20 +22,20 @@ export const Publication: React.FC = () => {
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* Journal publication */}
+            {/* Category I */}
             <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
               <h3 className="text-base font-bold text-slate-900">
-                All Accepted &amp; Presented Papers
+                Category I
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                All accepted and presented papers will be published in a reputed peer-reviewed journal indexed in <strong>Google Scholar, Crossref, MIAR, Ulrichsweb, EBSCO, DeepDyve, Dimensions, and TrendMD</strong>, with official <strong>DOI assignment</strong>.
+                All accepted and presented papers will be published in the reputed peer-reviewed journals indexed in <strong>Google Scholar, Crossref, MIAR, Ulrichsweb, EBSCO, DeepDyve, Dimensions, and TrendMD, etc.</strong> with <strong>DOI assignment</strong> after successful completion of the <strong>Double-Blind Peer Review process</strong>.
               </p>
             </div>
 
-            {/* Scopus / Wiley Consideration */}
+            {/* Category II */}
             <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
               <h3 className="text-base font-bold text-slate-900">
-                Selected High-Impact Papers
+                Category II
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 Selected papers will be considered for publication in <strong>Scopus-indexed Q3/Q4 journals</strong> or as book chapters in <strong>Scopus-indexed Wiley book series</strong>, subject to additional peer review and applicable publication requirements.
@@ -47,7 +47,7 @@ export const Publication: React.FC = () => {
           {/* Indexing & Publishing Partners Showcase */}
           <div className="pt-2 space-y-3">
             <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-              Referenced Indexing Services &amp; Archival:
+              Publication, Indexing Services and Archival:
             </span>
             
             {/* Unified Indexing Services & Publishing Partners Collage */}
