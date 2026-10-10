@@ -82,17 +82,7 @@ export const About: React.FC = () => {
                 height={44}
                 loading="lazy"
                 decoding="async"
-                className="h-9 sm:h-11 w-auto object-contain"
-              />
-              <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
-              <img
-                src="/iccaqi-logo.webp"
-                alt="ICCAQI 2026 Official Conference Logo"
-                width={180}
-                height={48}
-                loading="lazy"
-                decoding="async"
-                className="h-10 sm:h-12 w-auto object-contain"
+                className="h-12 sm:h-14 w-auto object-contain"
               />
             </div>
 
@@ -106,6 +96,16 @@ export const About: React.FC = () => {
                 loading="lazy"
                 decoding="async"
                 className="h-9 sm:h-11 w-auto object-contain"
+              />
+              <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
+              <img
+                src="/iccaqi-logo.webp"
+                alt="ICCAQI 2026 Official Conference Logo"
+                width={180}
+                height={48}
+                loading="lazy"
+                decoding="async"
+                className="h-10 sm:h-12 w-auto object-contain"
               />
               <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
               <img
