@@ -299,7 +299,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 Delegate Registration Portal
               </h3>
               <p className="text-xs text-slate-500">
-                Registration Deadline: <strong>November 1, 2026</strong> • Hybrid Online / In-Person Mode
+                Registration Deadline: <strong>November 23, 2026</strong> • Hybrid Online / In-Person Mode
               </p>
             </div>
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 
 export const ImportantDates: React.FC = () => {
-  const targetDate = new Date('2026-10-20T23:59:59').getTime();
+  const targetDate = new Date('2026-11-15T23:59:59').getTime();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
@@ -26,11 +26,10 @@ export const ImportantDates: React.FC = () => {
   }, [targetDate]);
 
   const dates = [
-    { title: 'Paper Submission Deadline', date: 'October 20, 2026', highlight: true },
-    { title: 'Notification of Acceptance', date: 'October 25, 2026', highlight: false },
-    { title: 'Camera-Ready Submission', date: 'October 30, 2026', highlight: false },
-    { title: 'Registration Deadline', date: 'November 1, 2026', highlight: false },
-    { title: 'Conference Dates', date: 'November 6–7, 2026', highlight: true, subtext: 'Friday – Saturday' },
+    { title: 'Paper Submission Deadline', date: 'November 15, 2026', highlight: true },
+    { title: 'Notification of Acceptance', date: 'November 20, 2026', highlight: false },
+    { title: 'Registration Deadline', date: 'November 23, 2026', highlight: false },
+    { title: 'Conference Dates', date: 'November 25 – 26, 2026', highlight: true, subtext: 'Wednesday – Thursday' },
   ];
 
   return (
@@ -56,7 +55,7 @@ export const ImportantDates: React.FC = () => {
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-800 block">
               Submission Deadline Countdown
             </span>
-            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5">October 20, 2026</h3>
+            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5">November 15, 2026</h3>
           </div>
 
           <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full md:w-auto max-w-sm">

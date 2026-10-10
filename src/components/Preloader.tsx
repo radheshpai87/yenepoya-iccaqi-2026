@@ -154,7 +154,7 @@ export const Preloader: React.FC = () => {
 
         {/* Footer date & venue line */}
         <div className="text-[11px] text-slate-400 pt-1 border-t border-white/10 w-full flex items-center justify-center gap-2 font-medium">
-          <span>November 6–7, 2026</span>
+          <span>November 25–26, 2026</span>
           <span>•</span>
           <span>Mangaluru, India</span>
         </div>

@@ -200,7 +200,7 @@ export default async function OpenGraphImage() {
                 Conference Dates
               </span>
               <span style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', marginTop: '2px' }}>
-                November 6–7, 2026
+                November 25–26, 2026
               </span>
             </div>
 

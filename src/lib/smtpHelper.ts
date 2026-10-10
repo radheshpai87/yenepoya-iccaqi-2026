@@ -61,7 +61,7 @@ export function renderEmailText(
   }
 
   text += `Event Reference: International Conference on Computing, AI, Quantum Intelligence and Future Technologies (ICCAQI 2026)\n`;
-  text += `Dates: November 6–7, 2026 • Mode: Hybrid (In-Person / Online)\n\n`;
+  text += `Dates: November 25–26, 2026 • Mode: Hybrid (In-Person / Online)\n\n`;
   text += `Yenepoya School of Engineering & Technology\n`;
   text += `Yenepoya (Deemed to be University), Mangaluru – 575018, India\n`;
   text += `Website: https://iccaqi.in`;
@@ -146,7 +146,7 @@ export function renderEmailHtml(
 
               <div style="background-color: #f8fafc; border-left: 4px solid #7cb305; padding: 14px 16px; border-radius: 6px; margin: 24px 0; font-size: 12px; color: #475569;">
                 <strong>Event Reference:</strong> International Conference on Computing, AI, Quantum Intelligence and Future Technologies (ICCAQI 2026)<br/>
-                <strong>Dates:</strong> November 6–7, 2026 • <strong>Mode:</strong> Hybrid (In-Person / Online)
+                <strong>Dates:</strong> November 25–26, 2026 • <strong>Mode:</strong> Hybrid (In-Person / Online)
               </div>
             </td>
           </tr>
@@ -257,7 +257,7 @@ export function renderSubmissionAcknowledgmentHtml(params: {
 
               <div style="background-color: #f8fafc; border-left: 4px solid #7cb305; padding: 14px 16px; border-radius: 6px; margin: 24px 0; font-size: 12px; color: #475569;">
                 <strong>Event Reference:</strong> International Conference on Computing, AI, Quantum Intelligence and Future Technologies (ICCAQI 2026)<br/>
-                <strong>Dates:</strong> November 6–7, 2026 • <strong>Mode:</strong> Hybrid (In-Person / Online)
+                <strong>Dates:</strong> November 25–26, 2026 • <strong>Mode:</strong> Hybrid (In-Person / Online)
               </div>
             </td>
           </tr>
@@ -306,7 +306,7 @@ Official Paper Authors WhatsApp Group:
 https://chat.whatsapp.com/JhShh9sbV840L8gQEMHWip
 
 Event Reference: International Conference on Computing, AI, Quantum Intelligence and Future Technologies (ICCAQI 2026)
-Dates: November 6–7, 2026 • Mode: Hybrid (In-Person / Online)
+Dates: November 25–26, 2026 • Mode: Hybrid (In-Person / Online)
 Yenepoya School of Engineering & Technology
 Yenepoya (Deemed to be University), Mangaluru – 575018, India
 Secretariat Email: iccaqi2026@yenepoya.edu.in

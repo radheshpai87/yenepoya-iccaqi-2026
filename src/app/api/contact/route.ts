@@ -194,7 +194,7 @@ Reply to this email directly to answer ${name} (${email}).`,
                 We have received your enquiry regarding <em>${institution}</em>. Our conference organizing team will review your message and reply to you shortly at <strong>${email}</strong>.
               </p>
               <div style="background-color: #f8fafc; border-left: 4px solid #7cb305; padding: 14px 16px; border-radius: 6px; margin: 20px 0; font-size: 12px; color: #475569;">
-                <strong>Conference Dates:</strong> November 6–7, 2026<br/>
+                <strong>Conference Dates:</strong> November 25–26, 2026<br/>
                 <strong>Venue:</strong> Yenepoya School of Engineering &amp; Technology, Mangaluru, India<br/>
                 <strong>Official Email:</strong> <a href="mailto:${smtpUser}" style="color: #7cb305;">${smtpUser}</a>
               </div>

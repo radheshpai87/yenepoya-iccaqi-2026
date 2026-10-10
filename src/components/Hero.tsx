@@ -136,7 +136,7 @@ export const Hero: React.FC<HeroProps> = ({
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1 sm:pt-2 text-xs sm:text-sm font-semibold text-slate-100">
           <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/15 shadow-sm text-[11px] sm:text-xs md:text-sm">
             <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
-            <span>November 6–7, 2026</span>
+            <span>November 25–26, 2026</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/15 shadow-sm text-[11px] sm:text-xs md:text-sm">
             <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
