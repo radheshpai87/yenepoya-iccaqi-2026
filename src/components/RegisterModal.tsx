@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { requestAttempt, type RequestAttempt } from '@/lib/clientRequestId';
 import { 
   X, 
@@ -27,6 +28,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   onOpenSubmitModal,
   initialCurrency = 'INR'
 }) => {
+  const router = useRouter();
   const [category, setCategory] = useState('Participants only');
   const [delegateType, setDelegateType] = useState<'INR' | 'USD'>(initialCurrency);
   const [mode, setMode] = useState<'Offline' | 'Online'>('Offline');
@@ -101,6 +103,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       return;
     }
 
+    const paymentWindow = isParticipant ? window.open('about:blank', '_blank') : null;
     setIsSubmitting(true);
 
     const amount = delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd;
@@ -132,9 +135,28 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       }
       setRegistered(true);
       if (isParticipant) {
-        window.open(generatedPaymentUrl, '_blank') || (window.location.href = generatedPaymentUrl);
+        const registeredDelegate = {
+          id: result.registration.id,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          institution: formData.institution,
+          category,
+          currency: delegateType,
+          amount,
+          mode,
+          paperId: formData.paperId,
+          paperTitle: formData.paperTitle,
+        };
+        sessionStorage.setItem('iccaqi-payment-registration', JSON.stringify(registeredDelegate));
+        if (paymentWindow) {
+          paymentWindow.opener = null;
+          paymentWindow.location.href = generatedPaymentUrl;
+        }
+        router.push(`/complete-payment?id=${encodeURIComponent(result.registration.id)}`);
       }
     } catch (err) {
+      paymentWindow?.close();
       setRegistrationError(err instanceof Error ? err.message : 'Registration save could not be confirmed. Please retry.');
     } finally {
       setIsSubmitting(false);

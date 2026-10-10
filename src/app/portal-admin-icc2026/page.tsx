@@ -85,6 +85,7 @@ interface Submission {
 
 interface PaymentProof {
   id: string;
+  paymentType: 'participant_payment' | 'paper_submission_payment';
   registrationId: string;
   paperId: string;
   name: string;
@@ -136,6 +137,7 @@ export default function PortalAdminPage() {
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<'all' | 'participant_payment' | 'paper_submission_payment'>('all');
   const [regCategoryFilter, setRegCategoryFilter] = useState('All');
   const [regStatusFilter, setRegStatusFilter] = useState('All');
   const [subTrackFilter, setSubTrackFilter] = useState('All');
@@ -688,6 +690,7 @@ export default function PortalAdminPage() {
   });
 
   const filteredPaymentProofs = paymentProofs.filter((proof) =>
+    (paymentTypeFilter === 'all' || proof.paymentType === paymentTypeFilter) &&
     `${proof.name} ${proof.email} ${proof.institution} ${proof.transactionRef} ${proof.paperId} ${proof.paperTitle}`
       .toLowerCase()
       .includes(searchQuery.toLowerCase())
@@ -706,6 +709,7 @@ export default function PortalAdminPage() {
   const totalRegistrations = registrations.length;
   const totalSubmissions = submissions.length;
   const verifiedCount = registrations.filter((r) => r.paymentStatus === 'Verified').length;
+  const acceptedSubmissionCount = submissions.filter((s) => s.reviewStatus === 'Accepted').length;
   const pendingCount = registrations.filter((r) => r.paymentStatus === 'Pending').length;
   const pendingProofCount = paymentProofs.filter((proof) => proof.status === 'Pending Verification').length;
   const registrationCategoryCounts = registrations.reduce<Record<string, number>>((counts, registration) => {
@@ -992,7 +996,7 @@ export default function PortalAdminPage() {
   const isSidebarExpanded = sidebarPinnedOpen || sidebarHovered || mobileSidebarOpen;
 
   return (
-    <div className={`min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex overflow-x-hidden ${sidebarPinnedOpen ? 'lg:pl-64' : 'lg:pl-20'}`}>
+    <div className={`min-h-screen bg-[#f4f6f8] text-slate-900 font-sans flex overflow-x-hidden ${sidebarPinnedOpen ? 'lg:pl-64' : 'lg:pl-20'}`}>
       
       {/* ========================================================= */}
       {/* 1. SOLID CLEAN SIDEBAR WITH YENEPOYA OFFICIAL LOGO AT TOP  */}
@@ -1005,20 +1009,20 @@ export default function PortalAdminPage() {
         />
       )}
 
-      <aside onMouseEnter={() => setSidebarHovered(true)} onMouseLeave={() => setSidebarHovered(false)} className={`fixed left-0 top-0 h-dvh ${isSidebarExpanded ? 'w-64' : 'w-20'} overflow-hidden bg-white border-r border-slate-200/90 flex flex-col shrink-0 z-50 shadow-xs transition-[width,transform] duration-300 ${
+      <aside onMouseEnter={() => setSidebarHovered(true)} onMouseLeave={() => setSidebarHovered(false)} className={`fixed left-0 top-0 h-dvh ${isSidebarExpanded ? 'w-64' : 'w-20'} overflow-hidden bg-[#17271f] border-r border-white/10 flex flex-col shrink-0 z-50 shadow-xl transition-[width,transform] duration-300 ${
         mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         <div className="flex min-h-0 flex-1 flex-col">
           {/* Top Logo & Brand Info with Official Yenepoya Logo */}
-          <div className={`h-20 shrink-0 flex items-center justify-between border-b border-slate-100 ${isSidebarExpanded ? 'px-5' : 'px-2'}`}>
+          <div className={`h-20 shrink-0 flex items-center justify-between border-b border-white/10 ${isSidebarExpanded ? 'px-5' : 'px-2'}`}>
             <div className="flex items-center gap-3">
               <img
                 src="/yenepoya-university-logonew3.svg"
                 alt="Yenepoya (Deemed to be University)"
-                className={`${isSidebarExpanded ? 'h-9' : 'h-6'} w-auto object-contain shrink-0 transition-all`}
+                className={`${isSidebarExpanded ? 'h-10' : 'h-7'} w-auto object-contain shrink-0 transition-all brightness-0 invert`}
               />
-              {isSidebarExpanded && <div className="overflow-hidden border-l border-slate-200 pl-3">
-                <span className="font-extrabold text-xs tracking-tight text-slate-900 block leading-tight">
+              {isSidebarExpanded && <div className="overflow-hidden border-l border-white/20 pl-3">
+                <span className="font-extrabold text-xs tracking-tight text-white block leading-tight">
                   ICCAQI 2026
                 </span>
                 <span className="text-[9px] font-bold tracking-widest text-[#7cb305] uppercase block font-mono">
@@ -1037,7 +1041,7 @@ export default function PortalAdminPage() {
                 setSidebarPinnedOpen((isOpen) => !isOpen);
                 setSidebarHovered(false);
               }}
-              className="hidden lg:inline-flex rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              className="hidden lg:inline-flex rounded-lg p-1 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
               aria-label={sidebarPinnedOpen ? 'Unpin and collapse sidebar' : 'Pin sidebar open'}
               title={sidebarPinnedOpen ? 'Unpin and collapse sidebar' : 'Pin sidebar open'}
             >
@@ -1057,7 +1061,7 @@ export default function PortalAdminPage() {
               className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'overview'
                   ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
               }`}
             >
               <BarChart3 className="w-4.5 h-4.5 shrink-0" />
@@ -1074,7 +1078,7 @@ export default function PortalAdminPage() {
               className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'records'
                   ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
               }`}
             >
               <Users className="w-4.5 h-4.5 shrink-0" />
@@ -1082,9 +1086,9 @@ export default function PortalAdminPage() {
             </button>
 
             {activeTab === 'records' && isSidebarExpanded && (
-              <div className="ml-4 space-y-1 border-l border-slate-200 pl-3">
-                <button onClick={() => setRecordView('registrations')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${recordView === 'registrations' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>Delegate registrations <span className="text-slate-400">({totalRegistrations})</span></button>
-                <button onClick={() => setRecordView('submissions')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${recordView === 'submissions' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>Paper submissions <span className="text-slate-400">({totalSubmissions})</span></button>
+              <div className="ml-4 space-y-1 border-l border-white/15 pl-3">
+                <button onClick={() => setRecordView('registrations')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${recordView === 'registrations' ? 'bg-white/10 text-lime-300' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>Delegate registrations <span className="text-slate-500">({totalRegistrations})</span></button>
+                <button onClick={() => setRecordView('submissions')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${recordView === 'submissions' ? 'bg-white/10 text-lime-300' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>Paper submissions <span className="text-slate-500">({totalSubmissions})</span></button>
               </div>
             )}
 
@@ -1095,14 +1099,14 @@ export default function PortalAdminPage() {
                 setSelectedSubmission(null);
               }}
               title="Payment Verification"
-              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'payments' ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'payments' ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
             >
               <CreditCard className="w-4.5 h-4.5 shrink-0" />
               {isSidebarExpanded && <span>Payment Verification</span>}
               {isSidebarExpanded && <span className="ml-auto rounded-full bg-white/20 px-2 py-0.5 text-[10px] tabular-nums">{paymentProofs.length}</span>}
             </button>
 
-            {isSidebarExpanded && <div className="h-[1px] bg-slate-100 my-3" />}
+            {isSidebarExpanded && <div className="h-px bg-white/10 my-3" />}
 
             <button
               onClick={() => {
@@ -1111,7 +1115,7 @@ export default function PortalAdminPage() {
                 setRegStatusFilter('Verified');
               }}
               title="Verified Payments"
-              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer`}
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all cursor-pointer`}
             >
               <CheckCircle2 className="w-4.5 h-4.5 shrink-0 text-emerald-600" />
               {isSidebarExpanded && <span>Verified Payments</span>}
@@ -1126,7 +1130,7 @@ export default function PortalAdminPage() {
                 }
               }}
               title={`Export CSV (${recordView === 'submissions' ? 'Submissions' : 'Registrations'})`}
-              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer`}
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all cursor-pointer`}
             >
               <FileSpreadsheet className="w-4.5 h-4.5 shrink-0 text-amber-600" />
               {isSidebarExpanded && <span>Export CSV ({recordView === 'submissions' ? 'Submissions' : 'Registrations'})</span>}
@@ -1135,7 +1139,7 @@ export default function PortalAdminPage() {
             <button
               onClick={() => setIsEmailModalOpen(true)}
               title="Broadcast Email"
-              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer`}
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all cursor-pointer`}
             >
               <Mail className="w-4.5 h-4.5 shrink-0 text-[#7cb305]" />
               {isSidebarExpanded && <span>Broadcast Email</span>}
@@ -1144,21 +1148,21 @@ export default function PortalAdminPage() {
         </div>
 
         {/* User Profile Card & Log Out at Bottom */}
-        <div className={`shrink-0 border-t border-slate-100 bg-slate-50/50 space-y-3 ${isSidebarExpanded ? 'p-4' : 'p-3'}`}>
-          <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : 'justify-center'} p-2 rounded-2xl bg-white border border-slate-200/80 shadow-2xs`}>
+        <div className={`shrink-0 border-t border-white/10 bg-[#13221a] space-y-3 ${isSidebarExpanded ? 'p-4' : 'p-3'}`}>
+          <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : 'justify-center'} p-2 rounded-2xl bg-white/5 border border-white/10`}>
             <div className="w-9 h-9 rounded-xl bg-[#7cb305]/10 text-[#7cb305] font-bold text-sm flex items-center justify-center shrink-0 border border-[#7cb305]/20">
               A
             </div>
             {isSidebarExpanded && <div className="overflow-hidden text-left flex-1">
-              <div className="font-extrabold text-xs text-slate-900 truncate">Admin User</div>
-              <div className="text-[10px] font-medium text-slate-500">Administrator</div>
+              <div className="font-extrabold text-xs text-white truncate">Admin User</div>
+              <div className="text-[10px] font-medium text-slate-400">Administrator</div>
             </div>}
           </div>
 
           <button
             onClick={handleLogout}
             title="Log out"
-            className={`w-full flex items-center ${isSidebarExpanded ? 'gap-2 px-3' : 'justify-center px-2'} py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer`}
+            className={`w-full flex items-center ${isSidebarExpanded ? 'gap-2 px-3' : 'justify-center px-2'} py-2 rounded-xl text-xs font-bold text-rose-300 hover:bg-rose-400/10 transition-all cursor-pointer`}
           >
             <LogOut className="w-4 h-4 shrink-0" />
             {isSidebarExpanded && <span>Log out</span>}
@@ -1235,9 +1239,9 @@ export default function PortalAdminPage() {
             {activeTab === 'overview' && (
             <>
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#659b02]">ICCAQI 2026 · Admin workspace</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Conference overview</h2><p className="mt-1 text-sm text-slate-500">A live snapshot of registrations, submissions, and payment review.</p></div>
-              <button onClick={() => setActiveTab('payments')} className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
-                <CreditCard className="h-4 w-4" /> Review receipts <span className="rounded-full bg-white px-2 py-0.5 tabular-nums">{pendingProofCount}</span>
+              <div><p className="text-xs font-semibold text-slate-500">ICCAQI 2026</p><h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Conference overview</h2><p className="mt-1 text-sm text-slate-500">Registrations, submissions, and payment review.</p></div>
+              <button onClick={() => setActiveTab('payments')} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50">
+                <CreditCard className="h-4 w-4" /> Review receipts <span className="rounded-md bg-slate-100 px-2 py-0.5 tabular-nums">{pendingProofCount}</span>
               </button>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
@@ -1247,41 +1251,39 @@ export default function PortalAdminPage() {
                 { label: 'Verified payments', value: verifiedCount, icon: CheckCircle2, tone: 'bg-emerald-100 text-emerald-700' },
                 { label: 'Receipts to review', value: pendingProofCount, icon: CreditCard, tone: 'bg-amber-100 text-amber-700' },
               ].map(({ label, value, icon: Icon, tone }) => (
-                <div key={label} className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+                <div key={label} className="rounded-xl border border-slate-200 bg-white p-5">
                   <div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold text-slate-500">{label}</span><span className={`rounded-xl p-2 ${tone}`}><Icon className="h-4 w-4" /></span></div>
-                  <div className="mt-3 text-3xl font-black tabular-nums text-slate-900">{value}</div>
+                  <div className="mt-3 text-3xl font-bold tabular-nums text-slate-900">{value}</div>
                 </div>
               ))}
             </div>
 
             <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-3">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 xl:col-span-2">
+            <section className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 xl:col-span-2">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 text-slate-900"><LineChart className="h-4 w-4 text-[#659b02]" /><h2 className="text-sm font-extrabold">Registration &amp; submission activity</h2></div>
+                  <div className="flex items-center gap-2 text-slate-900"><h2 className="text-sm font-bold">Registration &amp; submission activity</h2></div>
                   <p className="mt-1 text-xs text-slate-500">Daily activity over the last 30 days</p>
                 </div>
                 <div className="flex items-center gap-4 text-[11px] font-semibold text-slate-600">
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#7cb305]" />Registrations</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-sky-500" />Paper submissions</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-500" />Registrations</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-orange-500" />Paper submissions</span>
                 </div>
               </div>
               <div className="mt-5 overflow-hidden">
                 <svg viewBox="0 0 720 250" className="h-56 w-full overflow-visible" role="img" aria-label="Line chart of daily registrations and paper submissions over the last 30 days" onMouseLeave={() => setHoveredActivityIndex(null)}>
                   <defs>
-                    <linearGradient id="registrationActivityFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7cb305" stopOpacity="0.28" /><stop offset="100%" stopColor="#7cb305" stopOpacity="0.015" /></linearGradient>
-                    <linearGradient id="submissionActivityFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.2" /><stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.01" /></linearGradient>
+                    <linearGradient id="registrationActivityFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3b82f6" stopOpacity="0.34" /><stop offset="100%" stopColor="#3b82f6" stopOpacity="0.025" /></linearGradient>
                   </defs>
                   {[28, 83, 139, 194].map((y, index) => (
                     <g key={y}>
-                      <line x1="44" y1={y} x2="704" y2={y} stroke="#e2e8f0" strokeDasharray={index === 3 ? undefined : '3 5'} />
+                      <line x1="44" y1={y} x2="704" y2={y} stroke="#e9edf2" />
                       <text x="34" y={y + 4} textAnchor="end" className="fill-slate-400" fontSize="10">{Math.round(activityMax * (3 - index) / 3)}</text>
                     </g>
                   ))}
                   <path d={activityAreaPath('registrations')} fill="url(#registrationActivityFill)" />
-                  <path d={activityAreaPath('submissions')} fill="url(#submissionActivityFill)" />
-                  <path d={activityLinePath('registrations')} fill="none" stroke="#7cb305" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d={activityLinePath('submissions')} fill="none" stroke="#0ea5e9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={activityLinePath('registrations')} fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={activityLinePath('submissions')} fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   {activityDays.map((day, index) => {
                     const x = 44 + (index / (activityDays.length - 1)) * 660;
                     const registrationY = 194 - (day.registrations / activityMax) * 166;
@@ -1305,15 +1307,13 @@ export default function PortalAdminPage() {
                         onKeyDown={(event) => { if (event.key === 'Escape') setHoveredActivityIndex(null); }}
                       />
                       {index === hoveredActivityIndex && <line x1={x} y1="28" x2={x} y2="194" stroke="#94a3b8" strokeDasharray="3 4" pointerEvents="none" />}
-                      <circle cx={x} cy={registrationY} r={index === hoveredActivityIndex ? 5 : 3.5} fill="white" stroke="#7cb305" strokeWidth="2" pointerEvents="none" />
-                      <circle cx={x} cy={submissionY} r={index === hoveredActivityIndex ? 5 : 3.5} fill="white" stroke="#0ea5e9" strokeWidth="2" pointerEvents="none" />
                       {index === hoveredActivityIndex && <g pointerEvents="none">
-                        <rect x={tooltipX} y={tooltipY} width="188" height="76" rx="10" fill="white" stroke="#e2e8f0" filter="drop-shadow(0 4px 10px rgb(15 23 42 / 0.14))" />
+                        <rect x={tooltipX} y={tooltipY} width="188" height="76" rx="8" fill="white" stroke="#dbe2ea" filter="drop-shadow(0 2px 6px rgb(15 23 42 / 0.12))" />
                         <text x={tooltipX + 12} y={tooltipY + 19} fill="#0f172a" fontSize="11" fontWeight="700">{day.date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</text>
-                        <circle cx={tooltipX + 16} cy={tooltipY + 38} r="3.5" fill="#7cb305" />
+                        <circle cx={tooltipX + 16} cy={tooltipY + 38} r="3.5" fill="#3b82f6" />
                         <text x={tooltipX + 27} y={tooltipY + 42} fill="#475569" fontSize="10">Registrations</text>
                         <text x={tooltipX + 175} y={tooltipY + 42} textAnchor="end" fill="#0f172a" fontSize="11" fontWeight="700">{day.registrations}</text>
-                        <circle cx={tooltipX + 16} cy={tooltipY + 58} r="3.5" fill="#0ea5e9" />
+                        <circle cx={tooltipX + 16} cy={tooltipY + 58} r="3.5" fill="#f97316" />
                         <text x={tooltipX + 27} y={tooltipY + 62} fill="#475569" fontSize="10">Paper submissions</text>
                         <text x={tooltipX + 175} y={tooltipY + 62} textAnchor="end" fill="#0f172a" fontSize="11" fontWeight="700">{day.submissions}</text>
                       </g>}
@@ -1327,17 +1327,31 @@ export default function PortalAdminPage() {
                 </svg>
               </div>
             </section>
-            {renderDemographicPie('author-gender', 'Author gender', submissionGenderCounts, ['#8b5cf6', '#ec4899', '#0ea5e9', '#64748b'])}
+            <section className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+              <div><p className="text-xs font-medium text-slate-500">At a glance</p><h3 className="mt-1 text-sm font-bold text-slate-900">Conference progress</h3></div>
+              <div className="mt-5 space-y-5">
+                {[
+                  { label: 'Verified payments', value: verifiedCount, total: totalRegistrations, tone: 'bg-emerald-500', display: `${verifiedCount} / ${totalRegistrations}` },
+                  { label: 'Receipts to review', value: pendingProofCount, total: paymentProofs.length, tone: 'bg-amber-500', display: `${pendingProofCount} pending` },
+                  { label: 'Accepted papers', value: acceptedSubmissionCount, total: totalSubmissions, tone: 'bg-blue-500', display: `${acceptedSubmissionCount} / ${totalSubmissions}` },
+                ].map((item) => <div key={item.label}>
+                  <div className="mb-2 flex items-center justify-between gap-3 text-xs"><span className="font-medium text-slate-600">{item.label}</span><span className="font-bold tabular-nums text-slate-900">{item.display}</span></div>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${item.tone} transition-[width] duration-500`} style={{ width: `${item.total ? Math.min(100, item.value / item.total * 100) : 0}%` }} /></div>
+                </div>)}
+              </div>
+              <button onClick={() => setActiveTab('payments')} className="mt-6 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50">Open payment review <span aria-hidden="true">→</span></button>
+            </section>
             </div>
 
             <div>
               <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-                <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#659b02]">Audience insights</p><h2 className="mt-1 text-lg font-extrabold text-slate-900">Participant &amp; submission demographics</h2></div>
+                <div><p className="text-xs font-semibold text-slate-500">Demographics</p><h2 className="mt-1 text-lg font-bold text-slate-900">Participant &amp; submission demographics</h2></div>
                 <span className="text-[11px] text-slate-500">Based on {totalRegistrations} registrations and {totalSubmissions} submissions</span>
               </div>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
                 {renderParticipantCategoryBars(registrationCategoryCounts)}
                 {renderDemographicList('Participation mode', registrationModeCounts, 'bg-sky-500')}
+                {renderDemographicPie('author-gender', 'Author gender', submissionGenderCounts, ['#8b5cf6', '#ec4899', '#0ea5e9', '#64748b'])}
                 {renderDemographicPie('paper-tracks', 'Paper submissions by track', submissionTrackCounts, ['#4f46e5', '#0ea5e9', '#7cb305', '#f59e0b', '#f43f5e', '#14b8a6'])}
                 {renderDemographicList('Registration payment status', registrationStatusCounts, 'bg-emerald-500')}
                 {renderDemographicList('Receipt verification status', paymentProofStatusCounts, 'bg-amber-500')}
@@ -1430,6 +1444,14 @@ export default function PortalAdminPage() {
                 ) : null}
               </div>
             </div>
+
+            {activeTab === 'payments' && <div className="flex flex-wrap gap-2" role="group" aria-label="Filter payment receipts by type">
+              {([
+                ['all', 'All payments'],
+                ['participant_payment', 'Participant payments'],
+                ['paper_submission_payment', 'Paper submission payments'],
+              ] as const).map(([value, label]) => <button key={value} type="button" onClick={() => { setPaymentTypeFilter(value); setCurrentPage(1); }} className={`rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors ${paymentTypeFilter === value ? 'border-slate-800 bg-slate-800 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{label}<span className={`ml-2 tabular-nums ${paymentTypeFilter === value ? 'text-slate-300' : 'text-slate-400'}`}>{value === 'all' ? paymentProofs.length : paymentProofs.filter((proof) => proof.paymentType === value).length}</span></button>)}
+            </div>}
 
             {/* DATA TABLE */}
             <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
@@ -1737,7 +1759,7 @@ export default function PortalAdminPage() {
                         <tr key={proof.id} className="align-top hover:bg-slate-50">
                           <td className="py-3.5 px-4"><div className="font-bold text-slate-900">{proof.name}</div><div className="text-slate-500">{proof.email}</div><div className="text-slate-500">{proof.phone || '—'}</div></td>
                           <td className="py-3.5 px-4"><div>{proof.institution}</div><div className="text-slate-500">{proof.mode || '—'}</div></td>
-                          <td className="py-3.5 px-4"><div className="font-semibold">{proof.category}</div><div className="font-mono text-sky-700">{proof.amount} {proof.currency}</div></td>
+                          <td className="py-3.5 px-4"><div className="mb-1"><span className={`rounded-md px-2 py-1 text-[10px] font-semibold ${proof.paymentType === 'participant_payment' ? 'bg-blue-50 text-blue-700' : 'bg-violet-50 text-violet-700'}`}>{proof.paymentType === 'participant_payment' ? 'Participant payment' : 'Paper submission payment'}</span></div><div className="font-semibold">{proof.category}</div><div className="font-mono text-sky-700">{proof.amount} {proof.currency}</div></td>
                           <td className="py-3.5 px-4"><div>{proof.transactionRef || 'No transaction reference'}</div><div className="text-slate-500">{proof.paperId || proof.paperTitle || 'Participant registration'}</div><div className="text-slate-500">Registration: {proof.registrationId || '—'}</div></td>
                           <td className="py-3.5 px-4">{proof.fileUrl ? <button type="button" onClick={() => setSelectedPaymentProof(proof)} className="inline-flex items-center gap-1.5 rounded-lg bg-sky-50 px-2.5 py-1.5 font-bold text-sky-700 hover:bg-sky-100"><Eye className="h-3.5 w-3.5" />Details &amp; receipt</button> : <span className="text-rose-600">Receipt link unavailable</span>}</td>
                           <td className="py-3.5 px-4"><div className="mb-2 text-slate-500">{new Date(proof.createdAt).toLocaleString()}</div><select aria-label={`Payment proof status for ${proof.name}`} value={proof.status} onChange={(event) => updatePaymentProofStatus(proof.id, event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 font-bold"><option>Pending Verification</option><option>Verified</option><option>Rejected</option></select></td>
@@ -2301,6 +2323,7 @@ export default function PortalAdminPage() {
                     ['Phone', selectedPaymentProof.phone],
                     ['Institution / university', selectedPaymentProof.institution],
                     ['Participant category', selectedPaymentProof.category],
+                    ['Payment type', selectedPaymentProof.paymentType === 'participant_payment' ? 'Participant payment' : 'Paper submission payment'],
                     ['Participation mode', selectedPaymentProof.mode],
                     ['Amount', `${selectedPaymentProof.amount} ${selectedPaymentProof.currency}`],
                     ['Transaction reference / UTR', selectedPaymentProof.transactionRef],

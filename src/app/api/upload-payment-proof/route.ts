@@ -63,6 +63,16 @@ export async function POST(request: Request) {
     // 2. Validate Screenshot File
     if (!isSupabaseConfigured()) throw new ApiError(503, 'Payment proof saving is temporarily unavailable. Please try again later.');
     const supabaseAdmin = getSupabaseAdminClient();
+    const targetRegistration = registrationId
+      ? await supabaseAdmin.from('registrations').select('id, category').eq('id', registrationId).maybeSingle()
+      : paperId
+        ? await supabaseAdmin.from('registrations').select('id, category').eq('paper_id', paperId).maybeSingle()
+        : null;
+    const sourceCategory = targetRegistration?.data?.category || category;
+    const normalizedCategory = sourceCategory.toLowerCase();
+    const paymentType = normalizedCategory.includes('participant') || normalizedCategory.includes('attendee') || normalizedCategory.includes('observer')
+      ? 'participant_payment'
+      : 'paper_submission_payment';
     const safeRef = transactionRef || '';
     const filePath = `${randomUUID()}.${fileExtension}`;
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -81,6 +91,7 @@ export async function POST(request: Request) {
       .insert({
         registration_id: registrationId || null,
         paper_id: paperId || null,
+        payment_type: paymentType,
         name, email, phone, institution, category, currency, amount, mode, paper_title: paperTitle,
         transaction_ref: safeRef,
         file_path: uploadedFile.path,
@@ -98,11 +109,6 @@ export async function POST(request: Request) {
       throw new ApiError(503, 'Payment details could not be saved. Please retry your submission.');
     }
 
-    const targetRegistration = registrationId
-      ? await supabaseAdmin.from('registrations').select('id').eq('id', registrationId).maybeSingle()
-      : paperId
-        ? await supabaseAdmin.from('registrations').select('id').eq('paper_id', paperId).maybeSingle()
-        : null;
     if (targetRegistration?.data?.id) {
       await supabaseAdmin.from('registrations').update({ payment_status: 'Pending Verification' }).eq('id', targetRegistration.data.id);
     }

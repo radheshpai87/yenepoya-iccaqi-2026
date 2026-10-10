@@ -120,6 +120,7 @@ export async function GET() {
             .createSignedUrl(proof.file_path, 3600);
           return {
             id: proof.id,
+            paymentType: proof.payment_type || (/participant|attendee|observer/i.test(proof.category || '') ? 'participant_payment' : 'paper_submission_payment'),
             registrationId: proof.registration_id || '',
             paperId: proof.paper_id || '',
             name: proof.name,

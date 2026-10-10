@@ -122,71 +122,41 @@ function CompletePaymentContent() {
     }
   };
 
+  const isParticipantPayment = normalizeCategory(delegate.category) === 'Attendees / Observers (Participants)';
+
   const fetchDelegateDetails = async () => {
     setIsLoading(true);
     try {
       if (idFromUrl) {
-        const res = await fetch('/api/admin/data');
-        if (res.ok) {
-          const data = await res.json();
-          const cleanId = idFromUrl.replace(/[^0-9]/g, '');
-          const foundReg = (data.registrations || []).find(
-            (r: any) =>
-              (r.id && r.id.toLowerCase() === idFromUrl.toLowerCase()) ||
-              (r.paperId && r.paperId.toLowerCase() === idFromUrl.toLowerCase()) ||
-              (cleanId && r.paperId && r.paperId.replace(/[^0-9]/g, '') === cleanId)
-          );
+        const cachedRegistration = sessionStorage.getItem('iccaqi-payment-registration');
+        const cached = cachedRegistration ? JSON.parse(cachedRegistration) : null;
+        const response = cached?.id === idFromUrl
+          ? null
+          : await fetch(`/api/payment-registration?id=${encodeURIComponent(idFromUrl)}`);
+        const found = cached?.id === idFromUrl
+          ? cached
+          : response?.ok
+            ? (await response.json()).registration
+            : null;
 
-          if (foundReg) {
-            const normCat = normalizeCategory(foundReg.category || '');
-            const fee = calculateFee(normCat, foundReg.currency);
-            setDelegate({
-              id: foundReg.id,
-              name: foundReg.name || '',
-              email: foundReg.email || '',
-              phone: foundReg.phone || '',
-              institution: foundReg.institution || '',
-              category: normCat,
-              paperId: foundReg.paperId || '',
-              paperTitle: foundReg.paperTitle || '',
-              mode: foundReg.mode || 'Offline',
-              currency: foundReg.currency || fee.currency,
-              amount: foundReg.amount || fee.amount,
-              paymentStatus: foundReg.paymentStatus || 'Pending',
-            });
-            setIsLoading(false);
-            return;
-          }
-
-          // Search in paper submissions if not found in registrations
-          const foundSub = (data.submissions || []).find(
-            (s: any) =>
-              (s.id && s.id.toLowerCase() === idFromUrl.toLowerCase()) ||
-              (s.submissionId && s.submissionId.toLowerCase() === idFromUrl.toLowerCase()) ||
-              (cleanId && s.submissionId && s.submissionId.replace(/[^0-9]/g, '') === cleanId)
-          );
-
-          if (foundSub) {
-            const rawCat = foundSub.authorCategory || foundSub.category || '';
-            const normCat = normalizeCategory(rawCat);
-            const fee = calculateFee(normCat, 'INR');
-            setDelegate({
-              id: foundSub.submissionId || foundSub.id,
-              name: foundSub.authorName || '',
-              email: foundSub.email || '',
-              phone: foundSub.phone || '',
-              institution: foundSub.institution || '',
-              category: normCat,
-              paperId: foundSub.submissionId || '',
-              paperTitle: foundSub.paperTitle || '',
-              mode: foundSub.mode || 'Offline',
-              currency: fee.currency,
-              amount: fee.amount,
-              paymentStatus: 'Pending',
-            });
-            setIsLoading(false);
-            return;
-          }
+        if (found) {
+          const normCat = normalizeCategory(found.category || '');
+          const fee = calculateFee(normCat, found.currency);
+          setDelegate({
+            id: found.id,
+            name: found.name || '',
+            email: found.email || '',
+            phone: found.phone || '',
+            institution: found.institution || '',
+            category: normCat,
+            paperId: found.paperId || '',
+            paperTitle: found.paperTitle || '',
+            mode: found.mode || 'Offline',
+            currency: found.currency || fee.currency,
+            amount: found.amount || fee.amount,
+            paymentStatus: found.paymentStatus || 'Pending',
+          });
+          return;
         }
       }
     } catch (err) {
@@ -448,6 +418,7 @@ function CompletePaymentContent() {
                       <input
                         type="text"
                         required
+                        readOnly={isParticipantPayment}
                         value={delegate.name}
                         onChange={(e) => setDelegate({ ...delegate, name: e.target.value })}
                         placeholder="Enter full name..."
@@ -471,6 +442,7 @@ function CompletePaymentContent() {
                       <input
                         type="email"
                         required
+                        readOnly={isParticipantPayment}
                         value={delegate.email}
                         onChange={(e) => setDelegate({ ...delegate, email: e.target.value })}
                         placeholder="Enter email address..."
@@ -495,6 +467,7 @@ function CompletePaymentContent() {
                       </label>
                       <input
                         type="text"
+                        readOnly={isParticipantPayment}
                         value={delegate.phone}
                         onChange={(e) => setDelegate({ ...delegate, phone: e.target.value })}
                         placeholder="Enter phone number..."
@@ -509,6 +482,7 @@ function CompletePaymentContent() {
                       <input
                         type="text"
                         required
+                        readOnly={isParticipantPayment}
                         value={delegate.institution}
                         onChange={(e) => setDelegate({ ...delegate, institution: e.target.value })}
                         placeholder="Enter university / institution..."
@@ -536,10 +510,12 @@ function CompletePaymentContent() {
                         <button
                           type="button"
                           onClick={() => {
+                            if (isParticipantPayment) return;
                             const fee = calculateFee(delegate.category, 'INR');
                             setDelegate((prev) => ({ ...prev, currency: 'INR', amount: fee.amount }));
                           }}
-                          className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+                          disabled={isParticipantPayment}
+                          className={`px-2 py-0.5 rounded-md transition-all ${isParticipantPayment ? 'cursor-default' : 'cursor-pointer'} ${
                             delegate.currency !== 'USD'
                               ? 'bg-white text-slate-900 shadow-2xs'
                               : 'text-slate-500 hover:text-slate-900'
@@ -550,10 +526,12 @@ function CompletePaymentContent() {
                         <button
                           type="button"
                           onClick={() => {
+                            if (isParticipantPayment) return;
                             const fee = calculateFee(delegate.category, 'USD');
                             setDelegate((prev) => ({ ...prev, currency: 'USD', amount: fee.amount }));
                           }}
-                          className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+                          disabled={isParticipantPayment}
+                          className={`px-2 py-0.5 rounded-md transition-all ${isParticipantPayment ? 'cursor-default' : 'cursor-pointer'} ${
                             delegate.currency === 'USD'
                               ? 'bg-white text-slate-900 shadow-2xs'
                               : 'text-slate-500 hover:text-slate-900'
@@ -566,6 +544,7 @@ function CompletePaymentContent() {
                     <select
                       value={normalizeCategory(delegate.category)}
                       onChange={(e) => handleCategoryChange(e.target.value)}
+                      disabled={isParticipantPayment}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-white focus:border-[#7cb305] focus:outline-hidden shadow-2xs cursor-pointer"
                     >
                       <option value="Students (UG / PG)">
