@@ -50,6 +50,14 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const isPhoneInvalid = attemptedSubmit && !formData.phone.trim();
   const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
 
+  const isRegisterComplete = Boolean(
+    formData.name.trim() &&
+    formData.email.trim() &&
+    formData.email.includes('@') &&
+    formData.phone.trim() &&
+    formData.institution.trim()
+  );
+
   // Sync currency state when modal opens
   useEffect(() => {
     if (initialCurrency) {
@@ -529,8 +537,12 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 {isParticipant ? (
                   <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all cursor-pointer disabled:opacity-50"
+                    disabled={!isRegisterComplete || isSubmitting}
+                    className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold transition-all ${
+                      isRegisterComplete && !isSubmitting
+                        ? 'bg-[#7cb305] hover:bg-[#689803] text-white shadow-md cursor-pointer active:scale-98'
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
+                    }`}
                   >
                     <CreditCard className="w-4 h-4" />
                     <span>{isSubmitting ? 'Opening Razorpay Gateway...' : `Proceed to Pay ${delegateType === 'INR' ? '₹300' : '$5.00'} via Razorpay`}</span>
@@ -544,19 +556,28 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                           onClose();
                           onOpenSubmitModal();
                         }}
-                        className="w-full py-3 px-4 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white text-center cursor-pointer"
+                        className="w-full py-3 px-4 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white text-center cursor-pointer shadow-xs active:scale-98"
                       >
                         Submit Paper Manuscript Instead
                       </button>
                     )}
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="w-full py-3 px-4 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 text-center cursor-pointer"
+                      disabled={!isRegisterComplete || isSubmitting}
+                      className={`w-full py-3 px-4 rounded-xl text-xs font-semibold text-center transition-all ${
+                        isRegisterComplete && !isSubmitting
+                          ? 'bg-slate-800 hover:bg-slate-900 text-white cursor-pointer shadow-sm active:scale-98'
+                          : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
+                      }`}
                     >
                       Log Pre-Registration Details
                     </button>
                   </div>
+                )}
+                {!isRegisterComplete && (
+                  <p className="text-[11px] text-slate-400 text-center mt-2 font-medium">
+                    Fill in all required delegate details to activate {isParticipant ? 'payment' : 'registration'}.
+                  </p>
                 )}
               </div>
             </form>

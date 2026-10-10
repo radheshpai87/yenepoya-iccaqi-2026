@@ -78,6 +78,18 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const isAbstractInvalid = attemptedSubmit && !formData.abstract.trim();
   const isFileInvalid = attemptedSubmit && !selectedFile;
 
+  const isStage1Complete = acknowledged;
+  const isStage2Complete = Boolean(
+    formData.authorName.trim() &&
+    formData.email.trim() &&
+    formData.email.includes('@') &&
+    formData.phone.trim() &&
+    formData.institution.trim() &&
+    formData.paperTitle.trim() &&
+    formData.abstract.trim() &&
+    selectedFile
+  );
+
   // Lock body scroll and pause Lenis while modal is open so mouse wheel scrolls inside modal
   useEffect(() => {
     if (!isOpen) return;
@@ -901,7 +913,12 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
               <button
                 type="button"
                 onClick={handleProceedToForm}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all cursor-pointer"
+                disabled={!isStage1Complete}
+                className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  isStage1Complete
+                    ? 'bg-[#7cb305] hover:bg-[#689803] text-white shadow-md cursor-pointer active:scale-98'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
+                }`}
               >
                 <span>Proceed to Manuscript Upload</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1401,8 +1418,12 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
               <div className="pt-3">
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all cursor-pointer disabled:opacity-50"
+                  disabled={!isStage2Complete || submitting}
+                  className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold transition-all ${
+                    isStage2Complete && !submitting
+                      ? 'bg-[#7cb305] hover:bg-[#689803] text-white shadow-md cursor-pointer active:scale-98'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
+                  }`}
                 >
                   {submitting ? (
                     <>
@@ -1416,6 +1437,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     </>
                   )}
                 </button>
+                {!isStage2Complete && (
+                  <p className="text-[11px] text-slate-400 text-center mt-2 font-medium">
+                    Fill in all required fields and upload your manuscript file to enable submission.
+                  </p>
+                )}
               </div>
             </form>
           </div>

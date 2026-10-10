@@ -72,6 +72,14 @@ function CompletePaymentContent() {
   const isDelegateInstitutionInvalid = attemptedSubmit && !delegate.institution.trim();
   const isFileInvalid = attemptedSubmit && !selectedFile;
 
+  const isPaymentUploadComplete = Boolean(
+    delegate.name.trim() &&
+    delegate.email.trim() &&
+    delegate.email.includes('@') &&
+    delegate.institution.trim() &&
+    selectedFile
+  );
+
   useEffect(() => {
     fetchDelegateDetails();
   }, [idFromUrl]);
@@ -735,8 +743,12 @@ function CompletePaymentContent() {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3.5 px-6 rounded-xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                disabled={!isPaymentUploadComplete || isSubmitting}
+                className={`w-full py-3.5 px-6 rounded-xl text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 ${
+                  isPaymentUploadComplete && !isSubmitting
+                    ? 'bg-[#7cb305] hover:bg-[#689803] text-white cursor-pointer active:scale-98'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
+                }`}
               >
                 {isSubmitting ? (
                   <>
@@ -750,6 +762,11 @@ function CompletePaymentContent() {
                   </>
                 )}
               </button>
+              {!isPaymentUploadComplete && (
+                <p className="text-[11px] text-slate-400 text-center mt-2 font-medium">
+                  Complete required delegate details and upload your payment transaction screenshot to enable submission.
+                </p>
+              )}
             </form>
           </div>
         )}
