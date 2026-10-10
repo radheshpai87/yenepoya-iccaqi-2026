@@ -27,12 +27,12 @@ export const Hero: React.FC<HeroProps> = ({
 }) => {
   const campusImages = [
     {
-      src: '/yenepoya_aerial.webp',
-      alt: 'Yenepoya University Aerial Campus View',
+      src: '/yiascm_balmatta.webp',
+      alt: 'Yenepoya YIASCM Balmatta Campus',
     },
     {
-      src: '/yiascm_balmatta.webp',
-      alt: 'Yenepoya Campus',
+      src: '/yenepoya_aerial.webp',
+      alt: 'Yenepoya University Aerial Campus View',
     },
     {
       src: '/yenepoya2image.webp',
