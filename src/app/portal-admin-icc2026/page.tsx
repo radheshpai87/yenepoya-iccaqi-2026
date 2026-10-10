@@ -141,6 +141,7 @@ export default function PortalAdminPage() {
   const [subTrackFilter, setSubTrackFilter] = useState('All');
   const [subStatusFilter, setSubStatusFilter] = useState('All');
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Bulk Email State
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
@@ -692,6 +693,16 @@ export default function PortalAdminPage() {
       .includes(searchQuery.toLowerCase())
   );
 
+  const activeRecordsCount = activeTab === 'payments'
+    ? filteredPaymentProofs.length
+    : recordView === 'registrations'
+      ? filteredRegistrations.length
+      : filteredSubmissions.length;
+  const totalPages = Math.max(1, Math.ceil(activeRecordsCount / itemsPerPage));
+  const visiblePage = Math.min(currentPage, totalPages);
+  const pageStart = (visiblePage - 1) * itemsPerPage;
+  const pageEnd = Math.min(pageStart + itemsPerPage, activeRecordsCount);
+
   const totalRegistrations = registrations.length;
   const totalSubmissions = submissions.length;
   const verifiedCount = registrations.filter((r) => r.paymentStatus === 'Verified').length;
@@ -999,12 +1010,12 @@ export default function PortalAdminPage() {
       }`}>
         <div className="flex min-h-0 flex-1 flex-col">
           {/* Top Logo & Brand Info with Official Yenepoya Logo */}
-          <div className={`h-20 shrink-0 flex items-center justify-between border-b border-slate-100 ${isSidebarExpanded ? 'px-5' : 'px-3'}`}>
+          <div className={`h-20 shrink-0 flex items-center justify-between border-b border-slate-100 ${isSidebarExpanded ? 'px-5' : 'px-2'}`}>
             <div className="flex items-center gap-3">
               <img
                 src="/yenepoya-university-logonew3.svg"
                 alt="Yenepoya (Deemed to be University)"
-                className="h-9 w-auto object-contain shrink-0"
+                className={`${isSidebarExpanded ? 'h-9' : 'h-6'} w-auto object-contain shrink-0 transition-all`}
               />
               {isSidebarExpanded && <div className="overflow-hidden border-l border-slate-200 pl-3">
                 <span className="font-extrabold text-xs tracking-tight text-slate-900 block leading-tight">
@@ -1020,6 +1031,17 @@ export default function PortalAdminPage() {
               className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
             >
               <X className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => {
+                setSidebarPinnedOpen((isOpen) => !isOpen);
+                setSidebarHovered(false);
+              }}
+              className="hidden lg:inline-flex rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              aria-label={sidebarPinnedOpen ? 'Unpin and collapse sidebar' : 'Pin sidebar open'}
+              title={sidebarPinnedOpen ? 'Unpin and collapse sidebar' : 'Pin sidebar open'}
+            >
+              {sidebarPinnedOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </button>
           </div>
 
@@ -1162,17 +1184,6 @@ export default function PortalAdminPage() {
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => {
-                  setSidebarPinnedOpen((isOpen) => !isOpen);
-                  setSidebarHovered(false);
-                }}
-                className="hidden lg:inline-flex rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
-                aria-label={sidebarPinnedOpen ? 'Unpin and collapse sidebar' : 'Pin sidebar open'}
-                title={sidebarPinnedOpen ? 'Unpin and collapse sidebar' : 'Pin sidebar open'}
-              >
-                {sidebarPinnedOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-              </button>
               <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
                 {activeTab === 'overview' ? 'Overview & Demographics' : activeTab === 'records' ? 'Registration & Paper Records' : 'Payment Verification'}
               </h1>
@@ -1188,10 +1199,10 @@ export default function PortalAdminPage() {
                 <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder={activeTab === 'payments' ? 'Search people or receipts…' : recordView === 'submissions' ? 'Search manuscripts…' : 'Search delegates…'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white transition-all"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 transition-all focus:border-[#7cb305] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#7cb305]/15"
                 />
               </div>}
 
@@ -1219,24 +1230,24 @@ export default function PortalAdminPage() {
           </header>
 
           {/* MAIN BODY DASHBOARD */}
-          <main className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 space-y-8 p-4 sm:p-6 lg:p-8">
 
             {activeTab === 'overview' && (
             <>
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#659b02]">ICCAQI 2026</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900">Conference overview</h2><p className="mt-1 text-sm text-slate-500">Live participant, paper, and payment activity at a glance.</p></div>
+              <div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#659b02]">ICCAQI 2026 · Admin workspace</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Conference overview</h2><p className="mt-1 text-sm text-slate-500">A live snapshot of registrations, submissions, and payment review.</p></div>
               <button onClick={() => setActiveTab('payments')} className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
                 <CreditCard className="h-4 w-4" /> Review receipts <span className="rounded-full bg-white px-2 py-0.5 tabular-nums">{pendingProofCount}</span>
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
               {[
                 { label: 'Registered participants', value: totalRegistrations, icon: Users, tone: 'bg-lime-100 text-[#659b02]' },
                 { label: 'Paper submissions', value: totalSubmissions, icon: FileText, tone: 'bg-sky-100 text-sky-700' },
                 { label: 'Verified payments', value: verifiedCount, icon: CheckCircle2, tone: 'bg-emerald-100 text-emerald-700' },
                 { label: 'Receipts to review', value: pendingProofCount, icon: CreditCard, tone: 'bg-amber-100 text-amber-700' },
               ].map(({ label, value, icon: Icon, tone }) => (
-                <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                <div key={label} className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
                   <div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold text-slate-500">{label}</span><span className={`rounded-xl p-2 ${tone}`}><Icon className="h-4 w-4" /></span></div>
                   <div className="mt-3 text-3xl font-black tabular-nums text-slate-900">{value}</div>
                 </div>
@@ -1320,7 +1331,10 @@ export default function PortalAdminPage() {
             </div>
 
             <div>
-              <h2 className="mb-4 text-lg font-extrabold text-slate-900">Participant &amp; submission demographics</h2>
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+                <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#659b02]">Audience insights</p><h2 className="mt-1 text-lg font-extrabold text-slate-900">Participant &amp; submission demographics</h2></div>
+                <span className="text-[11px] text-slate-500">Based on {totalRegistrations} registrations and {totalSubmissions} submissions</span>
+              </div>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
                 {renderParticipantCategoryBars(registrationCategoryCounts)}
                 {renderDemographicList('Participation mode', registrationModeCounts, 'bg-sky-500')}
@@ -1334,11 +1348,16 @@ export default function PortalAdminPage() {
 
             {activeTab !== 'overview' && <>
             {/* TITLE & FILTER CONTROLS BAR */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+            <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
               <div>
-                <h2 className="text-lg font-extrabold text-slate-900">
-                  {activeTab === 'records' ? recordView === 'registrations' ? 'All Delegates' : 'All Manuscripts' : 'Submitted Payment Forms'}
-                </h2>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#659b02]">Admin workspace</p>
+                <div className="mt-1 flex flex-wrap items-center gap-3">
+                  <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
+                    {activeTab === 'records' ? recordView === 'registrations' ? 'All Delegates' : 'All Manuscripts' : 'Submitted Payment Forms'}
+                  </h2>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold tabular-nums text-slate-600">{activeRecordsCount} {activeRecordsCount === 1 ? 'record' : 'records'}</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">{activeTab === 'payments' ? 'Review submitted receipts and update verification status.' : recordView === 'registrations' ? 'Review participant details, registration status, and associated papers.' : 'Review submitted manuscripts, authors, and decision status.'}</p>
               </div>
 
               {/* Filter Dropdowns */}
@@ -1348,7 +1367,7 @@ export default function PortalAdminPage() {
                     <select
                       value={regCategoryFilter}
                       onChange={(e) => setRegCategoryFilter(e.target.value)}
-                      className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                      className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-xs transition focus:outline-hidden focus:border-[#7cb305] focus:ring-2 focus:ring-[#7cb305]/15"
                     >
                       <option value="All">All Participant Categories</option>
                       <option value="Students (UG / PG)">Students (UG / PG)</option>
@@ -1360,7 +1379,7 @@ export default function PortalAdminPage() {
                     <select
                       value={regStatusFilter}
                       onChange={(e) => setRegStatusFilter(e.target.value)}
-                      className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                      className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-xs transition focus:outline-hidden focus:border-[#7cb305] focus:ring-2 focus:ring-[#7cb305]/15"
                     >
                       <option value="All">All Payment Statuses</option>
                       <option value="Verified">Verified Only</option>
@@ -1369,7 +1388,7 @@ export default function PortalAdminPage() {
 
                     <button
                       onClick={exportRegistrationsCSV}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      className="flex items-center gap-1.5 rounded-xl bg-[#659b02] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#548200] cursor-pointer"
                     >
                       <FileSpreadsheet className="w-3.5 h-3.5" />
                       <span>Export CSV</span>
@@ -1380,7 +1399,7 @@ export default function PortalAdminPage() {
                     <select
                       value={subTrackFilter}
                       onChange={(e) => setSubTrackFilter(e.target.value)}
-                      className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                      className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-xs transition focus:outline-hidden focus:border-[#7cb305] focus:ring-2 focus:ring-[#7cb305]/15"
                     >
                       <option value="All">All Conference Tracks</option>
                       <option value="Artificial Intelligence and Machine Learning">AI &amp; Machine Learning</option>
@@ -1391,7 +1410,7 @@ export default function PortalAdminPage() {
                     <select
                       value={subStatusFilter}
                       onChange={(e) => setSubStatusFilter(e.target.value)}
-                      className="px-3 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                      className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-xs transition focus:outline-hidden focus:border-[#7cb305] focus:ring-2 focus:ring-[#7cb305]/15"
                     >
                       <option value="All">All Review Statuses</option>
                       <option value="Submitted">Submitted</option>
@@ -1402,7 +1421,7 @@ export default function PortalAdminPage() {
 
                     <button
                       onClick={exportSubmissionsCSV}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      className="flex items-center gap-1.5 rounded-xl bg-[#659b02] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#548200] cursor-pointer"
                     >
                       <FileSpreadsheet className="w-3.5 h-3.5" />
                       <span>Export CSV</span>
@@ -1413,12 +1432,12 @@ export default function PortalAdminPage() {
             </div>
 
             {/* DATA TABLE */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
               <div className="overflow-x-auto">
                 {activeTab === 'records' && recordView === 'registrations' ? (
                   /* REGISTRATIONS TABLE */
-                  <table className="w-full text-left text-xs text-slate-700">
-                    <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
+                  <table className="w-full min-w-[900px] text-left text-[13px] text-slate-700">
+                    <thead className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
                       <tr>
                         <th className="py-3.5 px-4">Delegate Name</th>
                         <th className="py-3.5 px-4">Category &amp; Mode</th>
@@ -1436,7 +1455,7 @@ export default function PortalAdminPage() {
                           </td>
                         </tr>
                       ) : (
-                        filteredRegistrations.slice(0, itemsPerPage).map((reg) => {
+                        filteredRegistrations.slice(pageStart, pageEnd).map((reg) => {
                           const isSelected = selectedRegistration?.id === reg.id;
                           return (
                             <tr
@@ -1552,8 +1571,8 @@ export default function PortalAdminPage() {
                   </table>
                 ) : activeTab === 'records' && recordView === 'submissions' ? (
                   /* PAPER SUBMISSIONS TABLE */
-                  <table className="w-full text-left text-xs text-slate-700">
-                    <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
+                  <table className="w-full min-w-[1000px] text-left text-[13px] text-slate-700">
+                    <thead className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
                       <tr>
                         <th className="py-3.5 px-4">Author &amp; Paper Title</th>
                         <th className="py-3.5 px-4">Paper ID</th>
@@ -1570,7 +1589,7 @@ export default function PortalAdminPage() {
                           </td>
                         </tr>
                       ) : (
-                        filteredSubmissions.slice(0, itemsPerPage).map((sub) => {
+                        filteredSubmissions.slice(pageStart, pageEnd).map((sub) => {
                           const isSelected = selectedSubmission?.id === sub.id;
                           return (
                             <tr
@@ -1702,8 +1721,8 @@ export default function PortalAdminPage() {
                     </tbody>
                   </table>
                 ) : (
-                  <table className="w-full min-w-[1050px] text-left text-xs text-slate-700">
-                    <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
+                  <table className="w-full min-w-[1050px] text-left text-[13px] text-slate-700">
+                    <thead className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
                       <tr>
                         <th className="py-3.5 px-4">Participant</th>
                         <th className="py-3.5 px-4">Institution / Contact</th>
@@ -1714,7 +1733,7 @@ export default function PortalAdminPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {filteredPaymentProofs.slice(0, itemsPerPage).map((proof) => (
+                      {filteredPaymentProofs.slice(pageStart, pageEnd).map((proof) => (
                         <tr key={proof.id} className="align-top hover:bg-slate-50">
                           <td className="py-3.5 px-4"><div className="font-bold text-slate-900">{proof.name}</div><div className="text-slate-500">{proof.email}</div><div className="text-slate-500">{proof.phone || '—'}</div></td>
                           <td className="py-3.5 px-4"><div>{proof.institution}</div><div className="text-slate-500">{proof.mode || '—'}</div></td>
@@ -1731,7 +1750,7 @@ export default function PortalAdminPage() {
               </div>
 
               {/* PAGINATION BAR */}
-              <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500 font-medium">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 bg-slate-50/80 px-5 py-4 text-xs font-medium text-slate-500 sm:px-6">
                 <div className="flex items-center gap-2">
                   <span>Show rows:</span>
                   <select
@@ -1746,17 +1765,13 @@ export default function PortalAdminPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span>
-                    {activeTab === 'payments' ? `1-${Math.min(itemsPerPage, filteredPaymentProofs.length)} of ${filteredPaymentProofs.length}` : recordView === 'registrations' ? `1-${Math.min(itemsPerPage, filteredRegistrations.length)} of ${filteredRegistrations.length}` : `1-${Math.min(itemsPerPage, filteredSubmissions.length)} of ${filteredSubmissions.length}`}
-                  </span>
+                  <span>{activeRecordsCount === 0 ? '0' : `${pageStart + 1}–${pageEnd}`} of {activeRecordsCount}</span>
                   <div className="flex items-center gap-1">
-                    <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
+                    <button onClick={() => setCurrentPage(visiblePage - 1)} disabled={visiblePage <= 1} aria-label="Previous page" className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40">
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="px-2.5 py-1 rounded-lg bg-[#7cb305] text-white font-bold text-xs">
-                      1
-                    </span>
-                    <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
+                    <span className="px-2.5 py-1 text-xs font-semibold tabular-nums text-slate-600">Page {visiblePage} of {totalPages}</span>
+                    <button onClick={() => setCurrentPage(visiblePage + 1)} disabled={visiblePage >= totalPages} aria-label="Next page" className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40">
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -1795,7 +1810,7 @@ export default function PortalAdminPage() {
             {/* RIGHT DETAILS PANE */}
             <div
               style={{ width: typeof window !== 'undefined' && window.innerWidth < 1024 ? '100%' : `${splitPanelWidth}px` }}
-              className="fixed lg:sticky top-0 right-0 h-screen w-full lg:w-auto shrink-0 bg-white border-l border-slate-200 overflow-y-auto p-4 sm:p-6 space-y-6 shadow-2xl z-50 lg:z-20 text-left transition-all max-w-full"
+              className="fixed lg:sticky top-0 right-0 h-dvh w-full lg:w-auto shrink-0 overflow-y-auto border-l border-slate-200 bg-slate-50 p-4 text-left shadow-2xl z-50 transition-all max-w-full sm:p-6 lg:z-20"
             >
               {/* REGISTRATION SPLIT DETAILS */}
               {activeTab === 'records' && recordView === 'registrations' && selectedRegistration && (
