@@ -18,15 +18,17 @@ interface RegisterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenSubmitModal?: () => void;
+  initialCurrency?: 'INR' | 'USD';
 }
 
 export const RegisterModal: React.FC<RegisterModalProps> = ({ 
   isOpen, 
   onClose,
-  onOpenSubmitModal 
+  onOpenSubmitModal,
+  initialCurrency = 'INR'
 }) => {
   const [category, setCategory] = useState('Participants only');
-  const [delegateType, setDelegateType] = useState<'INR' | 'USD'>('INR');
+  const [delegateType, setDelegateType] = useState<'INR' | 'USD'>(initialCurrency);
   const [mode, setMode] = useState<'Offline' | 'Online'>('Offline');
   const [formData, setFormData] = useState({
     name: '',
@@ -47,6 +49,13 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const isEmailInvalid = attemptedSubmit && (!formData.email.trim() || !formData.email.includes('@'));
   const isPhoneInvalid = attemptedSubmit && !formData.phone.trim();
   const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
+
+  // Sync currency state when modal opens
+  useEffect(() => {
+    if (initialCurrency) {
+      setDelegateType(initialCurrency);
+    }
+  }, [initialCurrency, isOpen]);
 
   // Lock body scroll and pause Lenis while modal is open so mouse wheel scrolls inside modal
   useEffect(() => {
@@ -88,10 +97,10 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
     const amount = delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd;
     
-    // Construct Razorpay URL with prefilled Amount (300) and user details
+    // Construct Razorpay URL with prefilled Amount and user details
     const rzpBase = 'https://pages.razorpay.com/pl_ThkevehUyi20yw/view';
     const params = new URLSearchParams();
-    params.set('amount', '300');
+    params.set('amount', delegateType === 'INR' ? '300' : '5');
     if (formData.name) params.set('name', formData.name);
     if (formData.email) params.set('email', formData.email);
     if (formData.phone) params.set('phone', formData.phone);
@@ -268,18 +277,40 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               {/* Category & Currency */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Registration Type *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Registration Type *
+                    </label>
+                    <div className="inline-flex p-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setDelegateType('INR')}
+                        className={`px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer ${
+                          delegateType === 'INR' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+                        }`}
+                      >
+                        INR (₹)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDelegateType('USD')}
+                        className={`px-2 py-0.5 rounded-full font-bold transition-all cursor-pointer ${
+                          delegateType === 'USD' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+                        }`}
+                      >
+                        USD ($)
+                      </button>
+                    </div>
+                  </div>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                   >
-                    <option value="Participants only">Participant Only (Attendee / Listener) — ₹300</option>
-                    <option value="Students (UG / PG)">Student Paper Author (UG / PG) — ₹500</option>
-                    <option value="Research scholars / Academicians">Faculty / Scholar Paper Author — ₹750</option>
-                    <option value="Industry Delegates">Industry Delegate Paper Author — ₹1,500</option>
+                    <option value="Participants only">Participant Only (Attendee / Listener) — {delegateType === 'INR' ? '₹300' : '$5.00'}</option>
+                    <option value="Students (UG / PG)">Student Paper Author (UG / PG) — {delegateType === 'INR' ? '₹500' : '$10.00'}</option>
+                    <option value="Research scholars / Academicians">Faculty / Scholar Paper Author — {delegateType === 'INR' ? '₹750' : '$15.00'}</option>
+                    <option value="Industry Delegates">Industry Delegate Paper Author — {delegateType === 'INR' ? '₹1,500' : '$20.00'}</option>
                   </select>
                 </div>
 
@@ -292,7 +323,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                       <span>{isParticipant ? 'Participant Fee:' : 'Author Fee:'}</span>
                     </div>
                     <span className="text-sm font-extrabold text-[#0369a1]">
-                      {categoryPricing[category]?.inr || '₹300'} <span className="text-[11px] font-normal text-slate-500">(incl. GST)</span>
+                      {delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd} <span className="text-[11px] font-normal text-slate-500">(incl. GST)</span>
                     </span>
                   </div>
                 </div>
@@ -446,10 +477,10 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   <CreditCard className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <span className="font-bold block text-slate-900">
-                      Razorpay Payment for Participants (₹300)
+                      Razorpay Payment for Participants ({delegateType === 'INR' ? '₹300' : '$5.00'})
                     </span>
                     <p className="text-slate-600 leading-relaxed text-[11.5px]">
-                      Upon confirming, you will be redirected to the official Yenepoya University Razorpay gateway with the <strong>Amount (₹300)</strong>, Name, and Phone automatically filled in.
+                      Upon confirming, you will be redirected to the official Yenepoya University Razorpay gateway with the <strong>Amount ({delegateType === 'INR' ? '₹300' : '$5.00'})</strong>, Name, and Phone automatically filled in.
                     </p>
                   </div>
                 </div>
@@ -476,7 +507,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md transition-all cursor-pointer disabled:opacity-50"
                   >
                     <CreditCard className="w-4 h-4" />
-                    <span>{isSubmitting ? 'Opening Razorpay Gateway...' : 'Proceed to Pay ₹300 via Razorpay'}</span>
+                    <span>{isSubmitting ? 'Opening Razorpay Gateway...' : `Proceed to Pay ${delegateType === 'INR' ? '₹300' : '$5.00'} via Razorpay`}</span>
                   </button>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-2">

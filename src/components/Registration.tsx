@@ -5,7 +5,7 @@ import { Check, CreditCard } from 'lucide-react';
 
 interface RegistrationProps {
   onOpenSubmitModal: () => void;
-  onOpenRegisterModal: () => void;
+  onOpenRegisterModal: (selectedCurrency?: 'INR' | 'USD') => void;
 }
 
 export const Registration: React.FC<RegistrationProps> = ({ 
@@ -52,6 +52,8 @@ export const Registration: React.FC<RegistrationProps> = ({
       note: 'Pay upon paper acceptance',
     },
   ];
+
+  const participantFee = currency === 'INR' ? '₹300' : '$5.00';
 
   return (
     <section id="registration" className="py-20 md:py-24 bg-white border-b border-slate-100">
@@ -127,11 +129,11 @@ export const Registration: React.FC<RegistrationProps> = ({
               <div className="pt-2 border-t border-slate-100 mt-2">
                 {t.isParticipant ? (
                   <button
-                    onClick={onOpenRegisterModal}
+                    onClick={() => onOpenRegisterModal(currency)}
                     className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-98"
                   >
                     <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Register (₹300)</span>
+                    <span>Register ({participantFee})</span>
                   </button>
                 ) : (
                   <div className="text-[11px] text-slate-500 font-medium text-center py-2 bg-slate-50 rounded-xl border border-slate-200/60">
@@ -148,16 +150,16 @@ export const Registration: React.FC<RegistrationProps> = ({
           <p className="text-xs text-slate-600 leading-relaxed text-center">
             * <strong>Paper Authors:</strong> Register and pay only upon intimation of acceptance. Paper submission is free at this stage.
             <br />
-            * <strong>Attendees / Observers:</strong> Click &ldquo;Register as Participant&rdquo; to complete immediate registration with Razorpay payment (₹300).
+            * <strong>Attendees / Observers:</strong> Click &ldquo;Register as Participant&rdquo; to complete immediate registration with Razorpay payment ({participantFee}).
           </p>
 
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
-              onClick={onOpenRegisterModal}
+              onClick={() => onOpenRegisterModal(currency)}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors cursor-pointer"
             >
               <CreditCard className="w-4 h-4 text-emerald-400" />
-              <span>Register as Participant (₹300)</span>
+              <span>Register as Participant ({participantFee})</span>
             </button>
             <button
               onClick={onOpenSubmitModal}

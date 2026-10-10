@@ -24,6 +24,12 @@ export default function HomePage() {
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [brochureModalOpen, setBrochureModalOpen] = useState(false);
   const [selectedTrackForSubmission, setSelectedTrackForSubmission] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState<'INR' | 'USD'>('INR');
+
+  const handleOpenRegisterModal = (curr?: 'INR' | 'USD') => {
+    if (curr) setSelectedCurrency(curr);
+    setRegisterModalOpen(true);
+  };
 
   const handleSelectTrackForSubmission = (trackName: string) => {
     setSelectedTrackForSubmission(trackName);
@@ -93,7 +99,7 @@ export default function HomePage() {
         {/* Registration & Fee Structure */}
         <Registration 
           onOpenSubmitModal={handleOpenSubmitModal} 
-          onOpenRegisterModal={() => setRegisterModalOpen(true)}
+          onOpenRegisterModal={handleOpenRegisterModal}
         />
 
         {/* Publication & Indexing */}
@@ -113,7 +119,7 @@ export default function HomePage() {
       <Footer
         onOpenBrochureModal={() => setBrochureModalOpen(true)}
         onOpenSubmitModal={handleOpenSubmitModal}
-        onOpenRegisterModal={() => setRegisterModalOpen(true)}
+        onOpenRegisterModal={handleOpenRegisterModal}
       />
 
       {/* Interactive Modals */}
@@ -127,6 +133,7 @@ export default function HomePage() {
         isOpen={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
         onOpenSubmitModal={handleOpenSubmitModal}
+        initialCurrency={selectedCurrency}
       />
 
       <BrochureModal
