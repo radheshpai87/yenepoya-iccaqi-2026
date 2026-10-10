@@ -247,7 +247,7 @@ export function renderSubmissionAcknowledgmentHtml(params: {
 
               <!-- WhatsApp Community CTA -->
               <div style="text-align: center; margin: 28px 0 16px 0;">
-                <a href="https://chat.whatsapp.com/JhShh9sbV840L8gQEMHWip" target="_blank" style="background-color: #25D366; color: #ffffff; font-weight: 700; font-size: 13px; text-decoration: none; padding: 12px 24px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.25);">
+                <a href="https://chat.whatsapp.com/D7F9qGh0kzC9EyR9Of8bFU?s=cl&p=a&mlu=4&ilr=4" target="_blank" style="background-color: #25D366; color: #ffffff; font-weight: 700; font-size: 13px; text-decoration: none; padding: 12px 24px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.25);">
                   Join Official Paper Authors WhatsApp Group &rarr;
                 </a>
                 <p style="margin: 8px 0 0 0; font-size: 11px; color: #64748b;">
@@ -303,7 +303,7 @@ Article Details:
 - Title: ${paperTitle}
 ${track ? `- Track: ${track}\n` : ''}${institution ? `- Institution: ${institution}\n` : ''}
 Official Paper Authors WhatsApp Group:
-https://chat.whatsapp.com/JhShh9sbV840L8gQEMHWip
+https://chat.whatsapp.com/D7F9qGh0kzC9EyR9Of8bFU?s=cl&p=a&mlu=4&ilr=4
 
 Event Reference: International Conference on Computing, AI, Quantum Intelligence and Future Technologies (ICCAQI 2026)
 Dates: November 25–26, 2026 • Mode: Hybrid (In-Person / Online)

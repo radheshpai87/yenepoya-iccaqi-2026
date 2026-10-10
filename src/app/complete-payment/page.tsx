@@ -376,8 +376,8 @@ function CompletePaymentContent() {
             {(() => {
               const isPaperAuthor = Boolean(delegate.paperId || delegate.category !== 'Attendees / Observers (Participants)');
               const waLink = isPaperAuthor
-                ? 'https://chat.whatsapp.com/JhShh9sbV840L8gQEMHWip'
-                : 'https://chat.whatsapp.com/C3WhJfbWn0x1WxJmymx9EM';
+                ? 'https://chat.whatsapp.com/D7F9qGh0kzC9EyR9Of8bFU?s=cl&p=a&mlu=4&ilr=4'
+                : 'https://chat.whatsapp.com/E4Drk0R05RFBWAts7pYPkq?s=cl&p=a&mlu=4&ilr=4';
               const waTitle = isPaperAuthor
                 ? 'Join Official Paper Authors WhatsApp Group'
                 : 'Join Official Conference WhatsApp Group';

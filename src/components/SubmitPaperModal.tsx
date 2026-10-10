@@ -499,7 +499,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
               </p>
               <div className="pt-1">
                 <a
-                  href="https://chat.whatsapp.com/JhShh9sbV840L8gQEMHWip"
+                  href="https://chat.whatsapp.com/D7F9qGh0kzC9EyR9Of8bFU?s=cl&p=a&mlu=4&ilr=4"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-md transition-all active:scale-[0.99] cursor-pointer"

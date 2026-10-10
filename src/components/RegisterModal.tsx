@@ -250,7 +250,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               </p>
               <div className="pt-1">
                 <a
-                  href="https://chat.whatsapp.com/C3WhJfbWn0x1WxJmymx9EM"
+                  href="https://chat.whatsapp.com/E4Drk0R05RFBWAts7pYPkq?s=cl&p=a&mlu=4&ilr=4"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-md transition-all active:scale-[0.99] cursor-pointer"
