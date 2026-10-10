@@ -77,18 +77,40 @@ function CompletePaymentContent() {
     fetchDelegateDetails();
   }, [idFromUrl]);
 
-  const calculateFee = (categoryName: string, currentCurrency?: string) => {
-    const cat = (categoryName || '').toLowerCase();
+  const normalizeCategory = (categoryName: string): string => {
+    const cat = (categoryName || '').toLowerCase().trim();
     if (cat.includes('attendee') || cat.includes('observer') || cat.includes('participant')) {
-      return currentCurrency === 'USD' ? { amount: '$5', currency: 'USD' } : { amount: '₹300', currency: 'INR' };
-    } else if (cat.includes('student') || cat.includes('ug') || cat.includes('pg')) {
-      return { amount: '₹500', currency: 'INR' };
-    } else if (cat.includes('industry')) {
-      return { amount: '₹1,500', currency: 'INR' };
-    } else if (cat.includes('international') || currentCurrency === 'USD') {
-      return { amount: '$50', currency: 'USD' };
+      return 'Attendees / Observers (Participants)';
     }
-    return { amount: '₹750', currency: 'INR' };
+    if (cat.includes('student') || cat.includes('ug') || cat.includes('pg')) {
+      return 'Students (UG / PG)';
+    }
+    if (cat.includes('industry')) {
+      return 'Industry Delegates';
+    }
+    if (cat.includes('international')) {
+      return 'International Delegates';
+    }
+    return 'Research Scholars / Academicians';
+  };
+
+  const calculateFee = (categoryName: string, currentCurrency?: string) => {
+    const norm = normalizeCategory(categoryName);
+    const isUsd = (currentCurrency || '').toUpperCase() === 'USD' || norm === 'International Delegates';
+
+    switch (norm) {
+      case 'Attendees / Observers (Participants)':
+        return isUsd ? { amount: '$5', currency: 'USD' } : { amount: '₹300', currency: 'INR' };
+      case 'Students (UG / PG)':
+        return isUsd ? { amount: '$10', currency: 'USD' } : { amount: '₹500', currency: 'INR' };
+      case 'Industry Delegates':
+        return isUsd ? { amount: '$20', currency: 'USD' } : { amount: '₹1,500', currency: 'INR' };
+      case 'International Delegates':
+        return { amount: '$50', currency: 'USD' };
+      case 'Research Scholars / Academicians':
+      default:
+        return isUsd ? { amount: '$15', currency: 'USD' } : { amount: '₹750', currency: 'INR' };
+    }
   };
 
   const fetchDelegateDetails = async () => {
@@ -100,23 +122,24 @@ function CompletePaymentContent() {
           const data = await res.json();
           const foundReg = (data.registrations || []).find(
             (r: any) =>
-              r.id.toLowerCase() === idFromUrl.toLowerCase() ||
+              (r.id && r.id.toLowerCase() === idFromUrl.toLowerCase()) ||
               (r.paperId && r.paperId.toLowerCase() === idFromUrl.toLowerCase())
           );
 
           if (foundReg) {
-            const fee = calculateFee(foundReg.category, foundReg.currency);
+            const normCat = normalizeCategory(foundReg.category || '');
+            const fee = calculateFee(normCat, foundReg.currency);
             setDelegate({
               id: foundReg.id,
               name: foundReg.name || '',
               email: foundReg.email || '',
               phone: foundReg.phone || '',
               institution: foundReg.institution || '',
-              category: foundReg.category || 'Research Scholars / Academicians',
+              category: normCat,
               paperId: foundReg.paperId || '',
               paperTitle: foundReg.paperTitle || '',
-              currency: foundReg.currency || fee.currency,
-              amount: foundReg.amount || fee.amount,
+              currency: fee.currency,
+              amount: fee.amount,
               paymentStatus: foundReg.paymentStatus || 'Pending',
             });
             setIsLoading(false);
@@ -126,19 +149,21 @@ function CompletePaymentContent() {
           // Search in paper submissions if not found in registrations
           const foundSub = (data.submissions || []).find(
             (s: any) =>
-              s.id.toLowerCase() === idFromUrl.toLowerCase() ||
-              s.submissionId.toLowerCase() === idFromUrl.toLowerCase()
+              (s.id && s.id.toLowerCase() === idFromUrl.toLowerCase()) ||
+              (s.submissionId && s.submissionId.toLowerCase() === idFromUrl.toLowerCase())
           );
 
           if (foundSub) {
-            const fee = calculateFee('Research Scholars / Academicians', 'INR');
+            const rawCat = foundSub.authorCategory || foundSub.category || '';
+            const normCat = normalizeCategory(rawCat);
+            const fee = calculateFee(normCat, 'INR');
             setDelegate({
               id: foundSub.submissionId || foundSub.id,
               name: foundSub.authorName || '',
               email: foundSub.email || '',
               phone: foundSub.phone || '',
               institution: foundSub.institution || '',
-              category: 'Paper Author / Research Scholar',
+              category: normCat,
               paperId: foundSub.submissionId || '',
               paperTitle: foundSub.paperTitle || '',
               currency: fee.currency,
@@ -158,10 +183,11 @@ function CompletePaymentContent() {
   };
 
   const handleCategoryChange = (newCategory: string) => {
-    const fee = calculateFee(newCategory, delegate.currency);
+    const norm = normalizeCategory(newCategory);
+    const fee = calculateFee(norm, delegate.currency);
     setDelegate((prev) => ({
       ...prev,
-      category: newCategory,
+      category: norm,
       amount: fee.amount,
       currency: fee.currency,
     }));
@@ -464,19 +490,61 @@ function CompletePaymentContent() {
 
                   {/* Participant Category Selector with Auto-Fee Calculation */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-                      Participant Category &amp; Registration Fee *
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Participant Category &amp; Registration Fee *
+                      </label>
+                      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-[11px] font-bold">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const fee = calculateFee(delegate.category, 'INR');
+                            setDelegate((prev) => ({ ...prev, currency: 'INR', amount: fee.amount }));
+                          }}
+                          className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+                            delegate.currency !== 'USD'
+                              ? 'bg-white text-slate-900 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-900'
+                          }`}
+                        >
+                          INR (₹)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const fee = calculateFee(delegate.category, 'USD');
+                            setDelegate((prev) => ({ ...prev, currency: 'USD', amount: fee.amount }));
+                          }}
+                          className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+                            delegate.currency === 'USD'
+                              ? 'bg-white text-slate-900 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-900'
+                          }`}
+                        >
+                          USD ($)
+                        </button>
+                      </div>
+                    </div>
                     <select
-                      value={delegate.category}
+                      value={normalizeCategory(delegate.category)}
                       onChange={(e) => handleCategoryChange(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-white focus:border-[#7cb305] focus:outline-hidden shadow-2xs"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-white focus:border-[#7cb305] focus:outline-hidden shadow-2xs cursor-pointer"
                     >
-                      <option value="Students (UG / PG)">Students (UG / PG) — ₹500</option>
-                      <option value="Research Scholars / Academicians">Research Scholars / Academicians — ₹750</option>
-                      <option value="Industry Delegates">Industry Delegates — ₹1,500</option>
-                      <option value="Attendees / Observers (Participants)">Attendees / Observers (Participants) — ₹300</option>
-                      <option value="International Delegates">International Delegates — $50 USD</option>
+                      <option value="Students (UG / PG)">
+                        Students (UG / PG) — {delegate.currency === 'USD' ? '$10 USD' : '₹500'}
+                      </option>
+                      <option value="Research Scholars / Academicians">
+                        Research Scholars / Academicians — {delegate.currency === 'USD' ? '$15 USD' : '₹750'}
+                      </option>
+                      <option value="Industry Delegates">
+                        Industry Delegates — {delegate.currency === 'USD' ? '$20 USD' : '₹1,500'}
+                      </option>
+                      <option value="Attendees / Observers (Participants)">
+                        Attendees / Observers (Participants) — {delegate.currency === 'USD' ? '$5 USD' : '₹300'}
+                      </option>
+                      <option value="International Delegates">
+                        International Delegates — $50 USD
+                      </option>
                     </select>
                   </div>
                 </div>
