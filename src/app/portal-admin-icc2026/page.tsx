@@ -131,6 +131,8 @@ export default function PortalAdminPage() {
   const [splitPanelWidth, setSplitPanelWidth] = useState<number>(500);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
+  const [sidebarPinnedOpen, setSidebarPinnedOpen] = useState(false);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -976,9 +978,10 @@ export default function PortalAdminPage() {
   }
 
   const isSplitOpen = activeTab === 'records' && ((recordView === 'registrations' && selectedRegistration !== null) || (recordView === 'submissions' && selectedSubmission !== null));
+  const isSidebarExpanded = sidebarPinnedOpen || sidebarHovered || mobileSidebarOpen;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex overflow-x-hidden lg:pl-64">
+    <div className={`min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex overflow-x-hidden ${sidebarPinnedOpen ? 'lg:pl-64' : 'lg:pl-20'}`}>
       
       {/* ========================================================= */}
       {/* 1. SOLID CLEAN SIDEBAR WITH YENEPOYA OFFICIAL LOGO AT TOP  */}
@@ -991,26 +994,26 @@ export default function PortalAdminPage() {
         />
       )}
 
-      <aside className={`fixed left-0 top-0 h-dvh w-64 overflow-hidden bg-white border-r border-slate-200/90 flex flex-col shrink-0 z-50 shadow-xs transition-transform duration-300 ${
+      <aside onMouseEnter={() => setSidebarHovered(true)} onMouseLeave={() => setSidebarHovered(false)} className={`fixed left-0 top-0 h-dvh ${isSidebarExpanded ? 'w-64' : 'w-20'} overflow-hidden bg-white border-r border-slate-200/90 flex flex-col shrink-0 z-50 shadow-xs transition-[width,transform] duration-300 ${
         mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         <div className="flex min-h-0 flex-1 flex-col">
           {/* Top Logo & Brand Info with Official Yenepoya Logo */}
-          <div className="h-20 shrink-0 px-5 flex items-center justify-between border-b border-slate-100">
+          <div className={`h-20 shrink-0 flex items-center justify-between border-b border-slate-100 ${isSidebarExpanded ? 'px-5' : 'px-3'}`}>
             <div className="flex items-center gap-3">
               <img
                 src="/yenepoya-university-logonew3.svg"
                 alt="Yenepoya (Deemed to be University)"
                 className="h-9 w-auto object-contain shrink-0"
               />
-              <div className="overflow-hidden border-l border-slate-200 pl-3">
+              {isSidebarExpanded && <div className="overflow-hidden border-l border-slate-200 pl-3">
                 <span className="font-extrabold text-xs tracking-tight text-slate-900 block leading-tight">
                   ICCAQI 2026
                 </span>
                 <span className="text-[9px] font-bold tracking-widest text-[#7cb305] uppercase block font-mono">
                   Admin Portal
                 </span>
-              </div>
+              </div>}
             </div>
             <button
               onClick={() => setMobileSidebarOpen(false)}
@@ -1021,21 +1024,22 @@ export default function PortalAdminPage() {
           </div>
 
           {/* Navigation Items (Capsule Pill active state) */}
-          <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-2">
+          <nav className={`min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-2 ${isSidebarExpanded ? 'p-4' : 'px-3 py-4'}`}>
             <button
               onClick={() => {
                 setActiveTab('overview');
                 setSelectedRegistration(null);
                 setSelectedSubmission(null);
               }}
-              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+              title="Overview & Demographics"
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'overview'
                   ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <BarChart3 className="w-4.5 h-4.5 shrink-0" />
-              <span>Overview &amp; Demographics</span>
+              {isSidebarExpanded && <span>Overview &amp; Demographics</span>}
             </button>
 
             <button
@@ -1044,17 +1048,18 @@ export default function PortalAdminPage() {
                 setSelectedRegistration(null);
                 setSelectedSubmission(null);
               }}
-              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+              title="Registration & Paper Records"
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'records'
                   ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <Users className="w-4.5 h-4.5 shrink-0" />
-              <span>Registration &amp; Paper Records</span>
+              {isSidebarExpanded && <span>Registration &amp; Paper Records</span>}
             </button>
 
-            {activeTab === 'records' && (
+            {activeTab === 'records' && isSidebarExpanded && (
               <div className="ml-4 space-y-1 border-l border-slate-200 pl-3">
                 <button onClick={() => setRecordView('registrations')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${recordView === 'registrations' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>Delegate registrations <span className="text-slate-400">({totalRegistrations})</span></button>
                 <button onClick={() => setRecordView('submissions')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${recordView === 'submissions' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>Paper submissions <span className="text-slate-400">({totalSubmissions})</span></button>
@@ -1067,14 +1072,15 @@ export default function PortalAdminPage() {
                 setSelectedRegistration(null);
                 setSelectedSubmission(null);
               }}
-              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'payments' ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+              title="Payment Verification"
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'payments' ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
             >
               <CreditCard className="w-4.5 h-4.5 shrink-0" />
-              <span>Payment Verification</span>
-              <span className="ml-auto rounded-full bg-white/20 px-2 py-0.5 text-[10px] tabular-nums">{paymentProofs.length}</span>
+              {isSidebarExpanded && <span>Payment Verification</span>}
+              {isSidebarExpanded && <span className="ml-auto rounded-full bg-white/20 px-2 py-0.5 text-[10px] tabular-nums">{paymentProofs.length}</span>}
             </button>
 
-            <div className="h-[1px] bg-slate-100 my-3" />
+            {isSidebarExpanded && <div className="h-[1px] bg-slate-100 my-3" />}
 
             <button
               onClick={() => {
@@ -1082,10 +1088,11 @@ export default function PortalAdminPage() {
                 setRecordView('registrations');
                 setRegStatusFilter('Verified');
               }}
-              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
+              title="Verified Payments"
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer`}
             >
               <CheckCircle2 className="w-4.5 h-4.5 shrink-0 text-emerald-600" />
-              <span>Verified Payments</span>
+              {isSidebarExpanded && <span>Verified Payments</span>}
             </button>
 
             <button
@@ -1096,40 +1103,43 @@ export default function PortalAdminPage() {
                   exportRegistrationsCSV();
                 }
               }}
-              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
+              title={`Export CSV (${recordView === 'submissions' ? 'Submissions' : 'Registrations'})`}
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer`}
             >
               <FileSpreadsheet className="w-4.5 h-4.5 shrink-0 text-amber-600" />
-              <span>Export CSV ({recordView === 'submissions' ? 'Submissions' : 'Registrations'})</span>
+              {isSidebarExpanded && <span>Export CSV ({recordView === 'submissions' ? 'Submissions' : 'Registrations'})</span>}
             </button>
 
             <button
               onClick={() => setIsEmailModalOpen(true)}
-              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
+              title="Broadcast Email"
+              className={`w-full flex items-center ${isSidebarExpanded ? 'gap-3.5 px-4' : 'justify-center px-2'} py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer`}
             >
               <Mail className="w-4.5 h-4.5 shrink-0 text-[#7cb305]" />
-                <span className="hidden sm:inline">Broadcast Email</span>
+              {isSidebarExpanded && <span>Broadcast Email</span>}
             </button>
           </nav>
         </div>
 
         {/* User Profile Card & Log Out at Bottom */}
-        <div className="shrink-0 p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
-          <div className="flex items-center gap-3 p-2 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+        <div className={`shrink-0 border-t border-slate-100 bg-slate-50/50 space-y-3 ${isSidebarExpanded ? 'p-4' : 'p-3'}`}>
+          <div className={`flex items-center ${isSidebarExpanded ? 'gap-3' : 'justify-center'} p-2 rounded-2xl bg-white border border-slate-200/80 shadow-2xs`}>
             <div className="w-9 h-9 rounded-xl bg-[#7cb305]/10 text-[#7cb305] font-bold text-sm flex items-center justify-center shrink-0 border border-[#7cb305]/20">
               A
             </div>
-            <div className="overflow-hidden text-left flex-1">
+            {isSidebarExpanded && <div className="overflow-hidden text-left flex-1">
               <div className="font-extrabold text-xs text-slate-900 truncate">Admin User</div>
               <div className="text-[10px] font-medium text-slate-500">Administrator</div>
-            </div>
+            </div>}
           </div>
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+            title="Log out"
+            className={`w-full flex items-center ${isSidebarExpanded ? 'gap-2 px-3' : 'justify-center px-2'} py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer`}
           >
             <LogOut className="w-4 h-4 shrink-0" />
-            <span>Log out</span>
+            {isSidebarExpanded && <span>Log out</span>}
           </button>
         </div>
       </aside>
@@ -1151,6 +1161,17 @@ export default function PortalAdminPage() {
                 aria-label="Open sidebar menu"
               >
                 <Menu className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => {
+                  setSidebarPinnedOpen((isOpen) => !isOpen);
+                  setSidebarHovered(false);
+                }}
+                className="hidden lg:inline-flex rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                aria-label={sidebarPinnedOpen ? 'Unpin and collapse sidebar' : 'Pin sidebar open'}
+                title={sidebarPinnedOpen ? 'Unpin and collapse sidebar' : 'Pin sidebar open'}
+              >
+                {sidebarPinnedOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
               </button>
               <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
                 {activeTab === 'overview' ? 'Overview & Demographics' : activeTab === 'records' ? 'Registration & Paper Records' : 'Payment Verification'}
@@ -1222,7 +1243,8 @@ export default function PortalAdminPage() {
               ))}
             </div>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-3">
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 xl:col-span-2">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 text-slate-900"><LineChart className="h-4 w-4 text-[#659b02]" /><h2 className="text-sm font-extrabold">Registration &amp; submission activity</h2></div>
@@ -1294,13 +1316,14 @@ export default function PortalAdminPage() {
                 </svg>
               </div>
             </section>
+            {renderDemographicPie('author-gender', 'Author gender', submissionGenderCounts, ['#8b5cf6', '#ec4899', '#0ea5e9', '#64748b'])}
+            </div>
 
             <div>
               <h2 className="mb-4 text-lg font-extrabold text-slate-900">Participant &amp; submission demographics</h2>
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
                 {renderParticipantCategoryBars(registrationCategoryCounts)}
                 {renderDemographicList('Participation mode', registrationModeCounts, 'bg-sky-500')}
-                {renderDemographicPie('author-gender', 'Author gender (paper submissions)', submissionGenderCounts, ['#8b5cf6', '#ec4899', '#0ea5e9', '#64748b'])}
                 {renderDemographicPie('paper-tracks', 'Paper submissions by track', submissionTrackCounts, ['#4f46e5', '#0ea5e9', '#7cb305', '#f59e0b', '#f43f5e', '#14b8a6'])}
                 {renderDemographicList('Registration payment status', registrationStatusCounts, 'bg-emerald-500')}
                 {renderDemographicList('Receipt verification status', paymentProofStatusCounts, 'bg-amber-500')}
