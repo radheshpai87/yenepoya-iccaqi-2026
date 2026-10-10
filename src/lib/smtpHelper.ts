@@ -29,6 +29,47 @@ export function getSmtpTransporter() {
  * Render official Yenepoya ICCAQI 2026 responsive HTML email wrapper
  */
 /**
+ * Render plain text equivalent of the email for multipart delivery (reduces spam score)
+ */
+export function renderEmailText(
+  name: string,
+  messageBody: string,
+  paperId?: string,
+  institution?: string,
+  registrationId?: string
+): string {
+  const regId = registrationId || paperId || '';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://iccaqi.in';
+  const paymentUrl = `${baseUrl.replace(/\/$/, '')}/complete-payment?id=${encodeURIComponent(regId)}`;
+
+  const plainBody = messageBody
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/{{name}}/g, name)
+    .replace(/{{paper_id}}/g, paperId || 'N/A')
+    .replace(/{{registration_id}}/g, regId || 'N/A')
+    .replace(/{{institution}}/g, institution || '')
+    .replace(/{{payment_url}}/g, paymentUrl)
+    .trim();
+
+  let text = `Dear ${name},\n\n${plainBody}\n\n`;
+
+  if (regId && !plainBody.includes(paymentUrl)) {
+    text += `Complete Registration & Payment Link:\n${paymentUrl}\n\n`;
+  }
+
+  text += `Event Reference: International Conference on Computing, AI, Quantum Intelligence and Future Technologies (ICCAQI 2026)\n`;
+  text += `Dates: November 6–7, 2026 • Mode: Hybrid (In-Person / Online)\n\n`;
+  text += `Yenepoya School of Engineering & Technology\n`;
+  text += `Yenepoya (Deemed to be University), Mangaluru – 575018, India\n`;
+  text += `Website: https://iccaqi.in`;
+
+  return text;
+}
+
+/**
  * Render official Yenepoya ICCAQI 2026 responsive HTML email wrapper
  */
 export function renderEmailHtml(
@@ -55,7 +96,7 @@ export function renderEmailHtml(
   const ctaButtonBlock = !hasPaymentLinkTag && regId
     ? `
       <div style="text-align: center; margin: 28px 0 16px 0;">
-        <a href="${paymentUrl}" target="_blank" style="background-color: #7cb305; color: #ffffff; font-weight: 800; font-size: 14px; text-decoration: none; padding: 14px 28px; border-radius: 12px; display: inline-block; shadow: 0 4px 12px rgba(124, 179, 5, 0.25);">
+        <a href="${paymentUrl}" target="_blank" style="background-color: #7cb305; color: #ffffff; font-weight: 800; font-size: 14px; text-decoration: none; padding: 14px 28px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(124, 179, 5, 0.25);">
           Complete Registration &amp; Upload Payment Proof &rarr;
         </a>
         <p style="margin: 8px 0 0 0; font-size: 11px; color: #64748b;">

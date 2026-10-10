@@ -84,7 +84,27 @@ export async function POST(request: Request) {
     }, buffer);
     const previous = await getSavedResponse(supabaseAdmin, 'submission', requestId, hash);
     if (previous) return submissionResponse(previous);
-    const submissionId = `ICCAQI-2026-${randomUUID()}`;
+
+    // Query existing paper submissions to determine next clean sequential paper ID (e.g. ICCAQI-PAPER-001)
+    const { data: existingPapers } = await supabaseAdmin
+      .from('paper_submissions')
+      .select('submission_id');
+
+    let maxNum = 0;
+    if (existingPapers && existingPapers.length > 0) {
+      for (const p of existingPapers) {
+        const match = p.submission_id?.match(/ICCAQI-PAPER-(\d+)/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNum) {
+            maxNum = num;
+          }
+        }
+      }
+    }
+    const nextNum = maxNum > 0 ? maxNum + 1 : (existingPapers?.length || 0) + 1;
+    const submissionId = `ICCAQI-PAPER-${String(nextNum).padStart(3, '0')}`;
+
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
     const storagePath = `${submissionId}_${Date.now()}.${fileExt}`;
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/lib/adminAuth';
-import { getSmtpTransporter, renderEmailHtml } from '@/lib/smtpHelper';
+import { getSmtpTransporter, renderEmailHtml, renderEmailText } from '@/lib/smtpHelper';
 import { isValidEmail, sanitizeText } from '@/lib/validation';
 
 async function isAuthorized() {
@@ -29,19 +29,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Subject and email message content are required.' }, { status: 400 });
     }
 
-    const smtpUser = process.env.SMTP_USER || 'icc2026@yenepoya.edu.in';
+    const smtpUser = process.env.SMTP_USER || 'iccaqi2026@yenepoya.edu.in';
     const transporter = getSmtpTransporter();
 
     // Handle Test Email Option (Sends single preview email to test address)
     if (isTest) {
       const targetEmail = testEmail && isValidEmail(testEmail) ? testEmail : smtpUser;
-      const htmlContent = renderEmailHtml('Administrator Preview', cleanBody, 'TEST-2026', 'Yenepoya University');
+      const htmlContent = renderEmailHtml('Administrator Preview', cleanBody, 'ICCAQI-PAPER-001', 'Yenepoya University');
+      const textContent = renderEmailText('Administrator Preview', cleanBody, 'ICCAQI-PAPER-001', 'Yenepoya University');
 
       await transporter.sendMail({
         from: `"ICCAQI 2026 Secretariat" <${smtpUser}>`,
         to: targetEmail,
-        subject: `[TEST PREVIEW] ${cleanSubject}`,
+        replyTo: `"ICCAQI 2026 Secretariat" <${smtpUser}>`,
+        subject: cleanSubject,
+        text: textContent,
         html: htmlContent,
+        headers: {
+          'X-Mailer': 'ICCAQI 2026 Conference Portal',
+          'List-Unsubscribe': `<mailto:${smtpUser}?subject=Unsubscribe>`,
+        },
       });
 
       return NextResponse.json({
@@ -81,6 +88,13 @@ export async function POST(request: Request) {
         recipient.institution || '',
         recipient.id || recipient.registrationId || recipient.paperId || ''
       );
+      const textContent = renderEmailText(
+        recipient.name || 'Delegate',
+        cleanBody,
+        recipient.paperId || '',
+        recipient.institution || '',
+        recipient.id || recipient.registrationId || recipient.paperId || ''
+      );
 
       while (attempts < 2 && !sentSuccessfully) {
         attempts++;
@@ -88,8 +102,14 @@ export async function POST(request: Request) {
           await transporter.sendMail({
             from: `"ICCAQI 2026 Secretariat" <${smtpUser}>`,
             to: recipient.email,
+            replyTo: `"ICCAQI 2026 Secretariat" <${smtpUser}>`,
             subject: cleanSubject,
+            text: textContent,
             html: htmlContent,
+            headers: {
+              'X-Mailer': 'ICCAQI 2026 Conference Portal',
+              'List-Unsubscribe': `<mailto:${smtpUser}?subject=Unsubscribe>`,
+            },
           });
 
           sentSuccessfully = true;

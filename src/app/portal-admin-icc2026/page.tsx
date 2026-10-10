@@ -2052,7 +2052,7 @@ export default function PortalAdminPage() {
                   onClick={() => {
                     setEmailSubject('ICCAQI 2026 — Official Paper Acceptance Notification');
                     setEmailBody(
-                      `<p>We are delighted to inform you that your manuscript (Paper ID: <strong>{{paper_id}}</strong>) has been <strong>ACCEPTED</strong> for presentation at ICCAQI 2026.</p><p>Please prepare your final camera-ready PDF and presentation slides according to conference guidelines.</p>`
+                      `<p>We are delighted to inform you that your manuscript (Paper ID: <strong>{{paper_id}}</strong>) has been <strong>accepted</strong> for presentation at ICCAQI 2026.</p><p>Please prepare your presentation slides and keep them ready for presenting your paper at the conference.</p><p>We wish you all the very best for your presentation!</p><p>Be confident, present your research clearly, and make the most of this opportunity to share your ideas and connect with fellow researchers.</p><p>Best wishes for a successful and impactful presentation!</p><p>We look forward to your excellent presentations.</p><p>All the best!</p>`
                     );
                   }}
                   className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
