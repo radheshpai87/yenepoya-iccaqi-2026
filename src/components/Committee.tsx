@@ -114,7 +114,7 @@ export const Committee: React.FC = () => {
 
           {/* Top: Organizing Chair */}
           <div className="max-w-md mx-auto">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1 text-center">
               <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
                 {organizingChair.role}
               </span>
@@ -127,7 +127,7 @@ export const Committee: React.FC = () => {
           {/* Below: Left (Organizing Co-Chair) & Right (Chief Coordinator) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
             {/* Left: Organizing Co-Chair */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1 text-center">
               <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
                 {organizingCoChair.role}
               </span>
@@ -137,7 +137,7 @@ export const Committee: React.FC = () => {
             </div>
 
             {/* Right: Chief Coordinator */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1 text-center">
               <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
                 {chiefCoordinator.role}
               </span>
@@ -157,7 +157,7 @@ export const Committee: React.FC = () => {
             {advisoryAndCoordination.map((lead, idx) => (
               <div
                 key={idx}
-                className="w-full sm:w-[calc(50%-0.5rem)] bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1"
+                className="w-full sm:w-[calc(50%-0.5rem)] bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1 text-center"
               >
                 <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
                   {lead.role}
