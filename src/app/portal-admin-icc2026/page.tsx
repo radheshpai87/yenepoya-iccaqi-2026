@@ -991,12 +991,12 @@ export default function PortalAdminPage() {
         />
       )}
 
-      <aside className={`fixed lg:sticky top-0 h-screen w-64 bg-white border-r border-slate-200/90 flex flex-col justify-between shrink-0 z-50 shadow-xs transition-transform duration-300 ${
+      <aside className={`fixed lg:sticky top-0 h-dvh w-64 overflow-hidden bg-white border-r border-slate-200/90 flex flex-col shrink-0 z-50 shadow-xs transition-transform duration-300 ${
         mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
-        <div>
+        <div className="flex min-h-0 flex-1 flex-col">
           {/* Top Logo & Brand Info with Official Yenepoya Logo */}
-          <div className="h-20 px-5 flex items-center justify-between border-b border-slate-100">
+          <div className="h-20 shrink-0 px-5 flex items-center justify-between border-b border-slate-100">
             <div className="flex items-center gap-3">
               <img
                 src="/yenepoya-university-logonew3.svg"
@@ -1021,7 +1021,7 @@ export default function PortalAdminPage() {
           </div>
 
           {/* Navigation Items (Capsule Pill active state) */}
-          <nav className="p-4 space-y-2">
+          <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-2">
             <button
               onClick={() => {
                 setActiveTab('overview');
@@ -1113,7 +1113,7 @@ export default function PortalAdminPage() {
         </div>
 
         {/* User Profile Card & Log Out at Bottom */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
+        <div className="shrink-0 p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
           <div className="flex items-center gap-3 p-2 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
             <div className="w-9 h-9 rounded-xl bg-[#7cb305]/10 text-[#7cb305] font-bold text-sm flex items-center justify-center shrink-0 border border-[#7cb305]/20">
               A
