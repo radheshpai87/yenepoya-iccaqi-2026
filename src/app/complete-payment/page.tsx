@@ -20,8 +20,7 @@ import {
   ExternalLink,
   Trash2,
   Eye,
-  Tag,
-  QrCode
+  Tag
 } from 'lucide-react';
 
 interface DelegateDetails {
@@ -564,47 +563,19 @@ function CompletePaymentContent() {
                 </div>
               </div>
 
-              {/* Payment Methods Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
-                {/* Method A: Direct Bank / UPI Transfer Info */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              {/* Payment Method: Razorpay Online Payment Checkout */}
+              <div className="p-5 rounded-2xl bg-sky-50/70 border border-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <QrCode className="w-4 h-4 text-emerald-600" />
-                    <span className="text-xs font-extrabold text-slate-900">Direct Bank / UPI Transfer</span>
+                    <CreditCard className="w-4 h-4 text-sky-600" />
+                    <span className="text-sm font-extrabold text-slate-900">Razorpay Card / UPI / NetBanking</span>
                   </div>
-                  <div className="space-y-1.5 text-[11px] text-slate-600 font-mono">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">UPI ID:</span>
-                      <span className="font-bold text-slate-900">yenepoya@upi</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Account Name:</span>
-                      <span className="font-bold text-slate-900">Yenepoya University</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Bank Name:</span>
-                      <span className="font-bold text-slate-900">State Bank of India</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">IFSC Code:</span>
-                      <span className="font-bold text-slate-900">SBIN0007621</span>
-                    </div>
-                  </div>
+                  <p className="text-xs text-slate-500 max-w-md">
+                    Instant online payment via UPI apps (GPay, PhonePe, Paytm), Credit/Debit Cards, or NetBanking.
+                  </p>
                 </div>
 
-                {/* Method B: Razorpay Online Payment Checkout Button */}
-                <div className="p-4 rounded-2xl bg-sky-50/60 border border-sky-100 flex flex-col justify-between space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-sky-600" />
-                      <span className="text-xs font-extrabold text-slate-900">Razorpay Card / NetBanking</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500">
-                      Instant online payment via Credit/Debit Cards, UPI apps, or NetBanking.
-                    </p>
-                  </div>
-
+                <div className="sm:shrink-0 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => {
@@ -619,16 +590,16 @@ function CompletePaymentContent() {
                       const targetUrl = rzpBase.includes('?') ? `${rzpBase}&${params.toString()}` : `${rzpBase}?${params.toString()}`;
                       window.open(targetUrl, '_blank') || (window.location.href = targetUrl);
                     }}
-                    className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full sm:w-auto py-3 px-6 rounded-xl text-xs sm:text-sm font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
                     <span>Pay {delegate.amount} via Razorpay &rarr;</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <ExternalLink className="w-4 h-4" />
                   </button>
-                  <p className="text-[10px] text-sky-700 font-medium text-center">
-                    Opens official Yenepoya Razorpay gateway with prefilled details. After paying, upload receipt screenshot below.
-                  </p>
                 </div>
               </div>
+              <p className="text-[11px] text-sky-700 font-medium text-center sm:text-left">
+                Opens official Yenepoya Razorpay gateway with prefilled details. After paying, upload receipt screenshot below.
+              </p>
             </div>
 
             {/* Step 3: Payment Proof Screenshot Upload Section */}
