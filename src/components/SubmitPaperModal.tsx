@@ -64,6 +64,8 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const [submissionId, setSubmissionId] = useState('');
   const [copiedId, setCopiedId] = useState(false);
   const attempt = useRef<(RequestAttempt & { file: File }) | null>(null);
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+  const outerWrapperRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<'guidelines' | 'form'>('guidelines');
   const [category2Consent, setCategory2Consent] = useState<'yes' | 'no'>('no');
   const [acknowledged, setAcknowledged] = useState(false);
@@ -104,6 +106,16 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     };
   }, [isOpen]);
 
+  // Ensure modal scrolls to top whenever step changes (e.g. proceeding to upload or going back)
+  useEffect(() => {
+    if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
+    if (outerWrapperRef.current) outerWrapperRef.current.scrollTop = 0;
+    requestAnimationFrame(() => {
+      if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
+      if (outerWrapperRef.current) outerWrapperRef.current.scrollTop = 0;
+    });
+  }, [step]);
+
   const handleProceedToForm = () => {
     if (!acknowledged) {
       setAckError('Please review and check the mandatory policy acknowledgement box before proceeding.');
@@ -117,6 +129,15 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
         : 'Category I: Proceedings & Double-Blind Peer-Reviewed Journals (Standard Track)',
     }));
     setStep('form');
+
+    // Instantly scroll modal and page to top
+    if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
+    if (outerWrapperRef.current) outerWrapperRef.current.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
+      if (outerWrapperRef.current) outerWrapperRef.current.scrollTop = 0;
+    });
   };
 
   if (!isOpen) return null;
@@ -269,6 +290,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
   return (
     <div
+      ref={outerWrapperRef}
       data-lenis-prevent="true"
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto overscroll-contain"
     >
@@ -295,6 +317,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
         {/* Scrollable Modal Content */}
         <div
+          ref={modalScrollRef}
           data-lenis-prevent="true"
           onWheel={(e) => e.stopPropagation()}
           className="overflow-y-auto overscroll-contain p-5 sm:p-8 md:p-10 flex-1"
