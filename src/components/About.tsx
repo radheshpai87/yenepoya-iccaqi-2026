@@ -82,7 +82,7 @@ export const About: React.FC = () => {
                 height={44}
                 loading="lazy"
                 decoding="async"
-                className="h-12 sm:h-14 w-auto object-contain"
+                className="h-16 sm:h-18 w-auto object-contain"
               />
             </div>
 
