@@ -106,15 +106,19 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     };
   }, [isOpen]);
 
-  // Ensure modal scrolls to top whenever step changes (e.g. proceeding to upload or going back)
-  useEffect(() => {
+  const scrollModalToTop = () => {
     if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
     if (outerWrapperRef.current) outerWrapperRef.current.scrollTop = 0;
     requestAnimationFrame(() => {
       if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
       if (outerWrapperRef.current) outerWrapperRef.current.scrollTop = 0;
     });
-  }, [step]);
+  };
+
+  // Ensure ONLY the popup modal window scrolls to top whenever step changes or submission completes
+  useEffect(() => {
+    scrollModalToTop();
+  }, [step, submitted]);
 
   const handleProceedToForm = () => {
     if (!acknowledged) {
@@ -130,14 +134,8 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     }));
     setStep('form');
 
-    // Instantly scroll modal and page to top
-    if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
-    if (outerWrapperRef.current) outerWrapperRef.current.scrollTop = 0;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    requestAnimationFrame(() => {
-      if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
-      if (outerWrapperRef.current) outerWrapperRef.current.scrollTop = 0;
-    });
+    // Scroll ONLY the popup modal window to top (do NOT scroll the main background page)
+    scrollModalToTop();
   };
 
   if (!isOpen) return null;
@@ -272,6 +270,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
         setUploadProgress(100);
         setSubmissionId(result.submissionId);
         setSubmitted(true);
+        scrollModalToTop();
       } catch {
         setUploadError('Manuscript save could not be confirmed. Please retry with the same file.');
       } finally {
