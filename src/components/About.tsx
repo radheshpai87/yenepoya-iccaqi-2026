@@ -72,7 +72,7 @@ export const About: React.FC = () => {
         {/* Clean Editorial Intro Card */}
         <div className="bg-slate-50 rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-xs space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 sm:gap-6 pb-6 border-b border-slate-200/80">
-            {/* Host Institution Logos */}
+            {/* Host Institution & Conference Emblem Logos */}
             <div className="flex flex-wrap items-center gap-4 sm:gap-6">
               <img
                 src="/yenepoya-university-logonew3.svg"
@@ -85,20 +85,6 @@ export const About: React.FC = () => {
               />
               <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
               <img
-                src="/yenepoya-school-engineering-and-technologynew-02.svg"
-                alt="Yenepoya School of Engineering & Technology"
-                width={240}
-                height={44}
-                loading="lazy"
-                decoding="async"
-                className="h-9 sm:h-11 w-auto object-contain"
-              />
-            </div>
-
-            {/* Conference Emblem & Publication Partner Logos */}
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-              <div className="h-7 w-[1.5px] bg-slate-200 hidden md:block" />
-              <img
                 src="/iccaqi-logo.webp"
                 alt="ICCAQI 2026 Official Conference Logo"
                 width={180}
@@ -106,6 +92,19 @@ export const About: React.FC = () => {
                 loading="lazy"
                 decoding="async"
                 className="h-10 sm:h-12 w-auto object-contain"
+              />
+            </div>
+
+            {/* Organizing School & Publication Partner Logos */}
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+              <img
+                src="/yenepoya-school-engineering-and-technologynew-02.svg"
+                alt="Yenepoya School of Engineering & Technology"
+                width={240}
+                height={44}
+                loading="lazy"
+                decoding="async"
+                className="h-9 sm:h-11 w-auto object-contain"
               />
               <div className="h-6 w-[1.5px] bg-slate-300 hidden sm:block" />
               <img
