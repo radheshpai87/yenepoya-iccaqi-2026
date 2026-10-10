@@ -31,6 +31,11 @@ New keys represent new submissions; this does not deduplicate separate intention
 submissions by email address. Submission reference IDs now use UUIDs rather than
 four-digit random numbers. Never delete retry records while clients may retry.
 
+`202610100001_payment_proofs.sql` adds the private `payment_proofs` table and
+`payment-receipts` Storage bucket. Apply this migration before deploying the
+payment proof form and admin console changes. The admin API creates temporary
+signed links so receipts stay private while administrators can view them.
+
 Run the isolated API tests with `node tests/persistence.test.cjs`. They simulate
 failures without contacting the hosted project. Database behavior checks are in
 `tests/persistence.sql`; run them only on a disposable PostgreSQL/Supabase test

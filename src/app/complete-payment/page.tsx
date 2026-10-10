@@ -32,6 +32,7 @@ interface DelegateDetails {
   category: string;
   paperId: string;
   paperTitle: string;
+  mode: string;
   currency: string;
   amount: string;
   paymentStatus: string;
@@ -51,6 +52,7 @@ function CompletePaymentContent() {
     category: 'Research Scholars / Academicians',
     paperId: '',
     paperTitle: '',
+    mode: 'Offline',
     currency: 'INR',
     amount: '₹750',
     paymentStatus: 'Pending',
@@ -147,8 +149,9 @@ function CompletePaymentContent() {
               category: normCat,
               paperId: foundReg.paperId || '',
               paperTitle: foundReg.paperTitle || '',
-              currency: fee.currency,
-              amount: fee.amount,
+              mode: foundReg.mode || 'Offline',
+              currency: foundReg.currency || fee.currency,
+              amount: foundReg.amount || fee.amount,
               paymentStatus: foundReg.paymentStatus || 'Pending',
             });
             setIsLoading(false);
@@ -176,6 +179,7 @@ function CompletePaymentContent() {
               category: normCat,
               paperId: foundSub.submissionId || '',
               paperTitle: foundSub.paperTitle || '',
+              mode: foundSub.mode || 'Offline',
               currency: fee.currency,
               amount: fee.amount,
               paymentStatus: 'Pending',
@@ -240,6 +244,15 @@ function CompletePaymentContent() {
       const data = new FormData();
       data.append('registrationId', delegate.id);
       data.append('paperId', delegate.paperId);
+      data.append('name', delegate.name);
+      data.append('email', delegate.email);
+      data.append('phone', delegate.phone);
+      data.append('institution', delegate.institution);
+      data.append('category', delegate.category);
+      data.append('currency', delegate.currency);
+      data.append('amount', delegate.amount);
+      data.append('mode', delegate.mode || 'Offline');
+      data.append('paperTitle', delegate.paperTitle);
       data.append('transactionRef', transactionRef);
       data.append('file', selectedFile);
 

@@ -1,8 +1,9 @@
+import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
-import { updateLocalRegistrationStatus } from '@/lib/submissionStore';
 import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
-import { sanitizeText, validateUploadedFile } from '@/lib/validation';
+import { isValidEmail, sanitizeText } from '@/lib/validation';
+import { ApiError, apiErrorResponse } from '@/lib/apiErrors';
 
 export async function POST(request: Request) {
   try {
@@ -17,16 +18,30 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData();
-    const registrationId = sanitizeText(formData.get('registrationId') as string, 100);
-    const paperId = sanitizeText(formData.get('paperId') as string, 100);
-    const transactionRef = sanitizeText(formData.get('transactionRef') as string, 100);
-    const file = formData.get('file') as File | null;
+    const registrationId = sanitizeText(formData.get('registrationId'), 100);
+    const paperId = sanitizeText(formData.get('paperId'), 100);
+    const name = sanitizeText(formData.get('name'), 100);
+    const email = sanitizeText(formData.get('email'), 254);
+    const phone = sanitizeText(formData.get('phone'), 30);
+    const institution = sanitizeText(formData.get('institution'), 200);
+    const category = sanitizeText(formData.get('category'), 100);
+    const currency = sanitizeText(formData.get('currency'), 10);
+    const amount = sanitizeText(formData.get('amount'), 20);
+    const mode = sanitizeText(formData.get('mode'), 100);
+    const paperTitle = sanitizeText(formData.get('paperTitle'), 300);
+    const transactionRef = sanitizeText(formData.get('transactionRef'), 100);
+    const fileValue = formData.get('file');
+    const file = fileValue instanceof File ? fileValue : null;
 
     if (!registrationId && !paperId) {
       return NextResponse.json(
         { error: 'Registration ID or Paper ID parameter is required' },
         { status: 400 }
       );
+    }
+
+    if (!name || !email || !institution || !category || !amount || !currency || !isValidEmail(email)) {
+      throw new ApiError(400, 'Valid name, email, institution, category, and payment amount are required');
     }
 
     if (!file || file.size === 0) {
@@ -36,101 +51,70 @@ export async function POST(request: Request) {
       );
     }
 
+    if (file.size > 10 * 1024 * 1024) throw new ApiError(400, 'Payment receipt must be 10 MB or smaller');
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
+    const allowedTypes: Record<string, string[]> = {
+      jpg: ['image/jpeg'], jpeg: ['image/jpeg'], png: ['image/png'], webp: ['image/webp'], pdf: ['application/pdf'],
+    };
+    if (!allowedTypes[fileExtension] || (file.type && !allowedTypes[fileExtension].includes(file.type))) {
+      throw new ApiError(400, 'Payment receipt must be a JPG, PNG, WEBP, or PDF file');
+    }
+
     // 2. Validate Screenshot File
-    const fileValidation = validateUploadedFile(file);
-    if (!fileValidation.valid) {
-      return NextResponse.json(
-        { error: fileValidation.error || 'Invalid payment receipt file format or size' },
-        { status: 400 }
-      );
+    if (!isSupabaseConfigured()) throw new ApiError(503, 'Payment proof saving is temporarily unavailable. Please try again later.');
+    const supabaseAdmin = getSupabaseAdminClient();
+    const safeRef = transactionRef || '';
+    const filePath = `${randomUUID()}.${fileExtension}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const contentType = file.type || (fileExtension === 'pdf' ? 'application/pdf' : fileExtension === 'png' ? 'image/png' : fileExtension === 'webp' ? 'image/webp' : 'image/jpeg');
+    const { data: uploadedFile, error: uploadError } = await supabaseAdmin.storage
+      .from('payment-receipts')
+      .upload(filePath, buffer, { contentType, upsert: false });
+
+    if (uploadError || !uploadedFile) {
+      console.error('Payment receipt upload failed:', uploadError);
+      throw new ApiError(503, 'Receipt upload could not be confirmed. Please try again.');
     }
 
-    let proofUrl = '';
-    const safeRef = transactionRef || `TXN-${Date.now()}`;
+    const { data: savedProof, error: saveError } = await supabaseAdmin
+      .from('payment_proofs')
+      .insert({
+        registration_id: registrationId || null,
+        paper_id: paperId || null,
+        name, email, phone, institution, category, currency, amount, mode, paper_title: paperTitle,
+        transaction_ref: safeRef,
+        file_path: uploadedFile.path,
+        file_name: file.name.slice(0, 255),
+        content_type: contentType,
+        file_size: file.size,
+        status: 'Pending Verification',
+      })
+      .select('id, created_at')
+      .single();
 
-    // 3. Upload Payment Receipt Screenshot to Supabase Storage
-    if (isSupabaseConfigured()) {
-      try {
-        const supabaseAdmin = getSupabaseAdminClient();
-        const fileExt = file.name.split('.').pop() || 'png';
-        const targetId = registrationId || paperId;
-        const safeFileName = `RECEIPT_${targetId}_${Date.now()}.${fileExt}`;
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-
-        // Try dedicated "payment-receipts" storage bucket first, fallback to "manuscripts"
-        let bucketName = 'payment-receipts';
-        let filePath = safeFileName;
-
-        let uploadRes = await supabaseAdmin.storage
-          .from(bucketName)
-          .upload(filePath, buffer, {
-            contentType: file.type || 'image/png',
-            upsert: true,
-          });
-
-        if (uploadRes.error) {
-          // Fallback to manuscripts bucket under receipts/
-          bucketName = 'manuscripts';
-          filePath = `receipts/${safeFileName}`;
-          uploadRes = await supabaseAdmin.storage
-            .from(bucketName)
-            .upload(filePath, buffer, {
-              contentType: file.type || 'image/png',
-              upsert: true,
-            });
-        }
-
-        if (!uploadRes.error && uploadRes.data) {
-          const { data: signedData } = await supabaseAdmin.storage
-            .from(bucketName)
-            .createSignedUrl(uploadRes.data.path, 3600 * 24 * 365); // 1-year URL
-
-          proofUrl = signedData?.signedUrl || '';
-        } else {
-          console.warn('Supabase receipt storage upload notice:', uploadRes.error);
-        }
-
-        // 4. Update Database Record in Supabase registrations table
-        if (registrationId) {
-          await supabaseAdmin
-            .from('registrations')
-            .update({
-              payment_status: 'Pending Verification',
-              notes: `Payment Proof Uploaded. Ref: ${safeRef}. Image: ${proofUrl || 'Uploaded'}`,
-            })
-            .eq('id', registrationId);
-        } else if (paperId) {
-          await supabaseAdmin
-            .from('registrations')
-            .update({
-              payment_status: 'Pending Verification',
-              notes: `Payment Proof Uploaded. Ref: ${safeRef}. Image: ${proofUrl || 'Uploaded'}`,
-            })
-            .eq('paper_id', paperId);
-        }
-      } catch (err) {
-        console.error('Supabase exception during payment proof upload:', err);
-      }
+    if (saveError || !savedProof) {
+      await supabaseAdmin.storage.from('payment-receipts').remove([uploadedFile.path]);
+      console.error('Payment proof record save failed:', saveError);
+      throw new ApiError(503, 'Payment details could not be saved. Please retry your submission.');
     }
 
-    // 5. Update Local Memory Store
-    const targetId = registrationId || paperId;
-    if (targetId) {
-      updateLocalRegistrationStatus(targetId, 'Pending Verification');
+    const targetRegistration = registrationId
+      ? await supabaseAdmin.from('registrations').select('id').eq('id', registrationId).maybeSingle()
+      : paperId
+        ? await supabaseAdmin.from('registrations').select('id').eq('paper_id', paperId).maybeSingle()
+        : null;
+    if (targetRegistration?.data?.id) {
+      await supabaseAdmin.from('registrations').update({ payment_status: 'Pending Verification' }).eq('id', targetRegistration.data.id);
     }
 
     return NextResponse.json({
       success: true,
       message: 'Payment proof screenshot successfully uploaded and submitted for administrator verification.',
-      proofUrl,
+      proofId: savedProof.id,
+      proofUrl: '',
       transactionRef: safeRef,
     });
   } catch (err) {
-    console.error('Upload payment proof handler error:', err);
-    return NextResponse.json(
-      { error: 'Failed to process payment proof screenshot' },
-      { status: 500 }
-    );
+    return apiErrorResponse(err, 'payment proof upload failed:');
   }
 }

@@ -25,14 +25,16 @@ export async function GET() {
   const configured = isSupabaseConfigured();
   let supabaseRegistrations: any[] = [];
   let supabaseSubmissions: any[] = [];
+  let paymentProofs: any[] = [];
   let supabaseConnected = false;
 
   if (configured) {
     try {
       const supabaseAdmin = getSupabaseAdminClient();
-      const [regResult, subResult] = await Promise.all([
+      const [regResult, subResult, proofResult] = await Promise.all([
         supabaseAdmin.from('registrations').select('*').order('created_at', { ascending: false }),
         supabaseAdmin.from('paper_submissions').select('*').order('created_at', { ascending: false }),
+        supabaseAdmin.from('payment_proofs').select('*').order('created_at', { ascending: false }),
       ]);
 
       if (!regResult.error) {
@@ -110,6 +112,36 @@ export async function GET() {
           })
         );
       }
+
+      if (!proofResult.error) {
+        paymentProofs = await Promise.all((proofResult.data || []).map(async (proof: any) => {
+          const { data: signedData } = await supabaseAdmin.storage
+            .from('payment-receipts')
+            .createSignedUrl(proof.file_path, 3600);
+          return {
+            id: proof.id,
+            registrationId: proof.registration_id || '',
+            paperId: proof.paper_id || '',
+            name: proof.name,
+            email: proof.email,
+            phone: proof.phone || '',
+            institution: proof.institution,
+            category: proof.category,
+            currency: proof.currency,
+            amount: proof.amount,
+            mode: proof.mode || '',
+            paperTitle: proof.paper_title || '',
+            transactionRef: proof.transaction_ref || '',
+            fileName: proof.file_name,
+            fileUrl: signedData?.signedUrl || '',
+            fileSize: proof.file_size,
+            contentType: proof.content_type,
+            status: proof.status,
+            createdAt: proof.created_at,
+          };
+        }));
+        supabaseConnected = true;
+      }
     } catch (err) {
       console.error('Supabase query exception:', err);
     }
@@ -162,6 +194,7 @@ export async function GET() {
     supabaseConnected,
     registrations: uniqueRegs,
     submissions: uniqueSubs,
+    paymentProofs,
   });
 }
 
@@ -172,7 +205,7 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { type, id, paymentStatus, reviewStatus } = body;
+    const { type, id, paymentStatus, reviewStatus, proofStatus } = body;
 
     if (type === 'registration' && paymentStatus) {
       updateLocalRegistrationStatus(id, paymentStatus);
@@ -192,6 +225,19 @@ export async function PATCH(request: Request) {
           .from('paper_submissions')
           .update({ review_status: reviewStatus })
           .eq('id', id);
+      } else if (type === 'paymentProof' && ['Pending Verification', 'Verified', 'Rejected'].includes(proofStatus)) {
+        const { data: proof, error } = await supabaseAdmin
+          .from('payment_proofs')
+          .update({ status: proofStatus })
+          .eq('id', id)
+          .select('registration_id, paper_id')
+          .single();
+        if (error || !proof) return NextResponse.json({ error: 'Payment proof could not be updated' }, { status: 500 });
+        const registrationQuery = supabaseAdmin.from('registrations').update({
+          payment_status: proofStatus === 'Verified' ? 'Verified' : proofStatus === 'Rejected' ? 'Rejected' : 'Pending Verification',
+        });
+        if (proof.registration_id) await registrationQuery.eq('id', proof.registration_id);
+        else if (proof.paper_id) await registrationQuery.eq('paper_id', proof.paper_id);
       }
     }
 

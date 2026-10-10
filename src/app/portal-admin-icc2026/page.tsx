@@ -44,7 +44,8 @@ import {
   Trash2,
   Menu,
   MapPin,
-  Video
+  Video,
+  CreditCard
 } from 'lucide-react';
 
 interface Registration {
@@ -83,6 +84,27 @@ interface Submission {
   reviewerNotes?: string;
 }
 
+interface PaymentProof {
+  id: string;
+  registrationId: string;
+  paperId: string;
+  name: string;
+  email: string;
+  phone: string;
+  institution: string;
+  category: string;
+  currency: string;
+  amount: string;
+  mode: string;
+  paperTitle: string;
+  transactionRef: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  status: string;
+  createdAt: string;
+}
+
 export default function PortalAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
@@ -91,9 +113,10 @@ export default function PortalAdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Dashboard state
-  const [activeTab, setActiveTab] = useState<'registrations' | 'submissions'>('registrations');
+  const [activeTab, setActiveTab] = useState<'registrations' | 'submissions' | 'payments'>('registrations');
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [paymentProofs, setPaymentProofs] = useState<PaymentProof[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Selected Item for Side-by-Side Split View
@@ -267,6 +290,11 @@ export default function PortalAdminPage() {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'payment_proofs' },
+        () => fetchDashboardData()
+      )
       .subscribe();
 
     const handleVisibilityChange = () => {
@@ -306,6 +334,7 @@ export default function PortalAdminPage() {
         const data = await res.json();
         setRegistrations(data.registrations || []);
         setSubmissions(data.submissions || []);
+        setPaymentProofs(data.paymentProofs || []);
       }
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
@@ -388,6 +417,20 @@ export default function PortalAdminPage() {
     } catch (err) {
       console.error('Failed to update submission status:', err);
     }
+  };
+
+  const updatePaymentProofStatus = async (id: string, proofStatus: string) => {
+    const response = await fetch('/api/admin/data', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'paymentProof', id, proofStatus }),
+    });
+    if (!response.ok) {
+      window.alert('Could not update payment proof status. Please refresh and try again.');
+      return;
+    }
+    setPaymentProofs((prev) => prev.map((proof) => proof.id === id ? { ...proof, status: proofStatus } : proof));
+    fetchDashboardData();
   };
 
   const handleDeleteRecord = async (type: 'registration' | 'submission', id: string, label?: string) => {
@@ -637,6 +680,12 @@ export default function PortalAdminPage() {
     return matchesSearch && matchesTrack && matchesStatus;
   });
 
+  const filteredPaymentProofs = paymentProofs.filter((proof) =>
+    `${proof.name} ${proof.email} ${proof.institution} ${proof.transactionRef} ${proof.paperId} ${proof.paperTitle}`
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
+
   const totalRegistrations = registrations.length;
   const totalSubmissions = submissions.length;
   const verifiedCount = registrations.filter((r) => r.paymentStatus === 'Verified').length;
@@ -820,6 +869,19 @@ export default function PortalAdminPage() {
               <span>Paper Submissions</span>
             </button>
 
+            <button
+              onClick={() => {
+                setActiveTab('payments');
+                setSelectedRegistration(null);
+                setSelectedSubmission(null);
+              }}
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'payments' ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+            >
+              <CreditCard className="w-4.5 h-4.5 shrink-0" />
+              <span>Payment Proofs</span>
+              <span className="ml-auto text-[10px]">{paymentProofs.length}</span>
+            </button>
+
             <div className="h-[1px] bg-slate-100 my-3" />
 
             <button
@@ -898,7 +960,7 @@ export default function PortalAdminPage() {
                 <Menu className="w-5 h-5" />
               </button>
               <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
-                {activeTab === 'registrations' ? 'Delegate Registrations' : 'Paper Submissions'}
+                {activeTab === 'registrations' ? 'Delegate Registrations' : activeTab === 'submissions' ? 'Paper Submissions' : 'Payment Proofs'}
               </h1>
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -1050,7 +1112,7 @@ export default function PortalAdminPage() {
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
               <div>
                 <h2 className="text-lg font-extrabold text-slate-900">
-                  {activeTab === 'registrations' ? 'All Delegates' : 'All Manuscripts'}
+                  {activeTab === 'registrations' ? 'All Delegates' : activeTab === 'submissions' ? 'All Manuscripts' : 'Submitted Payment Forms'}
                 </h2>
               </div>
 
@@ -1088,7 +1150,7 @@ export default function PortalAdminPage() {
                       <span>Export CSV</span>
                     </button>
                   </>
-                ) : (
+                ) : activeTab === 'submissions' ? (
                   <>
                     <select
                       value={subTrackFilter}
@@ -1121,7 +1183,7 @@ export default function PortalAdminPage() {
                       <span>Export CSV</span>
                     </button>
                   </>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -1263,7 +1325,7 @@ export default function PortalAdminPage() {
                       )}
                     </tbody>
                   </table>
-                ) : (
+                ) : activeTab === 'submissions' ? (
                   /* PAPER SUBMISSIONS TABLE */
                   <table className="w-full text-left text-xs text-slate-700">
                     <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
@@ -1414,6 +1476,32 @@ export default function PortalAdminPage() {
                       )}
                     </tbody>
                   </table>
+                ) : (
+                  <table className="w-full min-w-[1050px] text-left text-xs text-slate-700">
+                    <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
+                      <tr>
+                        <th className="py-3.5 px-4">Participant</th>
+                        <th className="py-3.5 px-4">Institution / Contact</th>
+                        <th className="py-3.5 px-4">Category &amp; Amount</th>
+                        <th className="py-3.5 px-4">Transaction / Paper</th>
+                        <th className="py-3.5 px-4">Receipt</th>
+                        <th className="py-3.5 px-4">Submitted / Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredPaymentProofs.slice(0, itemsPerPage).map((proof) => (
+                        <tr key={proof.id} className="align-top hover:bg-slate-50">
+                          <td className="py-3.5 px-4"><div className="font-bold text-slate-900">{proof.name}</div><div className="text-slate-500">{proof.email}</div><div className="text-slate-500">{proof.phone || '—'}</div></td>
+                          <td className="py-3.5 px-4"><div>{proof.institution}</div><div className="text-slate-500">{proof.mode || '—'}</div></td>
+                          <td className="py-3.5 px-4"><div className="font-semibold">{proof.category}</div><div className="font-mono text-sky-700">{proof.amount} {proof.currency}</div></td>
+                          <td className="py-3.5 px-4"><div>{proof.transactionRef || 'No transaction reference'}</div><div className="text-slate-500">{proof.paperId || proof.paperTitle || 'Participant registration'}</div><div className="text-slate-500">Registration: {proof.registrationId || '—'}</div></td>
+                          <td className="py-3.5 px-4">{proof.fileUrl ? <a href={proof.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-sky-50 px-2.5 py-1.5 font-bold text-sky-700 hover:bg-sky-100"><Eye className="h-3.5 w-3.5" />View {proof.fileName}</a> : <span className="text-rose-600">Receipt link unavailable</span>}</td>
+                          <td className="py-3.5 px-4"><div className="mb-2 text-slate-500">{new Date(proof.createdAt).toLocaleString()}</div><select aria-label={`Payment proof status for ${proof.name}`} value={proof.status} onChange={(event) => updatePaymentProofStatus(proof.id, event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 font-bold"><option>Pending Verification</option><option>Verified</option><option>Rejected</option></select></td>
+                        </tr>
+                      ))}
+                      {filteredPaymentProofs.length === 0 && <tr><td colSpan={6} className="py-12 text-center text-slate-400">{paymentProofs.length === 0 ? 'No payment forms have been submitted yet.' : 'No payment forms match your search.'}</td></tr>}
+                    </tbody>
+                  </table>
                 )}
               </div>
 
@@ -1434,7 +1522,7 @@ export default function PortalAdminPage() {
 
                 <div className="flex items-center gap-3">
                   <span>
-                    1-{activeTab === 'registrations' ? Math.min(itemsPerPage, filteredRegistrations.length) : Math.min(itemsPerPage, filteredSubmissions.length)} of {activeTab === 'registrations' ? filteredRegistrations.length : filteredSubmissions.length}
+                    {activeTab === 'registrations' ? `1-${Math.min(itemsPerPage, filteredRegistrations.length)} of ${filteredRegistrations.length}` : activeTab === 'submissions' ? `1-${Math.min(itemsPerPage, filteredSubmissions.length)} of ${filteredSubmissions.length}` : `1-${Math.min(itemsPerPage, filteredPaymentProofs.length)} of ${filteredPaymentProofs.length}`}
                   </span>
                   <div className="flex items-center gap-1">
                     <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
