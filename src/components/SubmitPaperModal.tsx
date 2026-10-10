@@ -1440,7 +1440,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Submit Manuscript for Review</span>
+                      <span>Submit Your Paper</span>
                     </>
                   )}
                 </button>

@@ -150,7 +150,7 @@ export const Registration: React.FC<RegistrationProps> = ({
           <p className="text-xs text-slate-600 leading-relaxed text-center">
             * <strong>Paper Authors:</strong> Register and pay only upon intimation of acceptance. Paper submission is free at this stage.
             <br />
-            * <strong>Attendees / Observers:</strong> Click &ldquo;Register as Participant&rdquo; to complete immediate registration with Razorpay payment ({participantFee}).
+            * <strong>Attendees / Observers:</strong> Click &ldquo;Register as Participant&rdquo; to complete immediate registration with Razorpay payment.
           </p>
 
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -159,13 +159,13 @@ export const Registration: React.FC<RegistrationProps> = ({
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors cursor-pointer"
             >
               <CreditCard className="w-4 h-4 text-emerald-400" />
-              <span>Register as Participant ({participantFee})</span>
+              <span>Register as Participant</span>
             </button>
             <button
               onClick={onOpenSubmitModal}
               className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs transition-colors cursor-pointer"
             >
-              Submit Your Research Paper
+              Submit Your Paper
             </button>
           </div>
         </div>

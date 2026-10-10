@@ -558,7 +558,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                         }}
                         className="w-full py-3 px-4 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white text-center cursor-pointer shadow-xs active:scale-98"
                       >
-                        Submit Paper Manuscript Instead
+                        Submit Your Paper
                       </button>
                     )}
                     <button

@@ -133,7 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={onOpenSubmitModal}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95 whitespace-nowrap"
               >
-                <span>Submit Paper</span>
+                <span>Submit Your Paper</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -144,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={onOpenSubmitModal}
                 className="px-3 py-1.5 rounded-full text-xs font-bold bg-[#7cb305] text-white shadow-xs whitespace-nowrap active:scale-95"
               >
-                Submit Paper
+                Submit Your Paper
               </button>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -188,7 +188,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 className="w-full py-3 rounded-xl text-xs font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-md text-center"
               >
-                Register as Participant (₹300)
+                Register as Participant
               </button>
               <button
                 onClick={() => {
@@ -197,7 +197,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 className="w-full py-3 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-md text-center"
               >
-                Submit Paper
+                Submit Your Paper
               </button>
               <button
                 onClick={() => {

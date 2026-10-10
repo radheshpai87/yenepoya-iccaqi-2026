@@ -51,13 +51,13 @@ export const Footer: React.FC<FooterProps> = ({
             onClick={onOpenRegisterModal}
             className="font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
           >
-            Register (₹300)
+            Register
           </button>
           <button
             onClick={onOpenSubmitModal}
             className="font-semibold text-[#94cf1b] hover:text-[#a8e822] transition-colors cursor-pointer"
           >
-            Submit Paper
+            Submit Your Paper
           </button>
           <span className="text-slate-800">|</span>
           <button
