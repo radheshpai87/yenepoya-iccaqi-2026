@@ -2,11 +2,8 @@
 
 import React from 'react';
 import { 
-  FileText, 
   Send, 
-  Download, 
-  CheckCircle2, 
-  AlertCircle 
+  CheckCircle2 
 } from 'lucide-react';
 
 interface CallForPapersProps {
@@ -22,19 +19,12 @@ export const CallForPapers: React.FC<CallForPapersProps> = ({ onOpenSubmitModal 
     'Emerging technologies and quantum computational paradigms',
   ];
 
-  const guidelines = [
-    'Standard manuscript length: 6–8 pages (including figures & references)',
-    'Strict similarity policy (<15% similarity check excluding references)',
-    'Submissions evaluated via double-blind international peer review',
-    'Accepted papers must be presented by at least one registered author',
-  ];
-
   return (
     <section id="call-for-papers" className="py-20 md:py-24 bg-slate-50 border-b border-slate-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
+        <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 block">
             Submissions
           </span>
@@ -46,65 +36,44 @@ export const CallForPapers: React.FC<CallForPapersProps> = ({ onOpenSubmitModal 
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          
-          {/* Box 1: Scopes */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xs space-y-4">
-            <h3 className="text-base font-bold text-slate-900">
+        {/* Submission Scopes */}
+        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-2xs space-y-6 mb-8">
+          <div className="max-w-2xl">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900">
               Submission Scopes
             </h3>
-            <ul className="space-y-2.5 text-xs sm:text-sm text-slate-700">
-              {scopes.map((s, idx) => (
-                <li key={idx} className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#7cb305] shrink-0 mt-0.5" />
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="text-xs sm:text-sm text-slate-600 mt-1">
+              Authors are invited to submit papers addressing novel research, methodologies, and applications across our core scopes:
+            </p>
           </div>
 
-          {/* Box 2: Guidelines */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xs space-y-4">
-            <h3 className="text-base font-bold text-slate-900">
-              Submission Guidelines
-            </h3>
-            <ul className="space-y-2.5 text-xs sm:text-sm text-slate-700">
-              {guidelines.map((g, idx) => (
-                <li key={idx} className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#0284c7] shrink-0 mt-0.5" />
-                  <span>{g}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {scopes.map((s, idx) => (
+              <div key={idx} className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/80">
+                <CheckCircle2 className="w-4 h-4 text-[#7cb305] shrink-0 mt-0.5" />
+                <span className="text-xs sm:text-sm text-slate-700 font-medium">{s}</span>
+              </div>
+            ))}
           </div>
-
         </div>
 
         {/* Action Strip */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-slate-700">Templates:</span>
-            <button
-              onClick={() => alert("LaTeX package files will be provided in the author submission pack.")}
-              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-1 cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>LaTeX</span>
-            </button>
-            <button
-              onClick={() => alert("MS Word (.docx) template conforms to standard double-column formatting.")}
-              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-1 cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>MS Word</span>
-            </button>
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h4 className="text-base font-bold text-slate-900">
+              Ready to submit your manuscript?
+            </h4>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Submissions are now open for ICCAQI 2026.
+            </p>
           </div>
 
           <button
             onClick={onOpenSubmitModal}
-            className="w-full sm:w-auto px-6 py-3 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs cursor-pointer"
+            className="w-full sm:w-auto px-7 py-3.5 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
           >
-            Submit Your Paper
+            <Send className="w-4 h-4" />
+            <span>Submit Your Paper</span>
           </button>
         </div>
 
