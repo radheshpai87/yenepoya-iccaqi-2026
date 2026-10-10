@@ -13,24 +13,38 @@ export const Contact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const isNameInvalid = attemptedSubmit && !formData.name.trim();
   const isEmailInvalid = attemptedSubmit && (!formData.email.trim() || !formData.email.includes('@'));
   const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
   const isMessageInvalid = attemptedSubmit && !formData.message.trim();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAttemptedSubmit(true);
+    setErrorMessage('');
     if (!formData.name.trim() || !formData.email.trim() || !formData.institution.trim() || !formData.message.trim()) {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to send message. Please try again.');
+      }
       setSubmitted(true);
       setAttemptedSubmit(false);
-    }, 800);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to send message. Please email iccaqi2026@yenepoya.edu.in directly.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -126,6 +140,12 @@ export const Contact: React.FC = () => {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3.5">
+                {errorMessage && (
+                  <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -223,9 +243,19 @@ export const Contact: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 sm:py-3 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white transition-colors cursor-pointer disabled:opacity-50 active:scale-98"
+                  className="w-full py-3.5 sm:py-3 rounded-full text-xs sm:text-sm font-bold bg-[#7cb305] hover:bg-[#689803] text-white transition-all cursor-pointer disabled:opacity-50 active:scale-98 flex items-center justify-center gap-2 shadow-sm"
                 >
-                  {loading ? 'Sending...' : 'Send Message'}
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Sending Message...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Send Message</span>
+                    </>
+                  )}
                 </button>
               </form>
             )}
