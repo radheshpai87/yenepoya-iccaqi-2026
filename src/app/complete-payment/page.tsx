@@ -82,7 +82,7 @@ function CompletePaymentContent() {
     if (cat.includes('student') || cat.includes('ug') || cat.includes('pg')) {
       return { amount: '₹500', currency: 'INR' };
     } else if (cat.includes('industry')) {
-      return { amount: '₹1,000', currency: 'INR' };
+      return { amount: '₹1,500', currency: 'INR' };
     } else if (cat.includes('international') || currentCurrency === 'USD') {
       return { amount: '$50', currency: 'USD' };
     }
@@ -446,7 +446,7 @@ function CompletePaymentContent() {
                     >
                       <option value="Students (UG / PG)">Students (UG / PG) — ₹500</option>
                       <option value="Research Scholars / Academicians">Research Scholars / Academicians — ₹750</option>
-                      <option value="Industry Delegates">Industry Delegates — ₹1,000</option>
+                      <option value="Industry Delegates">Industry Delegates — ₹1,500</option>
                       <option value="International Delegates">International Delegates — $50 USD</option>
                     </select>
                   </div>
