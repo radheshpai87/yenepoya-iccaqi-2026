@@ -475,13 +475,19 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
               </div>
               <ul className="text-xs text-emerald-950 space-y-1.5 leading-relaxed pl-5 list-disc">
                 <li>
-                  Your manuscript is being routed to the <strong>Conference Review Committee</strong> for technical evaluation.
+                  Please check your <strong>registered email address</strong> for confirmation of your article submission. If you do not find the email in your inbox, kindly check your <strong>Spam/Junk folder</strong>.
                 </li>
                 <li>
-                  Official <strong>Notification of Acceptance</strong> will be communicated via email.
+                  Your manuscript will be forwarded to the <strong>Conference Review Committee</strong> for technical evaluation.
                 </li>
                 <li>
-                  Upon acceptance notification, authors will receive payment instructions and their designated presentation schedule.
+                  The official <strong>Notification of Acceptance</strong> will be communicated via email once the review process is completed.
+                </li>
+                <li>
+                  Upon receiving the acceptance notification, authors may proceed with the <strong>conference registration and payment</strong>.
+                </li>
+                <li>
+                  The paper presentation schedule will be communicated to the authors via email after <strong>November 20, 2026</strong>.
                 </li>
               </ul>
             </div>
