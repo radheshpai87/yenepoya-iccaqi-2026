@@ -683,8 +683,15 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                         <td className="py-2 px-3 font-medium">AI-Generated Content</td>
                         <td className="py-2 px-3 font-bold text-emerald-700">Below 20%</td>
                       </tr>
+                      <tr>
+                        <td className="py-2 px-3 font-medium">Abstract Plagiarism / Similarity Index*</td>
+                        <td className="py-2 px-3 font-bold text-emerald-700">Below 20%</td>
+                      </tr>
                     </tbody>
                   </table>
+                  <div className="px-3 py-2 bg-slate-50/70 border-t border-slate-200 text-[11px] text-slate-600 leading-relaxed">
+                    * Abstract must individually have a plagiarism/similarity index below 20% to be eligible for inclusion in the Conference Proceedings.
+                  </div>
                 </div>
 
                 {/* APA 7th Edition Sample Paper & Formatting Guide */}
