@@ -96,18 +96,14 @@ export const Hero: React.FC<HeroProps> = ({
       <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-20 space-y-8">
         
         {/* Institutional Pill with Yenepoya School of Engineering and Technology Logo */}
-        <div className="inline-flex max-w-full items-center justify-center gap-3 sm:gap-5 px-4 sm:px-7 py-2.5 sm:py-3.5 rounded-2xl sm:rounded-full bg-slate-900/80 backdrop-blur-md border border-white/25 shadow-xl">
+        <div className="inline-flex max-w-full items-center justify-center px-6 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-full bg-slate-900/80 backdrop-blur-md border border-white/25 shadow-xl mx-auto">
           <img
             src="/yenepoya-school-engineering-and-technologynew-white.svg"
             alt="Yenepoya School of Engineering & Technology"
-            width={260}
-            height={56}
-            className="h-9 sm:h-12 md:h-14 w-auto object-contain drop-shadow-sm"
+            width={340}
+            height={70}
+            className="h-11 sm:h-14 md:h-16 lg:h-18 w-auto max-w-[85vw] sm:max-w-md md:max-w-xl object-contain drop-shadow-md mx-auto"
           />
-          <div className="h-6 sm:h-8 w-[1px] bg-white/25 hidden xs:block" />
-          <span className="text-xs sm:text-sm font-semibold px-2.5 sm:px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shrink-0">
-            NAAC Grade &apos;A+&apos;
-          </span>
         </div>
 
         {/* Main Title & Acronym - Semantic Unified H1 for High-Impact SEO */}

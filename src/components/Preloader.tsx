@@ -17,6 +17,7 @@ const ASSETS_TO_PRELOAD = [
   '/iccaqi-logo.webp',
   '/imanager-publications-logo.webp',
   '/indexing-services-collage.webp',
+  '/naac-a-plus-logo.webp',
 ];
 
 export const Preloader: React.FC = () => {
