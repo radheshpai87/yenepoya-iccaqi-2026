@@ -478,7 +478,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   Your manuscript is being routed to the <strong>Conference Review Committee</strong> for technical evaluation.
                 </li>
                 <li>
-                  Official <strong>Notification of Acceptance</strong> will be communicated via email by <strong>November 20, 2026</strong>.
+                  Official <strong>Notification of Acceptance</strong> will be communicated via email.
                 </li>
                 <li>
                   Upon acceptance notification, authors will receive payment instructions and their designated presentation schedule.
