@@ -39,30 +39,35 @@ export const Venue: React.FC = () => {
                 />
               </div>
 
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                <strong>Yenepoya (Deemed to be University)</strong><br />
-                University Road, Deralakatte<br />
-                Mangaluru, Karnataka, India — 575018
-              </p>
+              <div className="space-y-1">
+                <span className="text-sm sm:text-base font-bold text-slate-900 block">
+                  Yenepoya School of Engineering and Technology
+                </span>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Yenepoya (Deemed to be University)<br />
+                  Yenepoya Complex, Balmatta<br />
+                  Mangaluru, Karnataka, India — 575002
+                </p>
+              </div>
 
               <div className="pt-2 space-y-2 text-xs text-slate-500">
                 <div className="flex items-center gap-2">
                   <Plane className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Mangaluru Int&apos;l Airport (IXE) — ~20 km</span>
+                  <span>Mangaluru Int&apos;l Airport (IXE) — ~14 km</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Train className="w-4 h-4 text-sky-600 shrink-0" />
-                  <span>Mangaluru Central / Junction — ~12-15 km</span>
+                  <span>Mangaluru Central / Junction — ~1.5-3 km</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Car className="w-4 h-4 text-indigo-600 shrink-0" />
-                  <span>National Highway 66 (NH-66) Connectivity</span>
+                  <span>Balmatta, Heart of Mangaluru City</span>
                 </div>
               </div>
             </div>
 
             <a
-              href="https://maps.app.goo.gl/xSiRAR6iVW2Nrgj26"
+              href="https://maps.app.goo.gl/iZBpz17U1R8eEwQu8"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs transition-colors"
@@ -75,8 +80,8 @@ export const Venue: React.FC = () => {
           {/* Right: Map Embed */}
           <div className="md:col-span-7 h-72 md:h-auto min-h-[300px] rounded-3xl overflow-hidden border border-slate-200 shadow-2xs">
             <iframe
-              title="Yenepoya (Deemed to be University) Campus Location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.345389658552!2d74.87861047507386!3d12.812207687489561!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba35eb9113ab6c7%3A0x2b92712dfbbe59a1!2sYenepoya%20(Deemed%20to%20be%20University)!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
+              title="Yenepoya School of Engineering and Technology Campus Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3889.479261884022!2d74.85108037507484!3d12.87334618742886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba35b2d6f6085d9%3A0xdfeded7e679a3860!2sYenepoya%20School%20of%20Engineering%20%26%20Technology!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
               className="w-full h-full border-0"
               allowFullScreen={false}
               loading="lazy"
