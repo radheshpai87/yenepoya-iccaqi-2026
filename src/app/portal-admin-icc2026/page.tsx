@@ -28,7 +28,6 @@ import {
   FileCheck,
   User,
   Calendar,
-  Layers,
   ChevronRight,
   ChevronLeft,
   Sparkles,
@@ -36,6 +35,7 @@ import {
   ArrowUpRight,
   Award,
   BarChart3,
+  LineChart,
   MoreVertical,
   Download,
   Filter,
@@ -120,6 +120,8 @@ export default function PortalAdminPage() {
   const [paymentProofs, setPaymentProofs] = useState<PaymentProof[]>([]);
   const [selectedPaymentProof, setSelectedPaymentProof] = useState<PaymentProof | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [hoveredActivityIndex, setHoveredActivityIndex] = useState<number | null>(null);
+  const [hoveredPieSlice, setHoveredPieSlice] = useState<{ chart: string; index: number } | null>(null);
 
   // Selected Item for Side-by-Side Split View
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
@@ -703,6 +705,16 @@ export default function PortalAdminPage() {
     counts[mode] = (counts[mode] || 0) + 1;
     return counts;
   }, {});
+  const registrationStatusCounts = registrations.reduce<Record<string, number>>((counts, registration) => {
+    const status = registration.paymentStatus || 'Pending';
+    counts[status] = (counts[status] || 0) + 1;
+    return counts;
+  }, {});
+  const paymentProofStatusCounts = paymentProofs.reduce<Record<string, number>>((counts, proof) => {
+    const status = proof.status || 'Pending Verification';
+    counts[status] = (counts[status] || 0) + 1;
+    return counts;
+  }, {});
   const submissionTrackCounts = submissions.reduce<Record<string, number>>((counts, submission) => {
     const track = submission.track || 'Unspecified';
     counts[track] = (counts[track] || 0) + 1;
@@ -713,20 +725,153 @@ export default function PortalAdminPage() {
     counts[gender] = (counts[gender] || 0) + 1;
     return counts;
   }, {});
+  const activityDays = Array.from({ length: 30 }, (_, index) => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - (29 - index));
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const countForDay = (items: Array<{ createdAt: string }>) => items.filter((item) => {
+      const createdAt = new Date(item.createdAt);
+      return !Number.isNaN(createdAt.getTime()) && `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}` === key;
+    }).length;
+    return { date, registrations: countForDay(registrations), submissions: countForDay(submissions) };
+  });
+  const activityMax = Math.max(1, ...activityDays.flatMap((day) => [day.registrations, day.submissions]));
+  const activityCoordinates = (key: 'registrations' | 'submissions') => activityDays.map((day, index) => ({
+    x: 44 + (index / (activityDays.length - 1)) * 660,
+    y: 194 - (day[key] / activityMax) * 166,
+  }));
+  const activityLinePath = (key: 'registrations' | 'submissions') => {
+    const points = activityCoordinates(key);
+    return points.reduce((path, point, index) => {
+      if (index === 0) return `M ${point.x} ${point.y}`;
+      const previous = points[index - 1];
+      const middleX = (previous.x + point.x) / 2;
+      return `${path} C ${middleX} ${previous.y}, ${middleX} ${point.y}, ${point.x} ${point.y}`;
+    }, '');
+  };
+  const activityAreaPath = (key: 'registrations' | 'submissions') => {
+    const points = activityCoordinates(key);
+    return `${activityLinePath(key)} L ${points[points.length - 1].x} 194 L ${points[0].x} 194 Z`;
+  };
+  const renderDemographicPie = (chartId: string, title: string, counts: Record<string, number>, colors: string[]) => {
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const total = entries.reduce((sum, [, count]) => sum + count, 0);
+    let angle = -90;
+    return (
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
+        <div className="mb-4 flex items-center justify-between gap-3"><h3 className="text-sm font-extrabold text-slate-900">{title}</h3>{total > 0 && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold tabular-nums text-slate-600">{total} total</span>}</div>
+        {total === 0 ? <p className="rounded-xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">No data yet.</p> : <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(150px,1fr)]">
+          <svg viewBox="0 0 240 200" className="mx-auto w-full max-w-[260px] overflow-visible" role="img" aria-label={`${title} pie chart`} onMouseLeave={() => setHoveredPieSlice((current) => current?.chart === chartId ? null : current)}>
+            <circle cx="100" cy="100" r="72" fill="#f1f5f9" />
+            {entries.map(([label, count], index) => {
+              const startAngle = angle;
+              const endAngle = angle + (count / total) * 360;
+              angle = endAngle;
+              const radians = (degree: number) => degree * Math.PI / 180;
+              const startX = 100 + 72 * Math.cos(radians(startAngle));
+              const startY = 100 + 72 * Math.sin(radians(startAngle));
+              const endX = 100 + 72 * Math.cos(radians(endAngle));
+              const endY = 100 + 72 * Math.sin(radians(endAngle));
+              const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+              const path = entries.length === 1 ? undefined : `M 100 100 L ${startX} ${startY} A 72 72 0 ${largeArc} 1 ${endX} ${endY} Z`;
+              const midAngle = (startAngle + endAngle) / 2;
+              const midX = 100 + 58 * Math.cos(radians(midAngle));
+              const midY = 100 + 58 * Math.sin(radians(midAngle));
+              const tooltipX = midX < 100 ? 108 : 2;
+              const tooltipY = Math.max(2, Math.min(144, midY - 26));
+              const isHovered = hoveredPieSlice?.chart === chartId && hoveredPieSlice.index === index;
+              return <g key={label}>
+                {entries.length === 1 ? <circle
+                  cx="100" cy="100" r="72" fill={colors[index % colors.length]} stroke={isHovered ? '#0f172a' : 'white'} strokeWidth={isHovered ? 3 : 2}
+                  className="cursor-pointer outline-hidden" tabIndex={0} role="button" aria-label={`${label}: ${count} participants, ${Math.round(count / total * 100)} percent`}
+                  onMouseEnter={() => setHoveredPieSlice({ chart: chartId, index })} onFocus={() => setHoveredPieSlice({ chart: chartId, index })} onBlur={() => setHoveredPieSlice(null)}
+                /> : <path
+                  d={path} fill={colors[index % colors.length]} stroke={isHovered ? '#0f172a' : 'white'} strokeWidth={isHovered ? 3 : 2}
+                  className="cursor-pointer outline-hidden" tabIndex={0} role="button" aria-label={`${label}: ${count} participants, ${Math.round(count / total * 100)} percent`}
+                  onMouseEnter={() => setHoveredPieSlice({ chart: chartId, index })} onFocus={() => setHoveredPieSlice({ chart: chartId, index })} onBlur={() => setHoveredPieSlice(null)}
+                />}
+                {isHovered && <g pointerEvents="none">
+                  <rect x={tooltipX} y={tooltipY} width="130" height="52" rx="9" fill="white" stroke="#e2e8f0" filter="drop-shadow(0 4px 10px rgb(15 23 42 / 0.14))" />
+                  <text x={tooltipX + 10} y={tooltipY + 18} fill="#0f172a" fontSize="10" fontWeight="700">{label.length > 19 ? `${label.slice(0, 18)}…` : label}</text>
+                  <text x={tooltipX + 10} y={tooltipY + 37} fill="#475569" fontSize="10">{count} {chartId === 'paper-tracks' ? 'papers' : chartId === 'author-gender' ? 'authors' : 'participants'} · {Math.round(count / total * 100)}%</text>
+                </g>}
+              </g>;
+            })}
+          </svg>
+          <div className="space-y-3">
+            {entries.map(([label, count], index) => {
+              const percent = Math.round(count / total * 100);
+              const isHovered = hoveredPieSlice?.chart === chartId && hoveredPieSlice.index === index;
+              return <div key={label} className={`rounded-lg px-2 py-1.5 transition-colors ${isHovered ? 'bg-slate-50' : ''}`} onMouseEnter={() => setHoveredPieSlice({ chart: chartId, index })} onMouseLeave={() => setHoveredPieSlice(null)} onFocus={() => setHoveredPieSlice({ chart: chartId, index })} onBlur={() => setHoveredPieSlice(null)} tabIndex={0}>
+                <div className="mb-1 flex items-center justify-between gap-2 text-[11px]"><span className="flex min-w-0 items-center gap-2 truncate text-slate-600"><span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: colors[index % colors.length] }} />{label}</span><span className="shrink-0 font-bold tabular-nums text-slate-900">{count} <span className="font-medium text-slate-400">({percent}%)</span></span></div>
+                <div className="ml-[18px] h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${percent}%`, backgroundColor: colors[index % colors.length] }} /></div>
+              </div>;
+            })}
+          </div>
+        </div>}
+      </section>
+    );
+  };
   const renderDemographicList = (title: string, counts: Record<string, number>, barColor: string) => {
     const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    const maxCount = Math.max(...entries.map(([, count]) => count), 1);
+    const total = entries.reduce((sum, [, count]) => sum + count, 0);
     return (
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-        <h3 className="mb-4 text-sm font-extrabold text-slate-900">{title}</h3>
-        {entries.length === 0 ? <p className="text-xs text-slate-400">No data yet.</p> : <div className="space-y-3">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
+        <h3 className="mb-5 text-sm font-extrabold text-slate-900">{title}</h3>
+        {entries.length === 0 ? <p className="rounded-xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">No data yet.</p> : <div className="space-y-4">
           {entries.map(([label, count]) => (
             <div key={label}>
-              <div className="mb-1 flex justify-between gap-3 text-xs"><span className="truncate text-slate-600">{label}</span><span className="font-bold text-slate-900">{count}</span></div>
-              <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.max(5, count / maxCount * 100)}%` }} /></div>
+              <div className="mb-1.5 flex justify-between gap-3 text-xs"><span className="truncate text-slate-600">{label}</span><span className="shrink-0 font-bold text-slate-900">{count} <span className="font-medium text-slate-400">({Math.round(count / total * 100)}%)</span></span></div>
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${barColor} transition-[width] duration-500`} style={{ width: `${count / total * 100}%` }} /></div>
             </div>
           ))}
         </div>}
+      </section>
+    );
+  };
+
+  const renderParticipantCategoryBars = (counts: Record<string, number>) => {
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const total = entries.reduce((sum, [, count]) => sum + count, 0);
+    const max = Math.max(1, ...entries.map(([, count]) => count));
+    const slotWidth = entries.length ? 296 / entries.length : 296;
+    const barWidth = Math.min(40, slotWidth * 0.54);
+    return (
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
+        <div className="mb-3 flex items-center justify-between gap-3"><h3 className="text-sm font-extrabold text-slate-900">Participant categories</h3><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold tabular-nums text-slate-600">{total} participants</span></div>
+        {entries.length === 0 ? <p className="rounded-xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">No data yet.</p> : <>
+          <p className="text-[11px] text-slate-500">Registered participants by category</p>
+          <div className="mt-3 overflow-x-auto">
+            <svg viewBox="0 0 340 166" className="h-40 min-w-[300px] w-full" role="img" aria-label={`Bar chart of ${total} participants by category`}>
+              {[18, 55, 92, 129].map((y, index) => (
+                <g key={y}>
+                  <line x1="34" y1={y} x2="330" y2={y} stroke="#e2e8f0" strokeDasharray={index === 3 ? undefined : '3 5'} />
+                  <text x="27" y={y + 3} textAnchor="end" fill="#94a3b8" fontSize="8">{Math.round(max * (3 - index) / 3)}</text>
+                </g>
+              ))}
+              {entries.map(([label, count], index) => {
+                const x = 42 + slotWidth * index + (slotWidth - barWidth) / 2;
+                const height = (count / max) * 111;
+                const shortLabel = label.length > 12 ? `${label.slice(0, 11)}…` : label;
+                return <g key={label}>
+                  <rect x={x} y={129 - height} width={barWidth} height={height} rx="4" fill="#7cb305"><title>{`${label}: ${count} participants (${Math.round(count / total * 100)}%)`}</title></rect>
+                  <text x={x + barWidth / 2} y={Math.max(12, 124 - height)} textAnchor="middle" fill="#334155" fontSize="9" fontWeight="700">{count}</text>
+                  <text x={x + barWidth / 2} y="148" textAnchor="middle" fill="#64748b" fontSize="8">{shortLabel}</text>
+                </g>;
+              })}
+            </svg>
+          </div>
+          <div className="mt-2 space-y-2 border-t border-slate-100 pt-3">
+            {entries.map(([label, count]) => {
+              const percent = Math.round(count / total * 100);
+              return <div key={label}>
+                <div className="mb-1 flex items-center justify-between gap-3 text-[11px]"><span className="truncate text-slate-600" title={label}>{label}</span><span className="shrink-0 font-bold tabular-nums text-slate-900">{count} <span className="font-medium text-slate-400">({percent}%)</span></span></div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#7cb305]" style={{ width: `${percent}%` }} /></div>
+              </div>;
+            })}
+          </div>
+        </>}
       </section>
     );
   };
@@ -910,9 +1055,9 @@ export default function PortalAdminPage() {
             </button>
 
             {activeTab === 'records' && (
-              <div className="ml-4 border-l border-slate-200 pl-3 space-y-1">
-                <button onClick={() => setRecordView('registrations')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold ${recordView === 'registrations' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50'}`}>Delegate registrations ({totalRegistrations})</button>
-                <button onClick={() => setRecordView('submissions')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold ${recordView === 'submissions' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50'}`}>Paper submissions ({totalSubmissions})</button>
+              <div className="ml-4 space-y-1 border-l border-slate-200 pl-3">
+                <button onClick={() => setRecordView('registrations')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${recordView === 'registrations' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>Delegate registrations <span className="text-slate-400">({totalRegistrations})</span></button>
+                <button onClick={() => setRecordView('submissions')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold transition-colors ${recordView === 'submissions' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>Paper submissions <span className="text-slate-400">({totalSubmissions})</span></button>
               </div>
             )}
 
@@ -925,8 +1070,8 @@ export default function PortalAdminPage() {
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'payments' ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
             >
               <CreditCard className="w-4.5 h-4.5 shrink-0" />
-              <span>Payment Proofs</span>
-              <span className="ml-auto text-[10px]">{paymentProofs.length}</span>
+              <span>Payment Verification</span>
+              <span className="ml-auto rounded-full bg-white/20 px-2 py-0.5 text-[10px] tabular-nums">{paymentProofs.length}</span>
             </button>
 
             <div className="h-[1px] bg-slate-100 my-3" />
@@ -962,7 +1107,7 @@ export default function PortalAdminPage() {
               className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
             >
               <Mail className="w-4.5 h-4.5 shrink-0 text-[#7cb305]" />
-              <span>Broadcast Email</span>
+                <span className="hidden sm:inline">Broadcast Email</span>
             </button>
           </nav>
         </div>
@@ -1034,15 +1179,17 @@ export default function PortalAdminPage() {
                 onClick={() => setIsEmailModalOpen(true)}
                 className="px-3.5 py-1.5 rounded-xl bg-[#7cb305] hover:bg-[#689803] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                 title="Broadcast SMTP email to verified delegates"
+                aria-label={`Broadcast email to ${registrations.filter((r) => r.paymentStatus === 'Verified').length} verified delegates`}
               >
                 <Mail className="w-3.5 h-3.5" />
-                <span>Broadcast Email ({registrations.filter((r) => r.paymentStatus === 'Verified').length})</span>
+                <span className="hidden sm:inline">Broadcast Email ({registrations.filter((r) => r.paymentStatus === 'Verified').length})</span>
               </button>
 
               {/* Refresh Button */}
               <button
                 onClick={fetchDashboardData}
                 title="Refresh Live Data"
+                aria-label="Refresh live data"
                 className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer shrink-0"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin' : ''}`} />
@@ -1051,107 +1198,16 @@ export default function PortalAdminPage() {
           </header>
 
           {/* MAIN BODY DASHBOARD */}
-          <main className="p-6 space-y-6 flex-1">
+          <main className="flex-1 space-y-6 p-4 sm:p-6 lg:p-8">
 
             {activeTab === 'overview' && (
             <>
-            {/* STAGE / CATEGORY CARDS CAROUSEL */}
-            <div className="relative">
-              <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
-                
-                {/* Card 1: Delegate Registrations */}
-                <div
-                  onClick={() => { setActiveTab('records'); setRecordView('registrations'); }}
-                  className="min-w-[210px] flex-1 cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:border-slate-300"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2.5 rounded-xl bg-lime-100 text-[#7cb305]">
-                      <Users className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-extrabold text-[#7cb305] bg-lime-50 px-2 py-0.5 rounded-full border border-lime-200">
-                      {totalRegistrations} Total
-                    </span>
-                  </div>
-                  <div className="font-extrabold text-sm text-slate-900">Delegate Registrations</div>
-                  <div className="text-xs text-slate-500 font-medium mt-0.5">Participants : {totalRegistrations}</div>
-                </div>
-
-                {/* Card 2: Paper Submissions */}
-                <div
-                  onClick={() => { setActiveTab('records'); setRecordView('submissions'); }}
-                  className="min-w-[210px] flex-1 cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:border-slate-300"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2.5 rounded-xl bg-sky-100 text-sky-600">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-extrabold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
-                      {totalSubmissions} Papers
-                    </span>
-                  </div>
-                  <div className="font-extrabold text-sm text-slate-900">Paper Submissions</div>
-                  <div className="text-xs text-slate-500 font-medium mt-0.5">Manuscripts : {totalSubmissions}</div>
-                </div>
-
-                {/* Card 3: Verified Payments */}
-                <div
-                  onClick={() => {
-                    setActiveTab('records');
-                    setRecordView('registrations');
-                    setRegStatusFilter('Verified');
-                  }}
-                  className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 shadow-xs transition-all cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-600">
-                      <CheckCircle2 className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      Verified
-                    </span>
-                  </div>
-                  <div className="font-extrabold text-sm text-slate-900">Verified Payments</div>
-                  <div className="text-xs text-slate-500 font-medium mt-0.5">Issued Receipts : {verifiedCount}</div>
-                </div>
-
-                {/* Card 4: Pending Verification */}
-                <div
-                  onClick={() => {
-                    setActiveTab('records');
-                    setRecordView('registrations');
-                    setRegStatusFilter('Pending');
-                  }}
-                  className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 shadow-xs transition-all cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
-                      <Clock className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                      Pending
-                    </span>
-                  </div>
-                  <div className="font-extrabold text-sm text-slate-900">Pending Actions</div>
-                  <div className="text-xs text-slate-500 font-medium mt-0.5">Awaiting : {pendingCount}</div>
-                </div>
-
-                {/* Card 5: Technical Tracks */}
-                <div className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
-                      <Layers className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
-                      8 Tracks
-                    </span>
-                  </div>
-                  <div className="font-extrabold text-sm text-slate-900">Conference Tracks</div>
-                  <div className="text-xs text-slate-500 font-medium mt-0.5">Active Track Domains</div>
-                </div>
-
-              </div>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#659b02]">ICCAQI 2026</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900">Conference overview</h2><p className="mt-1 text-sm text-slate-500">Live participant, paper, and payment activity at a glance.</p></div>
+              <button onClick={() => setActiveTab('payments')} className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
+                <CreditCard className="h-4 w-4" /> Review receipts <span className="rounded-full bg-white px-2 py-0.5 tabular-nums">{pendingProofCount}</span>
+              </button>
             </div>
-
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {[
                 { label: 'Registered participants', value: totalRegistrations, icon: Users, tone: 'bg-lime-100 text-[#659b02]' },
@@ -1159,20 +1215,95 @@ export default function PortalAdminPage() {
                 { label: 'Verified payments', value: verifiedCount, icon: CheckCircle2, tone: 'bg-emerald-100 text-emerald-700' },
                 { label: 'Receipts to review', value: pendingProofCount, icon: CreditCard, tone: 'bg-amber-100 text-amber-700' },
               ].map(({ label, value, icon: Icon, tone }) => (
-                <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <div className="flex items-center justify-between"><span className="text-xs font-semibold text-slate-500">{label}</span><span className={`rounded-xl p-2 ${tone}`}><Icon className="h-4 w-4" /></span></div>
-                  <div className="mt-3 text-3xl font-black text-slate-900">{value}</div>
+                <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                  <div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold text-slate-500">{label}</span><span className={`rounded-xl p-2 ${tone}`}><Icon className="h-4 w-4" /></span></div>
+                  <div className="mt-3 text-3xl font-black tabular-nums text-slate-900">{value}</div>
                 </div>
               ))}
             </div>
 
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 text-slate-900"><LineChart className="h-4 w-4 text-[#659b02]" /><h2 className="text-sm font-extrabold">Registration &amp; submission activity</h2></div>
+                  <p className="mt-1 text-xs text-slate-500">Daily activity over the last 30 days</p>
+                </div>
+                <div className="flex items-center gap-4 text-[11px] font-semibold text-slate-600">
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#7cb305]" />Registrations</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-sky-500" />Paper submissions</span>
+                </div>
+              </div>
+              <div className="mt-5 overflow-hidden">
+                <svg viewBox="0 0 720 250" className="h-56 w-full overflow-visible" role="img" aria-label="Line chart of daily registrations and paper submissions over the last 30 days" onMouseLeave={() => setHoveredActivityIndex(null)}>
+                  <defs>
+                    <linearGradient id="registrationActivityFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7cb305" stopOpacity="0.28" /><stop offset="100%" stopColor="#7cb305" stopOpacity="0.015" /></linearGradient>
+                    <linearGradient id="submissionActivityFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.2" /><stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.01" /></linearGradient>
+                  </defs>
+                  {[28, 83, 139, 194].map((y, index) => (
+                    <g key={y}>
+                      <line x1="44" y1={y} x2="704" y2={y} stroke="#e2e8f0" strokeDasharray={index === 3 ? undefined : '3 5'} />
+                      <text x="34" y={y + 4} textAnchor="end" className="fill-slate-400" fontSize="10">{Math.round(activityMax * (3 - index) / 3)}</text>
+                    </g>
+                  ))}
+                  <path d={activityAreaPath('registrations')} fill="url(#registrationActivityFill)" />
+                  <path d={activityAreaPath('submissions')} fill="url(#submissionActivityFill)" />
+                  <path d={activityLinePath('registrations')} fill="none" stroke="#7cb305" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={activityLinePath('submissions')} fill="none" stroke="#0ea5e9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  {activityDays.map((day, index) => {
+                    const x = 44 + (index / (activityDays.length - 1)) * 660;
+                    const registrationY = 194 - (day.registrations / activityMax) * 166;
+                    const submissionY = 194 - (day.submissions / activityMax) * 166;
+                    const tooltipX = x > 520 ? x - 202 : x + 14;
+                    const tooltipY = Math.max(30, Math.min(registrationY, submissionY) - 84);
+                    return <g key={day.date.toISOString()}>
+                      <rect
+                        x={x - 11}
+                        y="24"
+                        width="22"
+                        height="174"
+                        fill="transparent"
+                        className="cursor-crosshair"
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`${day.date.toLocaleDateString()}: ${day.registrations} registrations, ${day.submissions} paper submissions`}
+                        onMouseEnter={() => setHoveredActivityIndex(index)}
+                        onFocus={() => setHoveredActivityIndex(index)}
+                        onBlur={() => setHoveredActivityIndex(null)}
+                        onKeyDown={(event) => { if (event.key === 'Escape') setHoveredActivityIndex(null); }}
+                      />
+                      {index === hoveredActivityIndex && <line x1={x} y1="28" x2={x} y2="194" stroke="#94a3b8" strokeDasharray="3 4" pointerEvents="none" />}
+                      <circle cx={x} cy={registrationY} r={index === hoveredActivityIndex ? 5 : 3.5} fill="white" stroke="#7cb305" strokeWidth="2" pointerEvents="none" />
+                      <circle cx={x} cy={submissionY} r={index === hoveredActivityIndex ? 5 : 3.5} fill="white" stroke="#0ea5e9" strokeWidth="2" pointerEvents="none" />
+                      {index === hoveredActivityIndex && <g pointerEvents="none">
+                        <rect x={tooltipX} y={tooltipY} width="188" height="76" rx="10" fill="white" stroke="#e2e8f0" filter="drop-shadow(0 4px 10px rgb(15 23 42 / 0.14))" />
+                        <text x={tooltipX + 12} y={tooltipY + 19} fill="#0f172a" fontSize="11" fontWeight="700">{day.date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</text>
+                        <circle cx={tooltipX + 16} cy={tooltipY + 38} r="3.5" fill="#7cb305" />
+                        <text x={tooltipX + 27} y={tooltipY + 42} fill="#475569" fontSize="10">Registrations</text>
+                        <text x={tooltipX + 175} y={tooltipY + 42} textAnchor="end" fill="#0f172a" fontSize="11" fontWeight="700">{day.registrations}</text>
+                        <circle cx={tooltipX + 16} cy={tooltipY + 58} r="3.5" fill="#0ea5e9" />
+                        <text x={tooltipX + 27} y={tooltipY + 62} fill="#475569" fontSize="10">Paper submissions</text>
+                        <text x={tooltipX + 175} y={tooltipY + 62} textAnchor="end" fill="#0f172a" fontSize="11" fontWeight="700">{day.submissions}</text>
+                      </g>}
+                    </g>;
+                  })}
+                  {[0, 7, 14, 21, 29].map((index) => (
+                    <text key={index} x={44 + (index / 29) * 660} y="222" textAnchor={index === 0 ? 'start' : index === 29 ? 'end' : 'middle'} className="fill-slate-400" fontSize="10">
+                      {activityDays[index].date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </text>
+                  ))}
+                </svg>
+              </div>
+            </section>
+
             <div>
               <h2 className="mb-4 text-lg font-extrabold text-slate-900">Participant &amp; submission demographics</h2>
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {renderDemographicList('Participant categories', registrationCategoryCounts, 'bg-[#7cb305]')}
+                {renderParticipantCategoryBars(registrationCategoryCounts)}
                 {renderDemographicList('Participation mode', registrationModeCounts, 'bg-sky-500')}
-                {renderDemographicList('Author gender (paper submissions)', submissionGenderCounts, 'bg-violet-500')}
-                {renderDemographicList('Paper submissions by track', submissionTrackCounts, 'bg-indigo-500')}
+                {renderDemographicPie('author-gender', 'Author gender (paper submissions)', submissionGenderCounts, ['#8b5cf6', '#ec4899', '#0ea5e9', '#64748b'])}
+                {renderDemographicPie('paper-tracks', 'Paper submissions by track', submissionTrackCounts, ['#4f46e5', '#0ea5e9', '#7cb305', '#f59e0b', '#f43f5e', '#14b8a6'])}
+                {renderDemographicList('Registration payment status', registrationStatusCounts, 'bg-emerald-500')}
+                {renderDemographicList('Receipt verification status', paymentProofStatusCounts, 'bg-amber-500')}
               </div>
             </div>
             </>
