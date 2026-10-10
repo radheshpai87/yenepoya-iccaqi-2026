@@ -69,7 +69,7 @@ export const Contact: React.FC = () => {
 
             <div className="w-full max-w-sm mx-auto rounded-xl bg-white border border-slate-200/80 p-3 shadow-2xs text-center">
               <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">
-                Chair, Advisory Committee
+                ICCAQI Chief Co-ordinator
               </span>
               <h3 className="text-sm font-bold text-slate-900 mt-1">Dr. Mohammed Sidheeque</h3>
               <p className="text-xs text-slate-600 mt-1">Associate Professor, Department of CSE</p>
