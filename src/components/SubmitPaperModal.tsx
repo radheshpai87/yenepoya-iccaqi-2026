@@ -24,7 +24,8 @@ import {
   Lock,
   Copy,
   Calendar,
-  Mail
+  Mail,
+  Download
 } from 'lucide-react';
 
 interface SubmitPaperModalProps {
@@ -673,6 +674,29 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     </tbody>
                   </table>
                 </div>
+
+                {/* APA 7th Edition Sample Paper & Formatting Guide */}
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                      <FileText className="w-4 h-4 text-[#7cb305] shrink-0" />
+                      <span>APA 7th Edition Sample Paper &amp; Formatting Guide</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Download the reference sample paper formatted with standard APA 7th edition headings, tables, figures, citations, and layout.
+                    </p>
+                  </div>
+                  <a
+                    href="/APA7_sample_paper_with_tables_figures-92QdmbdX.pdf"
+                    download="APA7_sample_paper_with_tables_figures-92QdmbdX.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-xs transition-all shrink-0 cursor-pointer active:scale-98"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Sample Paper (PDF)</span>
+                  </a>
+                </div>
               </div>
 
               {/* Category II */}
@@ -1251,9 +1275,21 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
               {/* File Upload Section */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Upload Manuscript (PDF / Word / LaTeX) *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Upload Manuscript (PDF / Word / LaTeX) *
+                  </label>
+                  <a
+                    href="/APA7_sample_paper_with_tables_figures-92QdmbdX.pdf"
+                    download="APA7_sample_paper_with_tables_figures-92QdmbdX.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#7cb305] hover:text-[#547903] hover:underline"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>APA 7th Sample Paper</span>
+                  </a>
+                </div>
 
                 {fileName ? (
                   /* Uploaded File UX Card Matching Reference Image */
