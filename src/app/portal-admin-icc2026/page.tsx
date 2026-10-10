@@ -978,7 +978,7 @@ export default function PortalAdminPage() {
   const isSplitOpen = activeTab === 'records' && ((recordView === 'registrations' && selectedRegistration !== null) || (recordView === 'submissions' && selectedSubmission !== null));
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex overflow-x-hidden lg:pl-64">
       
       {/* ========================================================= */}
       {/* 1. SOLID CLEAN SIDEBAR WITH YENEPOYA OFFICIAL LOGO AT TOP  */}
@@ -991,7 +991,7 @@ export default function PortalAdminPage() {
         />
       )}
 
-      <aside className={`fixed lg:sticky top-0 h-dvh w-64 overflow-hidden bg-white border-r border-slate-200/90 flex flex-col shrink-0 z-50 shadow-xs transition-transform duration-300 ${
+      <aside className={`fixed left-0 top-0 h-dvh w-64 overflow-hidden bg-white border-r border-slate-200/90 flex flex-col shrink-0 z-50 shadow-xs transition-transform duration-300 ${
         mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         <div className="flex min-h-0 flex-1 flex-col">
