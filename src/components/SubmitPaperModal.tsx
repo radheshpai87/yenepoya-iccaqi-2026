@@ -630,7 +630,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   <div className="space-y-1.5 text-xs text-slate-700 pt-0.5">
                     <div className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-[#7cb305] mt-0.5 shrink-0" />
-                      <span>A soft copy of the Conference Proceedings will be provided free of cost to the authors.</span>
+                      <span>The URL and DOI of the ISBN-registered Conference Proceedings will be provided to the authors for access and reference.</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <Check className="w-3.5 h-3.5 text-[#7cb305] mt-0.5 shrink-0" />
