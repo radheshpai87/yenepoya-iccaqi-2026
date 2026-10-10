@@ -34,7 +34,6 @@ import {
   Sparkles,
   FileCode,
   ArrowUpRight,
-  Home,
   Award,
   BarChart3,
   MoreVertical,
@@ -101,6 +100,7 @@ interface PaymentProof {
   fileName: string;
   fileUrl: string;
   fileSize: number;
+  contentType: string;
   status: string;
   createdAt: string;
 }
@@ -113,10 +113,12 @@ export default function PortalAdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Dashboard state
-  const [activeTab, setActiveTab] = useState<'registrations' | 'submissions' | 'payments'>('registrations');
+  const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'payments'>('overview');
+  const [recordView, setRecordView] = useState<'registrations' | 'submissions'>('registrations');
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [paymentProofs, setPaymentProofs] = useState<PaymentProof[]>([]);
+  const [selectedPaymentProof, setSelectedPaymentProof] = useState<PaymentProof | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Selected Item for Side-by-Side Split View
@@ -145,7 +147,7 @@ export default function PortalAdminPage() {
   );
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [emailSendReport, setEmailSendReport] = useState<any>(null);
+  const [emailSendReport, setEmailSendReport] = useState<{ successCount: number; failedCount: number; total: number } | null>(null);
   const [emailError, setEmailError] = useState('');
 
   // Check auth session on load & set up live auto-sync without page reload
@@ -311,7 +313,7 @@ export default function PortalAdminPage() {
     };
   }, [isAuthenticated]);
 
-  const checkSession = async () => {
+  async function checkSession() {
     try {
       const res = await fetch('/api/admin/session');
       const data = await res.json();
@@ -324,9 +326,9 @@ export default function PortalAdminPage() {
     } catch {
       setIsAuthenticated(false);
     }
-  };
+  }
 
-  const fetchDashboardData = async () => {
+  async function fetchDashboardData() {
     setIsLoadingData(true);
     try {
       const res = await fetch('/api/admin/data');
@@ -341,7 +343,7 @@ export default function PortalAdminPage() {
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -690,6 +692,44 @@ export default function PortalAdminPage() {
   const totalSubmissions = submissions.length;
   const verifiedCount = registrations.filter((r) => r.paymentStatus === 'Verified').length;
   const pendingCount = registrations.filter((r) => r.paymentStatus === 'Pending').length;
+  const pendingProofCount = paymentProofs.filter((proof) => proof.status === 'Pending Verification').length;
+  const registrationCategoryCounts = registrations.reduce<Record<string, number>>((counts, registration) => {
+    const category = registration.category || 'Unspecified';
+    counts[category] = (counts[category] || 0) + 1;
+    return counts;
+  }, {});
+  const registrationModeCounts = registrations.reduce<Record<string, number>>((counts, registration) => {
+    const mode = registration.mode || 'Unspecified';
+    counts[mode] = (counts[mode] || 0) + 1;
+    return counts;
+  }, {});
+  const submissionTrackCounts = submissions.reduce<Record<string, number>>((counts, submission) => {
+    const track = submission.track || 'Unspecified';
+    counts[track] = (counts[track] || 0) + 1;
+    return counts;
+  }, {});
+  const submissionGenderCounts = submissions.reduce<Record<string, number>>((counts, submission) => {
+    const gender = submission.gender || 'Not specified';
+    counts[gender] = (counts[gender] || 0) + 1;
+    return counts;
+  }, {});
+  const renderDemographicList = (title: string, counts: Record<string, number>, barColor: string) => {
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const maxCount = Math.max(...entries.map(([, count]) => count), 1);
+    return (
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+        <h3 className="mb-4 text-sm font-extrabold text-slate-900">{title}</h3>
+        {entries.length === 0 ? <p className="text-xs text-slate-400">No data yet.</p> : <div className="space-y-3">
+          {entries.map(([label, count]) => (
+            <div key={label}>
+              <div className="mb-1 flex justify-between gap-3 text-xs"><span className="truncate text-slate-600">{label}</span><span className="font-bold text-slate-900">{count}</span></div>
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.max(5, count / maxCount * 100)}%` }} /></div>
+            </div>
+          ))}
+        </div>}
+      </section>
+    );
+  };
 
   const getAssociatedSubmission = (paperId: string) => {
     if (!paperId) return null;
@@ -790,7 +830,7 @@ export default function PortalAdminPage() {
     );
   }
 
-  const isSplitOpen = (activeTab === 'registrations' && selectedRegistration !== null) || (activeTab === 'submissions' && selectedSubmission !== null);
+  const isSplitOpen = activeTab === 'records' && ((recordView === 'registrations' && selectedRegistration !== null) || (recordView === 'submissions' && selectedSubmission !== null));
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex overflow-x-hidden">
@@ -839,35 +879,42 @@ export default function PortalAdminPage() {
           <nav className="p-4 space-y-2">
             <button
               onClick={() => {
-                setActiveTab('registrations');
+                setActiveTab('overview');
                 setSelectedRegistration(null);
                 setSelectedSubmission(null);
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'registrations'
+                activeTab === 'overview'
                   ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <Home className="w-4.5 h-4.5 shrink-0" />
-              <span>Delegate Registrations</span>
+              <BarChart3 className="w-4.5 h-4.5 shrink-0" />
+              <span>Overview &amp; Demographics</span>
             </button>
 
             <button
               onClick={() => {
-                setActiveTab('submissions');
+                setActiveTab('records');
                 setSelectedRegistration(null);
                 setSelectedSubmission(null);
               }}
               className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'submissions'
+                activeTab === 'records'
                   ? 'bg-[#7cb305] text-white shadow-md shadow-[#7cb305]/20'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <FileText className="w-4.5 h-4.5 shrink-0" />
-              <span>Paper Submissions</span>
+              <Users className="w-4.5 h-4.5 shrink-0" />
+              <span>Registration &amp; Paper Records</span>
             </button>
+
+            {activeTab === 'records' && (
+              <div className="ml-4 border-l border-slate-200 pl-3 space-y-1">
+                <button onClick={() => setRecordView('registrations')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold ${recordView === 'registrations' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50'}`}>Delegate registrations ({totalRegistrations})</button>
+                <button onClick={() => setRecordView('submissions')} className={`w-full rounded-lg px-3 py-2 text-left text-[11px] font-semibold ${recordView === 'submissions' ? 'bg-lime-50 text-[#659b02]' : 'text-slate-500 hover:bg-slate-50'}`}>Paper submissions ({totalSubmissions})</button>
+              </div>
+            )}
 
             <button
               onClick={() => {
@@ -886,7 +933,8 @@ export default function PortalAdminPage() {
 
             <button
               onClick={() => {
-                setActiveTab('registrations');
+                setActiveTab('records');
+                setRecordView('registrations');
                 setRegStatusFilter('Verified');
               }}
               className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
@@ -897,7 +945,7 @@ export default function PortalAdminPage() {
 
             <button
               onClick={() => {
-                if (activeTab === 'submissions') {
+                if (activeTab === 'records' && recordView === 'submissions') {
                   exportSubmissionsCSV();
                 } else {
                   exportRegistrationsCSV();
@@ -906,7 +954,7 @@ export default function PortalAdminPage() {
               className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer"
             >
               <FileSpreadsheet className="w-4.5 h-4.5 shrink-0 text-amber-600" />
-              <span>Export CSV ({activeTab === 'submissions' ? 'Submissions' : 'Registrations'})</span>
+              <span>Export CSV ({recordView === 'submissions' ? 'Submissions' : 'Registrations'})</span>
             </button>
 
             <button
@@ -960,7 +1008,7 @@ export default function PortalAdminPage() {
                 <Menu className="w-5 h-5" />
               </button>
               <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
-                {activeTab === 'registrations' ? 'Delegate Registrations' : activeTab === 'submissions' ? 'Paper Submissions' : 'Payment Proofs'}
+                {activeTab === 'overview' ? 'Overview & Demographics' : activeTab === 'records' ? 'Registration & Paper Records' : 'Payment Verification'}
               </h1>
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -970,7 +1018,7 @@ export default function PortalAdminPage() {
 
             <div className="flex items-center gap-2 sm:gap-3">
               {/* Search Box */}
-              <div className="relative w-36 sm:w-64">
+              {activeTab !== 'overview' && <div className="relative w-36 sm:w-64">
                 <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                 <input
                   type="text"
@@ -979,7 +1027,7 @@ export default function PortalAdminPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-[#7cb305] focus:bg-white transition-all"
                 />
-              </div>
+              </div>}
 
               {/* Broadcast Email CTA Button */}
               <button
@@ -1005,18 +1053,16 @@ export default function PortalAdminPage() {
           {/* MAIN BODY DASHBOARD */}
           <main className="p-6 space-y-6 flex-1">
 
+            {activeTab === 'overview' && (
+            <>
             {/* STAGE / CATEGORY CARDS CAROUSEL */}
             <div className="relative">
               <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
                 
                 {/* Card 1: Delegate Registrations */}
                 <div
-                  onClick={() => setActiveTab('registrations')}
-                  className={`min-w-[210px] flex-1 p-4 rounded-2xl border transition-all cursor-pointer ${
-                    activeTab === 'registrations'
-                      ? 'bg-lime-50/60 border-2 border-[#7cb305] shadow-md'
-                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
-                  }`}
+                  onClick={() => { setActiveTab('records'); setRecordView('registrations'); }}
+                  className="min-w-[210px] flex-1 cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:border-slate-300"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="p-2.5 rounded-xl bg-lime-100 text-[#7cb305]">
@@ -1032,12 +1078,8 @@ export default function PortalAdminPage() {
 
                 {/* Card 2: Paper Submissions */}
                 <div
-                  onClick={() => setActiveTab('submissions')}
-                  className={`min-w-[210px] flex-1 p-4 rounded-2xl border transition-all cursor-pointer ${
-                    activeTab === 'submissions'
-                      ? 'bg-lime-50/60 border-2 border-[#7cb305] shadow-md'
-                      : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
-                  }`}
+                  onClick={() => { setActiveTab('records'); setRecordView('submissions'); }}
+                  className="min-w-[210px] flex-1 cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition-all hover:border-slate-300"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="p-2.5 rounded-xl bg-sky-100 text-sky-600">
@@ -1054,7 +1096,8 @@ export default function PortalAdminPage() {
                 {/* Card 3: Verified Payments */}
                 <div
                   onClick={() => {
-                    setActiveTab('registrations');
+                    setActiveTab('records');
+                    setRecordView('registrations');
                     setRegStatusFilter('Verified');
                   }}
                   className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 shadow-xs transition-all cursor-pointer"
@@ -1074,7 +1117,8 @@ export default function PortalAdminPage() {
                 {/* Card 4: Pending Verification */}
                 <div
                   onClick={() => {
-                    setActiveTab('registrations');
+                    setActiveTab('records');
+                    setRecordView('registrations');
                     setRegStatusFilter('Pending');
                   }}
                   className="min-w-[210px] flex-1 p-4 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 shadow-xs transition-all cursor-pointer"
@@ -1108,17 +1152,44 @@ export default function PortalAdminPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                { label: 'Registered participants', value: totalRegistrations, icon: Users, tone: 'bg-lime-100 text-[#659b02]' },
+                { label: 'Paper submissions', value: totalSubmissions, icon: FileText, tone: 'bg-sky-100 text-sky-700' },
+                { label: 'Verified payments', value: verifiedCount, icon: CheckCircle2, tone: 'bg-emerald-100 text-emerald-700' },
+                { label: 'Receipts to review', value: pendingProofCount, icon: CreditCard, tone: 'bg-amber-100 text-amber-700' },
+              ].map(({ label, value, icon: Icon, tone }) => (
+                <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                  <div className="flex items-center justify-between"><span className="text-xs font-semibold text-slate-500">{label}</span><span className={`rounded-xl p-2 ${tone}`}><Icon className="h-4 w-4" /></span></div>
+                  <div className="mt-3 text-3xl font-black text-slate-900">{value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <h2 className="mb-4 text-lg font-extrabold text-slate-900">Participant &amp; submission demographics</h2>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {renderDemographicList('Participant categories', registrationCategoryCounts, 'bg-[#7cb305]')}
+                {renderDemographicList('Participation mode', registrationModeCounts, 'bg-sky-500')}
+                {renderDemographicList('Author gender (paper submissions)', submissionGenderCounts, 'bg-violet-500')}
+                {renderDemographicList('Paper submissions by track', submissionTrackCounts, 'bg-indigo-500')}
+              </div>
+            </div>
+            </>
+            )}
+
+            {activeTab !== 'overview' && <>
             {/* TITLE & FILTER CONTROLS BAR */}
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
               <div>
                 <h2 className="text-lg font-extrabold text-slate-900">
-                  {activeTab === 'registrations' ? 'All Delegates' : activeTab === 'submissions' ? 'All Manuscripts' : 'Submitted Payment Forms'}
+                  {activeTab === 'records' ? recordView === 'registrations' ? 'All Delegates' : 'All Manuscripts' : 'Submitted Payment Forms'}
                 </h2>
               </div>
 
               {/* Filter Dropdowns */}
               <div className="flex flex-wrap items-center gap-3">
-                {activeTab === 'registrations' ? (
+                {activeTab === 'records' && recordView === 'registrations' ? (
                   <>
                     <select
                       value={regCategoryFilter}
@@ -1150,7 +1221,7 @@ export default function PortalAdminPage() {
                       <span>Export CSV</span>
                     </button>
                   </>
-                ) : activeTab === 'submissions' ? (
+                ) : activeTab === 'records' && recordView === 'submissions' ? (
                   <>
                     <select
                       value={subTrackFilter}
@@ -1190,7 +1261,7 @@ export default function PortalAdminPage() {
             {/* DATA TABLE */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                {activeTab === 'registrations' ? (
+                {activeTab === 'records' && recordView === 'registrations' ? (
                   /* REGISTRATIONS TABLE */
                   <table className="w-full text-left text-xs text-slate-700">
                     <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
@@ -1325,7 +1396,7 @@ export default function PortalAdminPage() {
                       )}
                     </tbody>
                   </table>
-                ) : activeTab === 'submissions' ? (
+                ) : activeTab === 'records' && recordView === 'submissions' ? (
                   /* PAPER SUBMISSIONS TABLE */
                   <table className="w-full text-left text-xs text-slate-700">
                     <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[11px] font-extrabold border-b border-slate-200">
@@ -1495,7 +1566,7 @@ export default function PortalAdminPage() {
                           <td className="py-3.5 px-4"><div>{proof.institution}</div><div className="text-slate-500">{proof.mode || '—'}</div></td>
                           <td className="py-3.5 px-4"><div className="font-semibold">{proof.category}</div><div className="font-mono text-sky-700">{proof.amount} {proof.currency}</div></td>
                           <td className="py-3.5 px-4"><div>{proof.transactionRef || 'No transaction reference'}</div><div className="text-slate-500">{proof.paperId || proof.paperTitle || 'Participant registration'}</div><div className="text-slate-500">Registration: {proof.registrationId || '—'}</div></td>
-                          <td className="py-3.5 px-4">{proof.fileUrl ? <a href={proof.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-sky-50 px-2.5 py-1.5 font-bold text-sky-700 hover:bg-sky-100"><Eye className="h-3.5 w-3.5" />View {proof.fileName}</a> : <span className="text-rose-600">Receipt link unavailable</span>}</td>
+                          <td className="py-3.5 px-4">{proof.fileUrl ? <button type="button" onClick={() => setSelectedPaymentProof(proof)} className="inline-flex items-center gap-1.5 rounded-lg bg-sky-50 px-2.5 py-1.5 font-bold text-sky-700 hover:bg-sky-100"><Eye className="h-3.5 w-3.5" />Details &amp; receipt</button> : <span className="text-rose-600">Receipt link unavailable</span>}</td>
                           <td className="py-3.5 px-4"><div className="mb-2 text-slate-500">{new Date(proof.createdAt).toLocaleString()}</div><select aria-label={`Payment proof status for ${proof.name}`} value={proof.status} onChange={(event) => updatePaymentProofStatus(proof.id, event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 font-bold"><option>Pending Verification</option><option>Verified</option><option>Rejected</option></select></td>
                         </tr>
                       ))}
@@ -1522,7 +1593,7 @@ export default function PortalAdminPage() {
 
                 <div className="flex items-center gap-3">
                   <span>
-                    {activeTab === 'registrations' ? `1-${Math.min(itemsPerPage, filteredRegistrations.length)} of ${filteredRegistrations.length}` : activeTab === 'submissions' ? `1-${Math.min(itemsPerPage, filteredSubmissions.length)} of ${filteredSubmissions.length}` : `1-${Math.min(itemsPerPage, filteredPaymentProofs.length)} of ${filteredPaymentProofs.length}`}
+                    {activeTab === 'payments' ? `1-${Math.min(itemsPerPage, filteredPaymentProofs.length)} of ${filteredPaymentProofs.length}` : recordView === 'registrations' ? `1-${Math.min(itemsPerPage, filteredRegistrations.length)} of ${filteredRegistrations.length}` : `1-${Math.min(itemsPerPage, filteredSubmissions.length)} of ${filteredSubmissions.length}`}
                   </span>
                   <div className="flex items-center gap-1">
                     <button className="p-1 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-700 disabled:opacity-40">
@@ -1538,6 +1609,7 @@ export default function PortalAdminPage() {
                 </div>
               </div>
             </div>
+            </>}
 
           </main>
         </div>
@@ -1572,7 +1644,7 @@ export default function PortalAdminPage() {
               className="fixed lg:sticky top-0 right-0 h-screen w-full lg:w-auto shrink-0 bg-white border-l border-slate-200 overflow-y-auto p-4 sm:p-6 space-y-6 shadow-2xl z-50 lg:z-20 text-left transition-all max-w-full"
             >
               {/* REGISTRATION SPLIT DETAILS */}
-              {activeTab === 'registrations' && selectedRegistration && (
+              {activeTab === 'records' && recordView === 'registrations' && selectedRegistration && (
                 <div className="space-y-6">
                   {/* Top Bar with Close button */}
                   <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
@@ -1845,7 +1917,7 @@ export default function PortalAdminPage() {
               )}
 
               {/* SUBMISSION SPLIT DETAILS */}
-              {activeTab === 'submissions' && selectedSubmission && (
+              {activeTab === 'records' && recordView === 'submissions' && selectedSubmission && (
                 <div className="space-y-6">
                   {/* Top Bar with Close button */}
                   <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
@@ -2037,6 +2109,72 @@ export default function PortalAdminPage() {
         )}
 
       </div>
+
+      {selectedPaymentProof && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-4" onClick={() => setSelectedPaymentProof(null)}>
+          <section role="dialog" aria-modal="true" aria-labelledby="payment-proof-title" onClick={(event) => event.stopPropagation()} className="my-auto max-h-[94vh] w-full max-w-5xl space-y-5 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-7">
+            <header className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#659b02]">Submitted payment verification</p>
+                <h2 id="payment-proof-title" className="mt-1 text-xl font-extrabold text-slate-900">{selectedPaymentProof.name}</h2>
+                <p className="text-xs text-slate-500">{selectedPaymentProof.email} · {new Date(selectedPaymentProof.createdAt).toLocaleString()}</p>
+              </div>
+              <button type="button" onClick={() => setSelectedPaymentProof(null)} aria-label="Close payment details" className="rounded-xl p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
+            </header>
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <div>
+                <h3 className="mb-3 text-sm font-extrabold text-slate-900">Payment form details</h3>
+                <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {[
+                    ['Full name', selectedPaymentProof.name],
+                    ['Email', selectedPaymentProof.email],
+                    ['Phone', selectedPaymentProof.phone],
+                    ['Institution / university', selectedPaymentProof.institution],
+                    ['Participant category', selectedPaymentProof.category],
+                    ['Participation mode', selectedPaymentProof.mode],
+                    ['Amount', `${selectedPaymentProof.amount} ${selectedPaymentProof.currency}`],
+                    ['Transaction reference / UTR', selectedPaymentProof.transactionRef],
+                    ['Registration ID', selectedPaymentProof.registrationId],
+                    ['Paper ID', selectedPaymentProof.paperId],
+                    ['Paper title', selectedPaymentProof.paperTitle],
+                    ['Verification status', selectedPaymentProof.status],
+                    ['Receipt file', selectedPaymentProof.fileName],
+                    ['File type / size', `${selectedPaymentProof.contentType} · ${(selectedPaymentProof.fileSize / 1024).toFixed(1)} KB`],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
+                      <dd className="mt-1 break-words text-xs font-semibold text-slate-900">{value || 'Not provided'}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <label className="mt-4 block text-xs font-bold text-slate-700">Update verification status</label>
+                <select value={selectedPaymentProof.status} onChange={(event) => {
+                  const status = event.target.value;
+                  setSelectedPaymentProof({ ...selectedPaymentProof, status });
+                  updatePaymentProofStatus(selectedPaymentProof.id, status);
+                }} className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold">
+                  <option>Pending Verification</option><option>Verified</option><option>Rejected</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-extrabold text-slate-900">Payment screenshot / receipt</h3>
+                  <a href={selectedPaymentProof.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-sky-50 px-2.5 py-1.5 text-xs font-bold text-sky-700 hover:bg-sky-100"><ExternalLink className="h-3.5 w-3.5" />Open file</a>
+                </div>
+                <div className="flex min-h-[300px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  {selectedPaymentProof.contentType.startsWith('image/') ? (
+                    <img src={selectedPaymentProof.fileUrl} alt={`Payment receipt submitted by ${selectedPaymentProof.name}`} className="max-h-[65vh] max-w-full rounded-lg object-contain" />
+                  ) : (
+                    <iframe title={`Payment receipt submitted by ${selectedPaymentProof.name}`} src={selectedPaymentProof.fileUrl} className="h-[65vh] w-full rounded-lg bg-white" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* BULK EMAIL DISPATCH COMPOSER MODAL FOR VERIFIED DELEGATES  */}
