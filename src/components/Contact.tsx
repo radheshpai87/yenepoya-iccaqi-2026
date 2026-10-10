@@ -120,9 +120,9 @@ export const Contact: React.FC = () => {
           </div>
 
           {/* Enquiry Form */}
-          <div className="md:col-span-7 bg-slate-50 rounded-3xl p-6 sm:p-8 border border-slate-200">
+          <div className="md:col-span-7 bg-slate-50 rounded-3xl p-6 sm:p-8 border border-slate-200 flex flex-col justify-center">
             {submitted ? (
-              <div className="text-center py-8 space-y-3">
+              <div className="text-center py-8 space-y-3 my-auto">
                 <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
                 <h4 className="text-base font-bold text-slate-900">Enquiry Received!</h4>
                 <p className="text-xs text-slate-600 max-w-sm mx-auto">
@@ -139,7 +139,7 @@ export const Contact: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-3.5">
+              <form onSubmit={handleSubmit} className="space-y-4 my-auto">
                 {errorMessage && (
                   <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
@@ -222,12 +222,12 @@ export const Contact: React.FC = () => {
                     Message *
                   </label>
                   <textarea
-                    rows={3}
+                    rows={4}
                     required
                     placeholder="Your inquiry or track question..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-base sm:text-xs focus:outline-hidden transition-all ${
                       isMessageInvalid
                         ? 'border-rose-500 bg-rose-50/25 text-rose-950 placeholder:text-rose-300 ring-2 ring-rose-200'
                         : 'border-slate-300 bg-white text-slate-900 focus:border-emerald-500'
