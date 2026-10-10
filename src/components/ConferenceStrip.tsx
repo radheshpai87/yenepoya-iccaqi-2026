@@ -17,9 +17,9 @@ export const ConferenceStrip: React.FC = () => {
                 Conference Dates
               </span>
               <p className="text-sm md:text-base font-extrabold text-white">
-                Nov 6–7, 2026
+                Nov 25–26, 2026
               </p>
-              <span className="text-[10px] text-slate-400">Friday – Saturday</span>
+              <span className="text-[10px] text-slate-400">Wednesday – Thursday</span>
             </div>
           </div>
 

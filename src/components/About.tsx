@@ -9,7 +9,8 @@ import {
   Cpu, 
   Sparkles,
   Award,
-  ArrowRight
+  ArrowRight,
+  Globe
 } from 'lucide-react';
 
 export const About: React.FC = () => {
@@ -244,6 +245,131 @@ export const About: React.FC = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+
+        {/* UN Sustainable Development Goals (SDGs) Alignment */}
+        <div className="bg-gradient-to-br from-[#07172b] via-[#0b2444] to-[#051325] text-white rounded-3xl p-6 sm:p-10 border border-slate-700/80 shadow-md space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-700/80">
+            <div className="space-y-1.5 max-w-2xl">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 block font-mono">
+                United Nations Agenda 2030
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Aligned with SDGs
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                ICCAQI 2026 actively supports the United Nations Sustainable Development Goals by fostering equitable technological education, high-value employment, resilient computing infrastructure, and global collaborative partnerships.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                <Globe className="w-3.5 h-3.5" />
+                <span>UN Sustainable Development Goals</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            {/* Goal 4: Quality Education */}
+            <div className="group rounded-2xl overflow-hidden bg-slate-900/60 border border-slate-700/80 hover:border-rose-500/60 transition-all duration-300 hover:scale-[1.02] flex flex-col shadow-sm">
+              <div className="aspect-square w-full bg-[#C5192D] p-3 flex items-center justify-center overflow-hidden">
+                <img
+                  src="/sdg-4.svg"
+                  alt="SDG 4 - Quality Education"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-400 block font-mono">
+                    Goal 04
+                  </span>
+                  <h4 className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                    Quality Education
+                  </h4>
+                  <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                    Promoting accessible digital learning, advanced computing curricula, and open scientific exchange.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Goal 8: Decent Work & Economic Growth */}
+            <div className="group rounded-2xl overflow-hidden bg-slate-900/60 border border-slate-700/80 hover:border-pink-500/60 transition-all duration-300 hover:scale-[1.02] flex flex-col shadow-sm">
+              <div className="aspect-square w-full bg-[#A21942] p-3 flex items-center justify-center overflow-hidden">
+                <img
+                  src="/sdg-8.svg"
+                  alt="SDG 8 - Decent Work and Economic Growth"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-pink-400 block font-mono">
+                    Goal 08
+                  </span>
+                  <h4 className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                    Decent Work &amp; Economic Growth
+                  </h4>
+                  <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                    Fueling knowledge economies, technical entrepreneurship, and future-ready workforce competencies.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Goal 9: Industry, Innovation & Infrastructure */}
+            <div className="group rounded-2xl overflow-hidden bg-slate-900/60 border border-slate-700/80 hover:border-orange-500/60 transition-all duration-300 hover:scale-[1.02] flex flex-col shadow-sm">
+              <div className="aspect-square w-full bg-[#FD6925] p-3 flex items-center justify-center overflow-hidden">
+                <img
+                  src="/sdg-9.svg"
+                  alt="SDG 9 - Industry, Innovation and Infrastructure"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-400 block font-mono">
+                    Goal 09
+                  </span>
+                  <h4 className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                    Industry, Innovation &amp; Infrastructure
+                  </h4>
+                  <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                    Advancing sustainable AI architectures, cyber-physical systems, and quantum technological resilience.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Goal 17: Partnerships for the Goals */}
+            <div className="group rounded-2xl overflow-hidden bg-slate-900/60 border border-slate-700/80 hover:border-sky-500/60 transition-all duration-300 hover:scale-[1.02] flex flex-col shadow-sm">
+              <div className="aspect-square w-full bg-[#19486A] p-3 flex items-center justify-center overflow-hidden">
+                <img
+                  src="/sdg-17.svg"
+                  alt="SDG 17 - Partnerships for the Goals"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              </div>
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-400 block font-mono">
+                    Goal 17
+                  </span>
+                  <h4 className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                    Partnerships for the Goals
+                  </h4>
+                  <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                    Uniting international universities, research institutions, and industry bodies for collective global progress.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
