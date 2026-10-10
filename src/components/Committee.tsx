@@ -13,30 +13,29 @@ export const Committee: React.FC = () => {
     { name: 'Mr. Mohammed Farhaad Yenepoya', designation: 'Pro Chancellor' },
     { name: 'Dr. M. Vijayakumar', designation: 'Pro Chancellor' },
     { name: 'Dr. K. S. Gangadhara Somayaji', designation: 'Vice Chancellor' },
-    { name: 'Dr. B. H. Sripathi Rao', designation: 'Pro Vice Chancellor' },
     { name: 'Dr. Aswini Dutt R', designation: 'Registrar' },
   ];
 
-  const organizingTeam = [
-    {
-      role: 'Organizing Chair',
-      name: 'Dr. Rajesh Gratian D\'Souza',
-      designation: 'Dean, Faculty of Engineering & Technology',
-      affiliation: 'Yenepoya (Deemed to be University)',
-    },
-    {
-      role: 'Organizing Co-Chair',
-      name: 'Dr. Prabhakara B.K',
-      designation: 'Head, Department of CSE',
-      affiliation: 'Yenepoya School of Engineering & Technology',
-    },
-    {
-      role: 'Chief Coordinator',
-      name: 'Dr. Mohammed Sidheeque',
-      designation: 'Associate Professor, Department of CSE',
-      affiliation: 'Yenepoya School of Engineering & Technology',
-    },
-  ];
+  const organizingChair = {
+    role: 'Organizing Chair',
+    name: 'Dr. R. G. D\'Souza',
+    designation: 'Dean, Faculty of Engineering & Technology',
+    affiliation: 'Yenepoya (Deemed to be University)',
+  };
+
+  const organizingCoChair = {
+    role: 'Organizing Co-Chair',
+    name: 'Dr. Prabhakara B.K',
+    designation: 'Head, Department of CSE',
+    affiliation: 'Yenepoya School of Engineering & Technology',
+  };
+
+  const chiefCoordinator = {
+    role: 'Chief Coordinator',
+    name: 'Dr. Mohammed Sidheeque',
+    designation: 'Associate Professor, Department of CSE',
+    affiliation: 'Yenepoya School of Engineering & Technology',
+  };
 
   const advisoryAndCoordination = [
     {
@@ -94,7 +93,7 @@ export const Committee: React.FC = () => {
           <h4 className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
             Patrons
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {patrons.map((p, idx) => (
               <div
                 key={idx}
@@ -108,24 +107,44 @@ export const Committee: React.FC = () => {
         </div>
 
         {/* Organizing Team */}
-        <div className="mb-10">
+        <div className="mb-10 space-y-4">
           <h4 className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
             Organizing Team
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {organizingTeam.map((lead, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1"
-              >
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
-                  {lead.role}
-                </span>
-                <h5 className="text-sm font-bold text-slate-900">{lead.name}</h5>
-                <p className="text-xs text-slate-600 font-medium">{lead.designation}</p>
-                <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-100">{lead.affiliation}</p>
-              </div>
-            ))}
+
+          {/* Top: Organizing Chair */}
+          <div className="max-w-md mx-auto">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
+                {organizingChair.role}
+              </span>
+              <h5 className="text-sm sm:text-base font-bold text-slate-900">{organizingChair.name}</h5>
+              <p className="text-xs text-slate-600 font-medium">{organizingChair.designation}</p>
+              <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-100">{organizingChair.affiliation}</p>
+            </div>
+          </div>
+
+          {/* Below: Left (Organizing Co-Chair) & Right (Chief Coordinator) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+            {/* Left: Organizing Co-Chair */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
+                {organizingCoChair.role}
+              </span>
+              <h5 className="text-sm font-bold text-slate-900">{organizingCoChair.name}</h5>
+              <p className="text-xs text-slate-600 font-medium">{organizingCoChair.designation}</p>
+              <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-100">{organizingCoChair.affiliation}</p>
+            </div>
+
+            {/* Right: Chief Coordinator */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+              <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
+                {chiefCoordinator.role}
+              </span>
+              <h5 className="text-sm font-bold text-slate-900">{chiefCoordinator.name}</h5>
+              <p className="text-xs text-slate-600 font-medium">{chiefCoordinator.designation}</p>
+              <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-100">{chiefCoordinator.affiliation}</p>
+            </div>
           </div>
         </div>
 
