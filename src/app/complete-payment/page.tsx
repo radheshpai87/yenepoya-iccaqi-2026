@@ -119,10 +119,12 @@ function CompletePaymentContent() {
         const res = await fetch('/api/admin/data');
         if (res.ok) {
           const data = await res.json();
+          const cleanId = idFromUrl.replace(/[^0-9]/g, '');
           const foundReg = (data.registrations || []).find(
             (r: any) =>
               (r.id && r.id.toLowerCase() === idFromUrl.toLowerCase()) ||
-              (r.paperId && r.paperId.toLowerCase() === idFromUrl.toLowerCase())
+              (r.paperId && r.paperId.toLowerCase() === idFromUrl.toLowerCase()) ||
+              (cleanId && r.paperId && r.paperId.replace(/[^0-9]/g, '') === cleanId)
           );
 
           if (foundReg) {
@@ -149,7 +151,8 @@ function CompletePaymentContent() {
           const foundSub = (data.submissions || []).find(
             (s: any) =>
               (s.id && s.id.toLowerCase() === idFromUrl.toLowerCase()) ||
-              (s.submissionId && s.submissionId.toLowerCase() === idFromUrl.toLowerCase())
+              (s.submissionId && s.submissionId.toLowerCase() === idFromUrl.toLowerCase()) ||
+              (cleanId && s.submissionId && s.submissionId.replace(/[^0-9]/g, '') === cleanId)
           );
 
           if (foundSub) {

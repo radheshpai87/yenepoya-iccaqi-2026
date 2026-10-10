@@ -5,6 +5,7 @@ import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClie
 import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
 import { isValidEmail, sanitizeText, validateUploadedFile, validateFileMagicBytes } from '@/lib/validation';
 import { validateRequestId, requestHash, getSavedResponse, throwSaveError } from '@/lib/idempotency';
+import { getSmtpTransporter, renderSubmissionAcknowledgmentHtml, renderSubmissionAcknowledgmentText } from '@/lib/smtpHelper';
 
 export async function POST(request: Request) {
   try {
@@ -85,15 +86,15 @@ export async function POST(request: Request) {
     const previous = await getSavedResponse(supabaseAdmin, 'submission', requestId, hash);
     if (previous) return submissionResponse(previous);
 
-    // Query existing paper submissions to determine next clean sequential paper ID (e.g. ICCAQI-PAPER-001)
+    // Query existing paper submissions to determine next clean 3-digit sequential article ID starting from 100 (e.g. 100, 101, ..., 111)
     const { data: existingPapers } = await supabaseAdmin
       .from('paper_submissions')
       .select('submission_id');
 
-    let maxNum = 0;
+    let maxNum = 99; // Ensures numbering starts from 100
     if (existingPapers && existingPapers.length > 0) {
       for (const p of existingPapers) {
-        const match = p.submission_id?.match(/ICCAQI-PAPER-(\d+)/i);
+        const match = p.submission_id?.match(/(\d+)/);
         if (match) {
           const num = parseInt(match[1], 10);
           if (!isNaN(num) && num > maxNum) {
@@ -102,8 +103,8 @@ export async function POST(request: Request) {
         }
       }
     }
-    const nextNum = maxNum > 0 ? maxNum + 1 : (existingPapers?.length || 0) + 1;
-    const submissionId = `ICCAQI-PAPER-${String(nextNum).padStart(3, '0')}`;
+    const nextNum = maxNum >= 100 ? maxNum + 1 : 100;
+    const submissionId = String(nextNum);
 
     const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
     const storagePath = `${submissionId}_${Date.now()}.${fileExt}`;
@@ -184,6 +185,42 @@ export async function POST(request: Request) {
         console.warn('Redundant upload cleanup failed:', error);
       }
     }
+
+    // 6. Send automated acknowledgment email to author's registered email
+    try {
+      const transporter = getSmtpTransporter();
+      const smtpUser = (process.env.SMTP_USER || 'iccaqi2026@yenepoya.edu.in').trim();
+      const htmlContent = renderSubmissionAcknowledgmentHtml({
+        authorName,
+        paperTitle,
+        articleId: submissionId,
+        institution,
+        track,
+      });
+      const textContent = renderSubmissionAcknowledgmentText({
+        authorName,
+        paperTitle,
+        articleId: submissionId,
+        institution,
+        track,
+      });
+
+      await transporter.sendMail({
+        from: `"ICCAQI 2026 Secretariat" <${smtpUser}>`,
+        to: email,
+        replyTo: `"ICCAQI 2026 Secretariat" <${smtpUser}>`,
+        subject: `ICCAQI 2026 — Research Article Submission Acknowledgment [Article ID: ${submissionId}]`,
+        text: textContent,
+        html: htmlContent,
+        headers: {
+          'X-Mailer': 'ICCAQI 2026 Conference Portal',
+          'X-Article-ID': submissionId,
+        },
+      });
+    } catch (mailErr) {
+      console.error('Automated submission acknowledgment email dispatch notice:', mailErr);
+    }
+
     return submissionResponse(savedData);
   } catch (err) {
     return apiErrorResponse(err, 'submit-paper request failed:');
