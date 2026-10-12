@@ -68,6 +68,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const outerWrapperRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<'guidelines' | 'form'>('guidelines');
   const [category2Consent, setCategory2Consent] = useState<'yes' | 'no'>('no');
+  const [publicationType, setPublicationType] = useState<'Journal' | 'Book Chapter'>('Journal');
   const [acknowledged, setAcknowledged] = useState(false);
   const [ackError, setAckError] = useState('');
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
@@ -129,13 +130,21 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     setFormData((prev) => ({
       ...prev,
       publicationCategory: category2Consent === 'yes'
-        ? 'Category I + Category II (Scopus-Indexed Book Chapters & Journals - Consented)'
+        ? `Category I + Category II (Scopus - ${publicationType})`
         : 'Category I: Proceedings & Double-Blind Peer-Reviewed Journals (Standard Track)',
     }));
     setStep('form');
 
     // Scroll ONLY the popup modal window to top (do NOT scroll the main background page)
     scrollModalToTop();
+  };
+
+  const handlePublicationTypeChange = (type: 'Journal' | 'Book Chapter') => {
+    setPublicationType(type);
+    setFormData((prev) => ({
+      ...prev,
+      publicationCategory: `Category I + Category II (Scopus - ${type})`,
+    }));
   };
 
   if (!isOpen) return null;
@@ -1204,6 +1213,56 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   </select>
                 </div>
               </div>
+
+              {/* Publication Type Selection (Shown if Scopus Index / Category II is selected) */}
+              {category2Consent === 'yes' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Publication Type *
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer text-xs transition-all ${
+                      publicationType === 'Journal'
+                        ? 'border-sky-500 bg-sky-50/80 text-slate-900 shadow-xs ring-1 ring-sky-500/30'
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="publicationType"
+                        value="Journal"
+                        disabled={submitting}
+                        checked={publicationType === 'Journal'}
+                        onChange={() => handlePublicationTypeChange('Journal')}
+                        className="text-sky-600 accent-sky-600"
+                      />
+                      <div>
+                        <span className="font-bold block">Journal</span>
+                        <span className="text-[11px] text-slate-500 font-normal">Scopus-Indexed Journal Publication</span>
+                      </div>
+                    </label>
+
+                    <label className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer text-xs transition-all ${
+                      publicationType === 'Book Chapter'
+                        ? 'border-sky-500 bg-sky-50/80 text-slate-900 shadow-xs ring-1 ring-sky-500/30'
+                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="publicationType"
+                        value="Book Chapter"
+                        disabled={submitting}
+                        checked={publicationType === 'Book Chapter'}
+                        onChange={() => handlePublicationTypeChange('Book Chapter')}
+                        className="text-sky-600 accent-sky-600"
+                      />
+                      <div>
+                        <span className="font-bold block">Book Chapter</span>
+                        <span className="text-[11px] text-slate-500 font-normal">Scopus-Indexed Book Chapter</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {/* Presentation Mode Selection */}
               <div>
