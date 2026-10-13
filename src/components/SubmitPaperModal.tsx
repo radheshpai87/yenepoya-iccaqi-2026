@@ -1286,7 +1286,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     />
                     <div>
                       <span className="font-bold block">Offline (In-Person Presentation)</span>
-                      <span className="text-[11px] text-slate-500 font-normal">Present at Yenepoya University campus, Mangaluru</span>
+                      <span className="text-[11px] text-slate-500 font-normal">Present at Yenepoya University Balmatta Campus, Mangaluru</span>
                     </div>
                   </label>
 
