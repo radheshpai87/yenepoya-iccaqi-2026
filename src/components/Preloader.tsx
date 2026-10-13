@@ -18,6 +18,7 @@ const ASSETS_TO_PRELOAD = [
   '/imanager-publications-logo.webp',
   '/indexing-services-collage.webp',
   '/naac-a-plus-logo.webp',
+  '/explore-mangalore-banner.webp',
 ];
 
 export const Preloader: React.FC = () => {

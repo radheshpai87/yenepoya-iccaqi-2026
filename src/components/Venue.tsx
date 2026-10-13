@@ -7,7 +7,7 @@ export const Venue: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 block">
             Location
           </span>
@@ -17,6 +17,19 @@ export const Venue: React.FC = () => {
           <p className="text-sm text-slate-600">
             Yenepoya School of Engineering &amp; Technology, Mangaluru, Karnataka, India
           </p>
+        </div>
+
+        {/* Mangalore Tourism & Sightseeing Banner */}
+        <div className="mb-8 sm:mb-10 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-2xs bg-white">
+          <img
+            src="/explore-mangalore-banner.webp"
+            alt="Explore the Beauty of Mangalore - Free Sightseeing Facility for Outstation Candidates"
+            width={1600}
+            height={639}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-auto object-cover"
+          />
         </div>
 
         {/* Location & Map Grid */}
