@@ -773,7 +773,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                       </tr>
                       <tr>
                         <td className="py-2 px-3 font-medium">Scopus-Indexed Journal</td>
-                        <td className="py-2 px-3 font-bold text-sky-900">₹30,000 – ₹50,000*</td>
+                        <td className="py-2 px-3 font-bold text-sky-900">₹50,000 – ₹1 Lakh*</td>
                       </tr>
                     </tbody>
                   </table>
