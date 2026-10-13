@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Launch ICCAQI 2026 - Yenepoya University</title>
+  <link rel="icon" href="public/favicon.ico">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: #030712;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Ambient Lighting */
+    .glow-1 {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(124, 179, 5, 0.22) 0%, rgba(124, 179, 5, 0) 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      animation: pulse 4s infinite ease-in-out;
+    }
+
+    .glow-2 {
+      position: absolute;
+      bottom: 20%;
+      left: 50%;
+      transform: translate(-50%, 50%);
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0) 70%);
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+      50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+    }
+
+    /* Grid pattern */
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 620px;
+      width: 90%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    /* Brand Header */
+    .brand-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 14px 28px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-box img {
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .brand-divider {
+      width: 1px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124, 179, 5, 0.15);
+      border: 1px solid rgba(124, 179, 5, 0.35);
+      color: #a0e020;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .beacon {
+      width: 8px;
+      height: 8px;
+      background: #7cb305;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #7cb305;
+      animation: blink 1.2s infinite ease-in-out;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+
+    .title-group h1 {
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      background: linear-gradient(135deg, #a0e020 0%, #10b981 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(124, 179, 5, 0.3);
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #cbd5e1;
+      max-width: 480px;
+      line-height: 1.5;
+    }
+
+    /* THE LAUNCH BUTTON */
+    .launch-btn-wrap {
+      position: relative;
+      margin: 12px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .halo {
+      position: absolute;
+      inset: -12px;
+      background: linear-gradient(90deg, #7cb305, #10b981, #14b8a6);
+      filter: blur(28px);
+      opacity: 0.5;
+      border-radius: 9999px;
+      transition: all 0.5s ease;
+      pointer-events: none;
+    }
+
+    .launch-btn {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(135deg, #84cc16 0%, #10b981 50%, #0d9488 100%);
+      color: #030712;
+      border: none;
+      padding: 20px 48px;
+      border-radius: 9999px;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 40px rgba(124, 179, 5, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .launch-btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 15px 50px rgba(124, 179, 5, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+      filter: brightness(1.08);
+    }
+
+    .launch-btn:active {
+      transform: scale(0.96);
+    }
+
+    .launch-btn.launched {
+      background: #ffffff;
+      color: #064e3b;
+      transform: scale(1.08);
+      box-shadow: 0 0 70px rgba(255, 255, 255, 0.8);
+    }
+
+    .rocket-icon {
+      font-size: 24px;
+      transition: transform 0.3s ease;
+    }
+
+    .launch-btn:hover .rocket-icon {
+      transform: translateY(-3px) rotate(8deg);
+    }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .server-status {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .footer-info {
+      font-size: 12px;
+      color: #64748b;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 16px;
+      width: 100%;
+    }
+
+    /* Celebration Canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* Smooth page reveal ripple */
+    .shockwave {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid #a0e020;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 1;
+      animation: shockwaveExpand 0.8s ease-out forwards;
+    }
+
+    @keyframes shockwaveExpand {
+      to {
+        transform: translate(-50%, -50%) scale(8);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+  <div class="grid-bg"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="container">
+    <!-- Brand Box -->
+    <div class="brand-box">
+      <img src="public/yenepoya-university-logonew3-white.svg" alt="Yenepoya University">
+      <div class="brand-divider"></div>
+      <img src="public/yenepoya-school-engineering-and-technologynew-white.svg" alt="School of Engineering and Technology">
+    </div>
+
+    <!-- Badge -->
+    <div class="badge">
+      <span class="beacon"></span>
+      <span>Official Website Inauguration</span>
+    </div>
+
+    <!-- Title -->
+    <div class="title-group">
+      <h1>ICCAQI <span class="highlight">2026</span></h1>
+      <p class="subtitle">
+        International Conference on Computing, Artificial Intelligence, Quantum Intelligence & Future Technologies
+      </p>
+    </div>
+
+    <!-- Launch Button -->
+    <div class="launch-btn-wrap">
+      <div class="halo" id="halo"></div>
+      <button class="launch-btn" id="launchBtn" onclick="launchExperience(event)">
+        <span class="rocket-icon">🚀</span>
+        <span id="btnText">Launch Website</span>
+        <span>✨</span>
+      </button>
+      <div class="hint">
+        <span class="beacon"></span>
+        <span>Click to unveil ICCAQI 2026 Conference Portal</span>
+      </div>
+      <div class="server-status" id="serverStatus">
+        <span>🌐 Target: <strong style="color: #cbd5e1;">http://localhost:3000</strong></span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-info">
+      November 25–26, 2026 &bull; Yenepoya Campus, Mangaluru, India
+    </div>
+  </div>
+
+  <script>
+    let isLaunching = false;
+
+    // Web Audio Synthesizer: Feel-Good Chime
+    function playFeelGoodChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const now = ctx.currentTime;
+
+        // Ascending pentatonic chord (C5, E5, G5, B5, C6, E6)
+        const notes = [
+          { freq: 523.25, time: 0.00, dur: 0.9 },
+          { freq: 659.25, time: 0.08, dur: 0.9 },
+          { freq: 783.99, time: 0.16, dur: 1.0 },
+          { freq: 987.77, time: 0.24, dur: 1.1 },
+          { freq: 1046.50, time: 0.32, dur: 1.3 },
+          { freq: 1318.51, time: 0.40, dur: 1.5 }
+        ];
+
+        notes.forEach(({ freq, time, dur }) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + time);
+
+          gain.gain.setValueAtTime(0.0001, now + time);
+          gain.gain.exponentialRampToValueAtTime(0.24, now + time + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + time + dur);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + time);
+          osc.stop(now + time + dur + 0.1);
+        });
+
+        // Warm bass foundation
+        const baseOsc = ctx.createOscillator();
+        const baseGain = ctx.createGain();
+        baseOsc.type = 'triangle';
+        baseOsc.frequency.setValueAtTime(261.63, now);
+        baseGain.gain.setValueAtTime(0.001, now);
+        baseGain.gain.exponentialRampToValueAtTime(0.15, now + 0.05);
+        baseGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+        baseOsc.connect(baseGain);
+        baseGain.connect(ctx.destination);
+        baseOsc.start(now);
+        baseOsc.stop(now + 1.3);
+      } catch (e) {
+        console.warn('Audio not supported', e);
+      }
+    }
+
+    // Canvas Confetti Engine (Standalone zero-dependency)
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const COLORS = ['#7cb305', '#10b981', '#34d399', '#facc15', '#38bdf8', '#ffffff', '#a0e020'];
+
+    function createConfettiBurst(x, y, count, spreadAngle, baseSpeed) {
+      for (let i = 0; i < count; i++) {
+        const angle = spreadAngle !== null 
+          ? spreadAngle + (Math.random() - 0.5) * 1.2
+          : Math.random() * Math.PI * 2;
+        const speed = (baseSpeed || 8) + Math.random() * 8;
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 4,
+          size: 6 + Math.random() * 8,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          rotation: Math.random() * 360,
+          rotationSpeed: (Math.random() - 0.5) * 10,
+          opacity: 1,
+          gravity: 0.22,
+          decay: 0.008 + Math.random() * 0.006,
+          shape: Math.random() > 0.4 ? 'rect' : 'circle'
+        });
+      }
+    }
+
+    function renderConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.vx *= 0.98;
+        p.rotation += p.rotationSpeed;
+        p.opacity -= p.decay;
+
+        if (p.opacity <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+
+        if (p.shape === 'rect') {
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.5);
+        } else {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      if (particles.length > 0) {
+        requestAnimationFrame(renderConfetti);
+      }
+    }
+
+    function fireConfettiCelebration() {
+      const cx = canvas.width / 2;
+      const cy = canvas.height * 0.6;
+      
+      // Center blast
+      createConfettiBurst(cx, cy, 100, null, 10);
+      
+      // Left cannon
+      setTimeout(() => {
+        createConfettiBurst(canvas.width * 0.05, canvas.height * 0.8, 70, -Math.PI / 4, 14);
+      }, 150);
+
+      // Right cannon
+      setTimeout(() => {
+        createConfettiBurst(canvas.width * 0.95, canvas.height * 0.8, 70, -3 * Math.PI / 4, 14);
+      }, 300);
+
+      // Secondary center shower
+      setTimeout(() => {
+        createConfettiBurst(cx, canvas.height * 0.45, 60, null, 7);
+      }, 450);
+
+      renderConfetti();
+    }
+
+    function launchExperience(e) {
+      if (isLaunching) return;
+      isLaunching = true;
+
+      const btn = document.getElementById('launchBtn');
+      const btnText = document.getElementById('btnText');
+      btn.classList.add('launched');
+      btnText.textContent = 'Launching...';
+
+      // 1. Shockwave Ripple
+      const rect = btn.getBoundingClientRect();
+      const wave = document.createElement('div');
+      wave.className = 'shockwave';
+      wave.style.left = (rect.left + rect.width / 2) + 'px';
+      wave.style.top = (rect.top + rect.height / 2) + 'px';
+      wave.style.width = '100px';
+      wave.style.height = '100px';
+      document.body.appendChild(wave);
+
+      // 2. Sound
+      playFeelGoodChime();
+
+      // 3. Confetti
+      fireConfettiCelebration();
+
+      // 4. Smooth Redirect / Transition
+      setTimeout(() => {
+        window.location.href = 'http://localhost:3000';
+      }, 900);
+    }
+
+    // Keyboard trigger
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        launchExperience();
+      }
+    });
+
+    // Check if localhost:3000 is running
+    fetch('http://localhost:3000', { mode: 'no-cors' })
+      .then(() => {
+        const s = document.getElementById('serverStatus');
+        s.innerHTML = '🟢 <span style="color:#a0e020;">Server Online!</span> Ready to launch';
+      })
+      .catch(() => {
+        const s = document.getElementById('serverStatus');
+        s.innerHTML = '⚡ Double-click <strong>Launch-Website.bat</strong> in this folder to start the server';
+      });
+  </script>
+</body>
+</html>
