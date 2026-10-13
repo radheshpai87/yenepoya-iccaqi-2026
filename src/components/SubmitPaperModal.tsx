@@ -46,7 +46,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     gender: 'Male',
     institution: '',
     authorCategory: 'Research Scholars / Academicians',
-    publicationCategory: 'Category 2: Scopus Indexed Journals / Book Chapters',
+    publicationCategory: 'Category II: Scopus Indexed Journals / Book Chapters',
     paperTitle: '',
     track: preselectedTrack || 'Artificial Intelligence and Machine Learning',
     abstract: '',
@@ -130,7 +130,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     setFormData((prev) => ({
       ...prev,
       publicationCategory: category2Consent === 'yes'
-        ? `Category I + Category II (Scopus - ${publicationType})`
+        ? `Category II (Scopus - ${publicationType})`
         : 'Category I: Proceedings & Double-Blind Peer-Reviewed Journals (Standard Track)',
     }));
     setStep('form');
@@ -143,7 +143,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     setPublicationType(type);
     setFormData((prev) => ({
       ...prev,
-      publicationCategory: `Category I + Category II (Scopus - ${type})`,
+      publicationCategory: `Category II (Scopus - ${type})`,
     }));
   };
 
