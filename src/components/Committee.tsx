@@ -37,7 +37,7 @@ export const Committee: React.FC = () => {
     affiliation: 'Yenepoya School of Engineering & Technology',
   };
 
-  const advisoryAndCoordination = [
+  const advisoryCommittee = [
     {
       role: 'Chair, Advisory Committee',
       name: 'Dr. Rakesh K K',
@@ -154,13 +154,13 @@ export const Committee: React.FC = () => {
           </div>
         </div>
 
-        {/* Advisory Committee & Coordination Section */}
+        {/* Advisory Committee Section */}
         <div>
           <h4 className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
-            Advisory Committee &amp; Coordination
+            Advisory Committee
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-            {advisoryAndCoordination.map((lead, idx) => (
+            {advisoryCommittee.map((lead, idx) => (
               <div
                 key={idx}
                 className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs text-center flex flex-col justify-between"
