@@ -44,10 +44,16 @@ export const Committee: React.FC = () => {
       designation: 'Senior Assistant Professor, Dept. of Computer Science',
       affiliation: 'YIASCM',
     },
+    {
+      role: 'Co-Chair, Advisory Committee',
+      name: 'Dr. M. Sujaritha',
+      designation: 'Dean (Research & Development)',
+      affiliation: 'Yenepoya Institute of Technology, Mangalore',
+    },
   ];
 
   return (
-    <section id="committee" className="py-20 md:py-24 bg-white border-b border-slate-100">
+    <section id="committee" className="pt-20 md:pt-24 pb-14 md:pb-16 bg-white border-b border-slate-100">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
@@ -153,18 +159,24 @@ export const Committee: React.FC = () => {
           <h4 className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
             Advisory Committee &amp; Coordination
           </h4>
-          <div className="max-w-2xl mx-auto flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
             {advisoryAndCoordination.map((lead, idx) => (
               <div
                 key={idx}
-                className="w-full sm:w-[calc(50%-0.5rem)] bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-1 text-center"
+                className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs text-center flex flex-col justify-between"
               >
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
-                  {lead.role}
-                </span>
-                <h5 className="text-sm font-bold text-slate-900">{lead.name}</h5>
-                <p className="text-xs text-slate-600 font-medium">{lead.designation}</p>
-                <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-100">{lead.affiliation}</p>
+                <div className="space-y-1">
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
+                    {lead.role}
+                  </span>
+                  <h5 className="text-sm font-bold text-slate-900">{lead.name}</h5>
+                  <p className="text-xs text-slate-600 font-medium min-h-[2.25rem] flex items-center justify-center">
+                    {lead.designation}
+                  </p>
+                </div>
+                <p className="text-[11px] text-slate-400 pt-2 mt-2 border-t border-slate-100">
+                  {lead.affiliation}
+                </p>
               </div>
             ))}
           </div>

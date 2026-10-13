@@ -3,7 +3,7 @@ import { MapPin, Navigation, Plane, Train, Car } from 'lucide-react';
 
 export const Venue: React.FC = () => {
   return (
-    <section id="venue" className="py-20 md:py-24 bg-slate-50 border-b border-slate-200">
+    <section id="venue" className="pt-14 md:pt-16 pb-20 md:pb-24 bg-slate-50 border-b border-slate-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
