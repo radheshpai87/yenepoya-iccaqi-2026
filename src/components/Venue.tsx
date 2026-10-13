@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Navigation, Plane, Train, Car } from 'lucide-react';
+import { MapPin, Navigation, Plane, Train, Car, Hotel, Mail } from 'lucide-react';
 
 export const Venue: React.FC = () => {
   return (
@@ -20,7 +20,7 @@ export const Venue: React.FC = () => {
         </div>
 
         {/* Mangalore Tourism & Sightseeing Banner */}
-        <div className="mb-8 sm:mb-10 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-2xs bg-white">
+        <div className="max-w-lg sm:max-w-xl mx-auto mb-8 sm:mb-10 rounded-2xl overflow-hidden border border-slate-200/90 shadow-2xs bg-white transition-all hover:shadow-xs">
           <img
             src="/explore-mangalore-banner.webp"
             alt="Explore the Beauty of Mangalore - Free Sightseeing Facility for Outstation Candidates"
@@ -28,7 +28,7 @@ export const Venue: React.FC = () => {
             height={639}
             loading="lazy"
             decoding="async"
-            className="w-full h-auto object-cover"
+            className="w-full h-auto object-contain block"
           />
         </div>
 
@@ -102,6 +102,69 @@ export const Venue: React.FC = () => {
             />
           </div>
 
+        </div>
+
+        {/* Accommodation Facilities Section */}
+        <div className="mt-8 sm:mt-10 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                <Hotel className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
+                  Hospitality &amp; Stay
+                </span>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                  Accommodation Facilities
+                </h3>
+              </div>
+            </div>
+
+            <a
+              href="mailto:iccaqi2026@yenepoya.edu.in?subject=Accommodation%20Request%20-%20ICCAQI%202026"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-2xs transition-all active:scale-98 self-start sm:self-auto cursor-pointer"
+            >
+              <Mail className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Request Accommodation via Email</span>
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5">
+            {/* Free Accommodation */}
+            <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex flex-col justify-between space-y-2.5">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-emerald-600 text-white">
+                    Complimentary
+                  </span>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                    Free Accommodation
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Free accommodation is available for a limited number of registered candidates on a <strong className="text-slate-800">first-come, first-served basis</strong>.
+                </p>
+              </div>
+            </div>
+
+            {/* Paid Accommodation */}
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-2.5">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-slate-700 text-white">
+                    Nominal Charge
+                  </span>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                    Paid Accommodation
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Candidates who are unable to secure free accommodation may request paid accommodation at a nominal charge by sending an email. <span className="text-slate-500 italic block pt-1">This facility is subject to availability.</span>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
