@@ -83,12 +83,20 @@ export async function GET() {
             const rawMode = s.participation_mode || s.mode || 'Offline';
             let cleanMode = rawMode;
             let authorGender = s.gender || '';
+            let plagiarismReport = '';
             if (rawMode.includes(' | ')) {
               const parts = rawMode.split(' | ');
               cleanMode = parts[0] || 'Offline';
               if (!authorGender && parts[1]) {
                 authorGender = parts[1];
               }
+              const reportPart = parts.find((p: string) => p.startsWith('Plagiarism Report: '));
+              if (reportPart) {
+                plagiarismReport = reportPart.replace('Plagiarism Report: ', '').trim();
+              }
+            }
+            if (!plagiarismReport && s.reviewer_notes?.includes('Plagiarism Report: ')) {
+              plagiarismReport = s.reviewer_notes.replace('Plagiarism Report: ', '').trim();
             }
 
             return {
@@ -106,6 +114,7 @@ export async function GET() {
               abstract: s.abstract,
               mode: cleanMode,
               fileUrl: viewUrl,
+              plagiarismReportUrl: plagiarismReport,
               reviewStatus: s.review_status || 'Under Review',
               createdAt: s.created_at,
             };

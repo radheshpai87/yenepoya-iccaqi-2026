@@ -78,6 +78,7 @@ interface Submission {
   abstract: string;
   mode: string;
   fileUrl: string;
+  plagiarismReportUrl?: string;
   reviewStatus: string;
   createdAt: string;
   reviewerNotes?: string;
@@ -274,6 +275,9 @@ export default function PortalAdminPage() {
               abstract: s.abstract,
               mode: s.participation_mode || 'Hybrid',
               fileUrl: s.file_url,
+              plagiarismReportUrl: s.reviewer_notes?.includes('Plagiarism Report: ')
+                ? s.reviewer_notes.replace('Plagiarism Report: ', '').trim()
+                : undefined,
               reviewStatus: s.review_status || 'Under Review',
               createdAt: s.created_at,
             };
@@ -2270,14 +2274,25 @@ export default function PortalAdminPage() {
                         <div className="p-1 rounded-full bg-blue-100 text-[#3b82f6]">
                           <Check className="w-4 h-4 stroke-[3]" />
                         </div>
+                        {selectedSubmission.plagiarismReportUrl && (
+                          <a
+                            href={selectedSubmission.plagiarismReportUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors shadow-2xs font-bold text-xs flex items-center gap-1"
+                            title="Open Attached Plagiarism Report"
+                          >
+                            <FileCheck className="w-3.5 h-3.5" /> Plagiarism Report
+                          </a>
+                        )}
                         <a
                           href={selectedSubmission.fileUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="p-2 rounded-xl bg-white border border-[#d0e2ff] text-[#3b82f6] hover:bg-blue-50 transition-colors shadow-2xs font-bold text-xs flex items-center gap-1"
-                          title="Open Manuscript PDF"
+                          title="Open Manuscript Document"
                         >
-                          <ExternalLink className="w-3.5 h-3.5" /> Open PDF
+                          <ExternalLink className="w-3.5 h-3.5" /> Open Manuscript
                         </a>
                       </div>
                     </div>

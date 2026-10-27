@@ -20,6 +20,7 @@ import {
   ArrowRight,
   ArrowLeft,
   FileCheck2,
+  FileCheck,
   Info,
   Lock,
   Copy,
@@ -72,6 +73,10 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const [acknowledged, setAcknowledged] = useState(false);
   const [ackError, setAckError] = useState('');
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [guidelinesConsent, setGuidelinesConsent] = useState(false);
+  const [plagiarismFile, setPlagiarismFile] = useState<File | null>(null);
+  const [plagiarismFileName, setPlagiarismFileName] = useState<string | null>(null);
+  const [plagiarismError, setPlagiarismError] = useState('');
 
   const isAuthorNameInvalid = attemptedSubmit && !formData.authorName.trim();
   const isEmailInvalid = attemptedSubmit && (!formData.email.trim() || !formData.email.includes('@'));
@@ -79,6 +84,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
   const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
   const isTitleInvalid = attemptedSubmit && !formData.paperTitle.trim();
   const isAbstractInvalid = attemptedSubmit && !formData.abstract.trim();
+  const isConsentInvalid = attemptedSubmit && !guidelinesConsent;
   const isFileInvalid = attemptedSubmit && !selectedFile;
 
   const isStage1Complete = acknowledged;
@@ -90,6 +96,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     formData.institution.trim() &&
     formData.paperTitle.trim() &&
     formData.abstract.trim() &&
+    guidelinesConsent &&
     selectedFile
   );
 
@@ -184,6 +191,30 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     setSelectedFile(file);
   };
 
+  const processPlagiarismFile = (file: File) => {
+    setPlagiarismError('');
+    const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
+    if (file.size > MAX_SIZE_BYTES) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      setPlagiarismError(`File size (${sizeMB} MB) exceeds the 10 MB limit.`);
+      setPlagiarismFile(null);
+      setPlagiarismFileName(null);
+      return;
+    }
+
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const allowed = ['pdf', 'doc', 'docx'];
+    if (!allowed.includes(ext)) {
+      setPlagiarismError('Invalid format. Plagiarism report must be PDF (.pdf) or Word (.doc/.docx).');
+      setPlagiarismFile(null);
+      setPlagiarismFileName(null);
+      return;
+    }
+
+    setPlagiarismFileName(file.name);
+    setPlagiarismFile(file);
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -210,6 +241,11 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
 
     if (!formData.authorName.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.institution.trim() || !formData.paperTitle.trim() || !formData.abstract.trim()) {
       setUploadError('Please complete all mandatory fields highlighted in red below.');
+      return;
+    }
+
+    if (!guidelinesConsent) {
+      setUploadError('Please confirm the consent statement regarding plagiarism and AI-generated content.');
       return;
     }
 
@@ -249,6 +285,10 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     data.append('abstract', formData.abstract);
     data.append('mode', formData.mode);
     data.append('file', selectedFile);
+    data.append('guidelinesConsent', 'true');
+    if (plagiarismFile) {
+      data.append('plagiarismReport', plagiarismFile);
+    }
 
     // Use XMLHttpRequest for real-time upload progress tracking
     const xhr = new XMLHttpRequest();
@@ -495,6 +535,18 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     )}
                   </div>
                 </div>
+
+                {plagiarismFileName && (
+                  <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1 sm:col-span-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Attached Plagiarism Report
+                    </span>
+                    <span className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      {plagiarismFileName}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1358,6 +1410,115 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     <AlertCircle className="w-3 h-3 shrink-0" /> Abstract is required
                   </p>
                 )}
+              </div>
+
+              {/* Plagiarism & AI Guidelines Consent & Report Attachment */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                isConsentInvalid
+                  ? 'bg-rose-50/60 border-rose-300 ring-2 ring-rose-200'
+                  : 'bg-slate-50/80 border-slate-200/90'
+              }`}>
+                {/* Consent Statement Checkbox */}
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={guidelinesConsent}
+                    disabled={submitting}
+                    onChange={(e) => {
+                      setGuidelinesConsent(e.target.checked);
+                      if (e.target.checked && uploadError.includes('consent statement')) {
+                        setUploadError('');
+                      }
+                    }}
+                    className="mt-0.5 w-4 h-4 rounded text-[#7cb305] focus:ring-[#7cb305] border-slate-300 accent-[#7cb305] cursor-pointer shrink-0"
+                  />
+                  <div className="space-y-1">
+                    <span className="text-xs font-bold text-slate-900 block">
+                      Consent Statement *
+                    </span>
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                      We hereby confirm that the submitted paper comply with the conference guidelines regarding plagiarism and AI-generated content.
+                    </p>
+                  </div>
+                </label>
+
+                {isConsentInvalid && (
+                  <p className="text-[11px] font-semibold text-rose-600 mt-2 ml-7 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    Please accept the consent statement to proceed.
+                  </p>
+                )}
+
+                {/* Provision to attach plagiarism report */}
+                <div className="mt-3.5 pt-3.5 border-t border-slate-200/80">
+                  <div className="flex flex-wrap items-center justify-between gap-1 mb-2">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <FileCheck className="w-3.5 h-3.5 text-[#7cb305]" />
+                      <span>Attach Plagiarism / Similarity Report</span>
+                      <span className="text-[11px] font-normal text-slate-500">(Optional)</span>
+                    </span>
+                    <span className="text-[10.5px] text-slate-500 font-medium">
+                      PDF, Word (.doc/.docx) • Max 10 MB
+                    </span>
+                  </div>
+
+                  {plagiarismFileName ? (
+                    <div className="p-2.5 rounded-xl bg-white border border-emerald-200 flex items-center justify-between gap-2 shadow-2xs">
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                          <FileCheck className="w-4 h-4" />
+                        </div>
+                        <div className="overflow-hidden">
+                          <div className="text-xs font-bold text-slate-900 truncate max-w-[200px] sm:max-w-[320px]">
+                            {plagiarismFileName}
+                          </div>
+                          <p className="text-[10px] text-slate-500 font-medium">
+                            {plagiarismFile ? `${(plagiarismFile.size / 1024).toFixed(1)} KB` : ''} • Plagiarism Report Attached
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={submitting}
+                        onClick={() => {
+                          setPlagiarismFile(null);
+                          setPlagiarismFileName(null);
+                          setPlagiarismError('');
+                        }}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50"
+                        title="Remove attached report"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="border border-dashed border-slate-300 hover:border-[#7cb305] rounded-xl px-3.5 py-2.5 flex items-center justify-center gap-2 cursor-pointer bg-white hover:bg-lime-50/30 transition-all text-center group">
+                      <UploadCloud className="w-4 h-4 text-slate-400 group-hover:text-[#7cb305] transition-colors" />
+                      <span className="text-xs text-slate-600 font-medium group-hover:text-slate-900 transition-colors">
+                        Click to attach plagiarism report <span className="text-slate-400 font-normal">(e.g., Turnitin, DrillBit)</span>
+                      </span>
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        disabled={submitting}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            processPlagiarismFile(e.target.files[0]);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+
+                  {plagiarismError && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1.5 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      {plagiarismError}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* File Upload Section */}

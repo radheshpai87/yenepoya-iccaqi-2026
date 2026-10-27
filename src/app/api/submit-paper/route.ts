@@ -73,6 +73,25 @@ export async function POST(request: Request) {
       }
     }
 
+    // Optional Plagiarism Report Validation
+    const plagiarismReport = formData.get('plagiarismReport');
+    let plagiarismReportUrl = '';
+    if (plagiarismReport instanceof File && plagiarismReport.size > 0) {
+      const plagExt = (plagiarismReport.name.split('.').pop() || '').toLowerCase();
+      if (!['pdf', 'doc', 'docx'].includes(plagExt)) {
+        return NextResponse.json(
+          { error: 'Invalid plagiarism report format. Only PDF (.pdf) or Word (.doc/.docx) files are permitted.' },
+          { status: 400 }
+        );
+      }
+      if (plagiarismReport.size > 10 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: 'Plagiarism report size exceeds the 10 MB limit.' },
+          { status: 400 }
+        );
+      }
+    }
+
     if (!isSupabaseConfigured()) {
       throw new ApiError(503, 'Saving is temporarily unavailable. Please try again later.');
     }
@@ -123,6 +142,28 @@ export async function POST(request: Request) {
       .getPublicUrl(uploadData.path);
     const fileUrl = publicUrlData.publicUrl;
 
+    if (plagiarismReport instanceof File && plagiarismReport.size > 0) {
+      try {
+        const plagExt = (plagiarismReport.name.split('.').pop() || '').toLowerCase();
+        const plagBuffer = Buffer.from(await plagiarismReport.arrayBuffer());
+        const plagStoragePath = `plagiarism_${submissionId}_${Date.now()}.${plagExt}`;
+        const { data: plagUploadData, error: plagUploadError } = await supabaseAdmin.storage
+          .from('manuscripts')
+          .upload(plagStoragePath, plagBuffer, {
+            contentType: plagiarismReport.type || (plagExt === 'pdf' ? 'application/pdf' : 'application/msword'),
+            upsert: false,
+          });
+        if (!plagUploadError && plagUploadData) {
+          const { data: pUrlData } = supabaseAdmin.storage
+            .from('manuscripts')
+            .getPublicUrl(plagUploadData.path);
+          plagiarismReportUrl = pUrlData.publicUrl;
+        }
+      } catch (plagErr) {
+        console.warn('Plagiarism report upload non-blocking warning:', plagErr);
+      }
+    }
+
     const createdAt = new Date().toISOString();
 
     const categoryFeeMap: Record<string, string> = {
@@ -143,7 +184,7 @@ export async function POST(request: Request) {
       track,
       paper_title: paperTitle,
       abstract,
-      participation_mode: `${mode || 'Offline'} | ${gender}`,
+      participation_mode: `${mode || 'Offline'} | ${gender}${plagiarismReportUrl ? ` | Plagiarism Report: ${plagiarismReportUrl}` : ''}`,
       file_url: fileUrl,
       review_status: 'Submitted',
       created_at: createdAt,
@@ -174,6 +215,17 @@ export async function POST(request: Request) {
       // Preserve the file on ambiguous failures: the transaction may be committed.
       // A retry with the same key recovers the saved response from PostgreSQL.
       throwSaveError(saveError);
+    }
+
+    if (plagiarismReportUrl) {
+      try {
+        await supabaseAdmin
+          .from('paper_submissions')
+          .update({ reviewer_notes: `Plagiarism Report: ${plagiarismReportUrl}` })
+          .eq('submission_id', submissionId);
+      } catch (notesErr) {
+        console.warn('Could not update reviewer_notes with plagiarism report URL:', notesErr);
+      }
     }
     if (savedData.file_url !== fileUrl) {
       // A concurrent identical request already committed its own manuscript.
