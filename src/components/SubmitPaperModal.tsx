@@ -694,7 +694,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                       </tr>
                       <tr>
                         <td className="py-2 px-3 font-medium">AI-Generated Content</td>
-                        <td className="py-2 px-3 font-bold text-emerald-700">Below 20%</td>
+                        <td className="py-2 px-3 font-bold text-emerald-700">Below 30%</td>
                       </tr>
                       <tr>
                         <td className="py-2 px-3 font-medium">Abstract Plagiarism / Similarity Index*</td>
