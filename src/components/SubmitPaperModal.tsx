@@ -172,9 +172,9 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
     }
 
     const ext = (file.name.split('.').pop() || '').toLowerCase();
-    const allowed = ['pdf', 'doc', 'docx', 'tex', 'zip'];
+    const allowed = ['doc', 'docx'];
     if (!allowed.includes(ext)) {
-      setUploadError('Invalid file format. Only PDF (.pdf), Word (.doc/.docx), or LaTeX (.tex/.zip) documents are permitted.');
+      setUploadError('Invalid file format. Only Word (.doc / .docx) documents are permitted.');
       setSelectedFile(null);
       setFileName(null);
       return;
@@ -260,7 +260,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
         if (percentComplete < 35) {
           setUploadStep('Uploading manuscript file to secure storage...');
         } else if (percentComplete < 75) {
-          setUploadStep('Verifying PDF structure & virus scan...');
+          setUploadStep('Verifying Word document structure & virus scan...');
         } else if (percentComplete < 99) {
           setUploadStep('Registering submission details...');
         } else {
@@ -1364,7 +1364,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-slate-700">
-                    Upload Manuscript (PDF / Word / LaTeX) *
+                    Upload Manuscript (Word format) *
                   </label>
                   <a
                     href="/APA7_sample_paper_with_tables_figures-92QdmbdX.pdf"
@@ -1460,7 +1460,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                       {isDragging ? 'Drop your manuscript file here' : 'Click or Drag & Drop manuscript file here'}
                     </span>
                     <span className="text-[11px] text-slate-500 mt-1 font-medium">
-                      PDF (.pdf), Word (.doc/.docx), LaTeX (.tex/.zip) • Max file size: 10 MB
+                      Word (.doc / .docx) only • Max file size: 10 MB
                     </span>
                     {isFileInvalid && (
                       <span className="text-xs font-bold text-rose-600 mt-2 flex items-center gap-1.5 animate-pulse bg-rose-100/80 px-3 py-1 rounded-full border border-rose-200">
@@ -1470,7 +1470,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                     )}
                     <input
                       type="file"
-                      accept=".pdf,.doc,.docx,.tex,.zip"
+                      accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       required
                       disabled={submitting}
                       onChange={(e) => {

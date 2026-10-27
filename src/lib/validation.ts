@@ -18,15 +18,11 @@ export function sanitizeText(str: unknown, maxLength: number = 500): string {
 }
 
 const ALLOWED_MIME_TYPES = new Set([
-  'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/x-tex',
-  'application/zip',
-  'application/x-zip-compressed'
 ]);
 
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'doc', 'docx', 'tex', 'zip']);
+const ALLOWED_EXTENSIONS = new Set(['doc', 'docx']);
 
 export function validateUploadedFile(file: File | null): { valid: boolean; error?: string } {
   if (!file) return { valid: true };
@@ -40,7 +36,7 @@ export function validateUploadedFile(file: File | null): { valid: boolean; error
   // 2. Extension Validation
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   if (!ALLOWED_EXTENSIONS.has(ext)) {
-    return { valid: false, error: 'Invalid file format. Only PDF (.pdf), Word (.doc/.docx), or LaTeX (.tex/.zip) documents are permitted.' };
+    return { valid: false, error: 'Invalid file format. Only Word (.doc / .docx) documents are permitted.' };
   }
 
   // 3. MIME Type Validation
@@ -52,7 +48,7 @@ export function validateUploadedFile(file: File | null): { valid: boolean; error
 }
 
 /**
- * Inspection of File Magic Bytes to prevent extension spoofing (e.g. malware.exe renamed to paper.pdf)
+ * Inspection of File Magic Bytes to prevent extension spoofing (e.g. malware.exe renamed to paper.docx)
  */
 export async function validateFileMagicBytes(file: File): Promise<{ valid: boolean; error?: string }> {
   if (!file || file.size === 0) return { valid: true };
@@ -63,16 +59,20 @@ export async function validateFileMagicBytes(file: File): Promise<{ valid: boole
     const bytes = new Uint8Array(buffer);
     const ext = (file.name.split('.').pop() || '').toLowerCase();
 
-    if (ext === 'pdf') {
-      // PDF binary header signature must start with %PDF- (0x25 0x50 0x44 0x46 0x2D)
-      if (bytes.length < 5 || bytes[0] !== 0x25 || bytes[1] !== 0x50 || bytes[2] !== 0x44 || bytes[3] !== 0x46 || bytes[4] !== 0x2D) {
-        return { valid: false, error: 'File binary header mismatch. The uploaded file is not a valid PDF document.' };
-      }
-    } else if (ext === 'docx' || ext === 'doc' || ext === 'zip') {
-      // PK Zip header magic bytes for OOXML DOCX / ZIP: 0x50 0x4B (PK)
+    if (ext === 'docx') {
+      // PK Zip header magic bytes for OOXML DOCX: 0x50 0x4B (PK)
       if (bytes.length < 2 || bytes[0] !== 0x50 || bytes[1] !== 0x4B) {
-        return { valid: false, error: 'File binary header mismatch. The uploaded file is not a valid OOXML/ZIP document.' };
+        return { valid: false, error: 'File binary header mismatch. The uploaded file is not a valid DOCX document.' };
       }
+    } else if (ext === 'doc') {
+      // OLE2 Compound Document (0xD0 0xCF) or OOXML (0x50 0x4B)
+      const isOle = bytes.length >= 2 && bytes[0] === 0xD0 && bytes[1] === 0xCF;
+      const isZip = bytes.length >= 2 && bytes[0] === 0x50 && bytes[1] === 0x4B;
+      if (!isOle && !isZip) {
+        return { valid: false, error: 'File binary header mismatch. The uploaded file is not a valid DOC document.' };
+      }
+    } else {
+      return { valid: false, error: 'Invalid file format. Only Word (.doc / .docx) documents are permitted.' };
     }
   } catch (err) {
     return { valid: false, error: 'Unable to inspect document binary signature.' };
