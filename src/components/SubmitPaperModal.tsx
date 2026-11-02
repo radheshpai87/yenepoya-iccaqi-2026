@@ -570,7 +570,7 @@ export const SubmitPaperModal: React.FC<SubmitPaperModalProps> = ({
                   Upon receiving the acceptance notification, authors may proceed with the <strong>conference registration and payment</strong>.
                 </li>
                 <li>
-                  The paper presentation schedule will be communicated to the authors via email after <strong>November 20, 2026</strong>.
+                  The paper presentation schedule will be communicated to the authors via WhatsApp after <strong>November 20, 2026</strong>.
                 </li>
               </ul>
             </div>
