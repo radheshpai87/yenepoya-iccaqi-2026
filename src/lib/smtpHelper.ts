@@ -39,7 +39,7 @@ export function renderEmailText(
   registrationId?: string,
   paperTitle?: string
 ): string {
-  const regId = registrationId || paperId || '';
+  const regId = paperId || registrationId || '';
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.iccaqi.in';
   const paymentUrl = `${baseUrl.replace(/\/$/, '')}/complete-payment?id=${encodeURIComponent(regId)}`;
 
@@ -102,7 +102,7 @@ export function renderEmailHtml(
   registrationId?: string,
   paperTitle?: string
 ): string {
-  const regId = registrationId || paperId || '';
+  const regId = paperId || registrationId || '';
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.iccaqi.in';
   const paymentUrl = `${baseUrl.replace(/\/$/, '')}/complete-payment?id=${encodeURIComponent(regId)}`;
 

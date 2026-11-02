@@ -9,56 +9,117 @@ export async function GET(request: Request) {
   if (!limit.success) return NextResponse.json({ error: 'Too many requests. Please try again shortly.' }, { status: 429 });
   if (!isSupabaseConfigured()) return NextResponse.json({ error: 'Registration lookup is temporarily unavailable.' }, { status: 503 });
 
-  const id = (new URL(request.url).searchParams.get('id') || '').trim();
-  if (!id || id.length > 100 || !/^[a-z0-9_-]+$/i.test(id)) return NextResponse.json({ error: 'A valid registration reference is required.' }, { status: 400 });
-  const supabase = getSupabaseAdminClient();
-  let { data, error } = UUID_PATTERN.test(id)
-    ? await supabase.from('registrations').select('id, name, email, phone, institution, category, paper_id, paper_title, mode, currency, amount, payment_status').eq('id', id).maybeSingle()
-    : await supabase.from('registrations').select('id, name, email, phone, institution, category, paper_id, paper_title, mode, currency, amount, payment_status').eq('paper_id', id).maybeSingle();
-
-  if (!error && !data && !UUID_PATTERN.test(id)) {
-    const submission = await supabase.from('paper_submissions')
-      .select('id, submission_id, author_name, email, phone, institution, author_category, paper_title, participation_mode')
-      .eq('submission_id', id)
-      .maybeSingle();
-    if (submission.error) error = submission.error;
-    else if (submission.data) {
-      const s = submission.data;
-      data = {
-        id: s.id,
-        name: s.author_name,
-        email: s.email,
-        phone: s.phone,
-        institution: s.institution,
-        category: s.author_category || 'Research scholars / Academicians',
-        paper_id: s.submission_id,
-        paper_title: s.paper_title,
-        mode: s.participation_mode || 'Offline',
-        currency: 'INR',
-        amount: '',
-        payment_status: 'Pending',
-      };
-    }
+  const rawId = (new URL(request.url).searchParams.get('id') || '').trim();
+  if (!rawId || rawId.length > 100 || !/^[a-z0-9_-]+$/i.test(rawId)) {
+    return NextResponse.json({ error: 'A valid registration reference is required.' }, { status: 400 });
   }
 
-  if (error) {
+  const supabase = getSupabaseAdminClient();
+  const isUuid = UUID_PATTERN.test(rawId);
+  const cleanId = rawId.replace(/^ICCAQI-?/i, '').trim();
+
+  let regRecord: any = null;
+  let subRecord: any = null;
+
+  try {
+    // 1. Check registrations table
+    if (isUuid) {
+      const { data } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('id', rawId)
+        .limit(1);
+      if (data && data[0]) regRecord = data[0];
+    }
+
+    if (!regRecord) {
+      const { data } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('paper_id', cleanId)
+        .limit(1);
+      if (data && data[0]) regRecord = data[0];
+    }
+
+    if (!regRecord && !isUuid) {
+      const { data } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('paper_id', rawId)
+        .limit(1);
+      if (data && data[0]) regRecord = data[0];
+    }
+
+    // 2. Check paper_submissions table
+    if (isUuid) {
+      const { data } = await supabase
+        .from('paper_submissions')
+        .select('*')
+        .eq('id', rawId)
+        .limit(1);
+      if (data && data[0]) subRecord = data[0];
+    }
+
+    if (!subRecord) {
+      const { data } = await supabase
+        .from('paper_submissions')
+        .select('*')
+        .eq('submission_id', cleanId)
+        .limit(1);
+      if (data && data[0]) subRecord = data[0];
+    }
+
+    // 3. If subRecord found, attempt to link with registrations if regRecord wasn't found yet
+    if (subRecord && !regRecord && subRecord.submission_id) {
+      const { data } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('paper_id', subRecord.submission_id)
+        .limit(1);
+      if (data && data[0]) regRecord = data[0];
+    }
+
+    if (!regRecord && !subRecord) {
+      return NextResponse.json({ error: 'Registration was not found.' }, { status: 404 });
+    }
+
+    // Normalize category and calculate fee if missing
+    const category = regRecord?.category || subRecord?.author_category || 'Research Scholars / Academicians';
+    let amount = regRecord?.amount || '';
+    if (!amount) {
+      const catLower = category.toLowerCase();
+      if (catLower.includes('student') || catLower.includes('ug') || catLower.includes('pg')) {
+        amount = '₹500';
+      } else if (catLower.includes('industry')) {
+        amount = '₹1,500';
+      } else if (catLower.includes('attendee') || catLower.includes('observer') || catLower.includes('participant')) {
+        amount = '₹300';
+      } else {
+        amount = '₹750';
+      }
+    }
+
+    const rawMode = regRecord?.mode || subRecord?.participation_mode || subRecord?.mode || 'Offline';
+    const cleanMode = rawMode.includes(' | ') ? rawMode.split(' | ')[0] : rawMode;
+
+    return NextResponse.json({
+      registration: {
+        id: regRecord?.id || subRecord?.id || rawId,
+        name: regRecord?.name || subRecord?.author_name || '',
+        email: regRecord?.email || subRecord?.email || '',
+        phone: regRecord?.phone || subRecord?.phone || '',
+        institution: regRecord?.institution || subRecord?.institution || '',
+        category: category,
+        paperId: regRecord?.paper_id || subRecord?.submission_id || cleanId,
+        paperTitle: regRecord?.paper_title || subRecord?.paper_title || '',
+        mode: cleanMode || 'Offline',
+        currency: regRecord?.currency || 'INR',
+        amount: amount,
+        paymentStatus: regRecord?.payment_status || 'Pending',
+      }
+    });
+  } catch (error) {
     console.error('Payment registration lookup failed:', error);
     return NextResponse.json({ error: 'Registration details could not be loaded.' }, { status: 503 });
   }
-  if (!data) return NextResponse.json({ error: 'Registration was not found.' }, { status: 404 });
-
-  return NextResponse.json({ registration: {
-    id: data.id,
-    name: data.name || '',
-    email: data.email || '',
-    phone: data.phone || '',
-    institution: data.institution || '',
-    category: data.category || '',
-    paperId: data.paper_id || '',
-    paperTitle: data.paper_title || '',
-    mode: data.mode || 'Offline',
-    currency: data.currency || 'INR',
-    amount: data.amount || '',
-    paymentStatus: data.payment_status || 'Pending',
-  } });
 }

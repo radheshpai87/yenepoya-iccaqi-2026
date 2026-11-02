@@ -128,33 +128,53 @@ function CompletePaymentContent() {
     setIsLoading(true);
     try {
       if (idFromUrl) {
-        const cachedRegistration = sessionStorage.getItem('iccaqi-payment-registration');
-        const cached = cachedRegistration ? JSON.parse(cachedRegistration) : null;
-        const response = cached?.id === idFromUrl
-          ? null
-          : await fetch(`/api/payment-registration?id=${encodeURIComponent(idFromUrl)}`);
-        const found = cached?.id === idFromUrl
-          ? cached
-          : response?.ok
-            ? (await response.json()).registration
-            : null;
+        const response = await fetch(`/api/payment-registration?id=${encodeURIComponent(idFromUrl)}`);
+        if (response.ok) {
+          const resJson = await response.json();
+          const found = resJson.registration;
+          if (found) {
+            sessionStorage.setItem('iccaqi-payment-registration', JSON.stringify(found));
+            const normCat = normalizeCategory(found.category || '');
+            const fee = calculateFee(normCat, found.currency);
+            setDelegate({
+              id: found.id || idFromUrl,
+              name: found.name || '',
+              email: found.email || '',
+              phone: found.phone || '',
+              institution: found.institution || '',
+              category: normCat,
+              paperId: found.paperId || '',
+              paperTitle: found.paperTitle || '',
+              mode: found.mode || 'Offline',
+              currency: found.currency || fee.currency,
+              amount: found.amount || fee.amount,
+              paymentStatus: found.paymentStatus || 'Pending',
+            });
+            return;
+          }
+        }
+      }
 
-        if (found) {
-          const normCat = normalizeCategory(found.category || '');
-          const fee = calculateFee(normCat, found.currency);
+      // Fallback to cached registration only if fetch failed or no id in URL
+      const cachedRegistration = sessionStorage.getItem('iccaqi-payment-registration');
+      if (cachedRegistration) {
+        const cached = JSON.parse(cachedRegistration);
+        if (cached && (!idFromUrl || cached.id === idFromUrl || cached.paperId === idFromUrl)) {
+          const normCat = normalizeCategory(cached.category || '');
+          const fee = calculateFee(normCat, cached.currency);
           setDelegate({
-            id: found.id,
-            name: found.name || '',
-            email: found.email || '',
-            phone: found.phone || '',
-            institution: found.institution || '',
+            id: cached.id,
+            name: cached.name || '',
+            email: cached.email || '',
+            phone: cached.phone || '',
+            institution: cached.institution || '',
             category: normCat,
-            paperId: found.paperId || '',
-            paperTitle: found.paperTitle || '',
-            mode: found.mode || 'Offline',
-            currency: found.currency || fee.currency,
-            amount: found.amount || fee.amount,
-            paymentStatus: found.paymentStatus || 'Pending',
+            paperId: cached.paperId || '',
+            paperTitle: cached.paperTitle || '',
+            mode: cached.mode || 'Offline',
+            currency: cached.currency || fee.currency,
+            amount: cached.amount || fee.amount,
+            paymentStatus: cached.paymentStatus || 'Pending',
           });
           return;
         }
@@ -600,10 +620,26 @@ function CompletePaymentContent() {
                       const rzpBase = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || 'https://pages.razorpay.com/pl_ThkevehUyi20yw/view';
                       const params = new URLSearchParams();
                       const cleanAmount = (delegate.amount || '').replace(/[^0-9]/g, '');
+                      const cleanPhone = (delegate.phone || '').replace(/[^0-9]/g, '').slice(-10);
+
                       if (cleanAmount) params.set('amount', cleanAmount);
-                      if (delegate.name) params.set('name', delegate.name);
-                      if (delegate.email) params.set('email', delegate.email);
-                      if (delegate.phone) params.set('phone', delegate.phone);
+                      if (delegate.name) {
+                        params.set('name', delegate.name);
+                        params.set('prefill[name]', delegate.name);
+                      }
+                      if (delegate.email) {
+                        params.set('email', delegate.email);
+                        params.set('prefill[email]', delegate.email);
+                      }
+                      if (cleanPhone) {
+                        params.set('phone', cleanPhone);
+                        params.set('contact', cleanPhone);
+                        params.set('prefill[phone]', cleanPhone);
+                        params.set('prefill[contact]', cleanPhone);
+                      }
+                      if (delegate.paperId) {
+                        params.set('notes[paper_id]', delegate.paperId);
+                      }
 
                       const targetUrl = rzpBase.includes('?') ? `${rzpBase}&${params.toString()}` : `${rzpBase}?${params.toString()}`;
                       window.open(targetUrl, '_blank') || (window.location.href = targetUrl);

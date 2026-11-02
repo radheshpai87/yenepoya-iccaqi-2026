@@ -87,7 +87,7 @@ export async function POST(request: Request) {
         cleanBody,
         recipient.paperId || '',
         recipient.institution || '',
-        recipient.id || recipient.registrationId || recipient.paperId || '',
+        recipient.paperId || recipient.registrationId || recipient.id || '',
         recipient.paperTitle || ''
       );
       const textContent = renderEmailText(
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
         cleanBody,
         recipient.paperId || '',
         recipient.institution || '',
-        recipient.id || recipient.registrationId || recipient.paperId || '',
+        recipient.paperId || recipient.registrationId || recipient.id || '',
         recipient.paperTitle || ''
       );
 
