@@ -36,25 +36,46 @@ export function renderEmailText(
   messageBody: string,
   paperId?: string,
   institution?: string,
-  registrationId?: string
+  registrationId?: string,
+  paperTitle?: string
 ): string {
   const regId = registrationId || paperId || '';
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://iccaqi.in';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.iccaqi.in';
   const paymentUrl = `${baseUrl.replace(/\/$/, '')}/complete-payment?id=${encodeURIComponent(regId)}`;
 
-  const plainBody = messageBody
+  let plainBody = messageBody
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<\/li>/gi, '\n')
     .replace(/<\/div>/gi, '\n')
     .replace(/<[^>]+>/g, '')
+    .replace(/&ndash;/g, '–')
+    .replace(/&mdash;/g, '—')
+    .replace(/&ldquo;/g, '"')
+    .replace(/&rdquo;/g, '"')
+    .replace(/&lsquo;/g, "'")
+    .replace(/&rsquo;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&rarr;/g, '→')
+    .replace(/&bull;/g, '•')
     .replace(/{{name}}/g, name)
+    .replace(/\[Author Name\]/g, name)
+    .replace(/Dear Author,/g, `Dear ${name},`)
     .replace(/{{paper_id}}/g, paperId || 'N/A')
+    .replace(/\[Paper ID\]/g, paperId || 'N/A')
+    .replace(/{{paper_title}}/g, paperTitle || 'Your Research Paper')
+    .replace(/\[Paper Title\]/g, paperTitle || 'Your Research Paper')
     .replace(/{{registration_id}}/g, regId || 'N/A')
     .replace(/{{institution}}/g, institution || '')
     .replace(/{{payment_url}}/g, paymentUrl)
+    .replace(/{{registration_link}}/g, paymentUrl)
+    .replace(/\[Insert Registration Link\]/g, paymentUrl)
+    .replace(/\[Registration Link\]/g, paymentUrl)
     .trim();
 
-  let text = `Dear ${name},\n\n${plainBody}\n\n`;
+  const hasSalutation = /^\s*Dear\s+/i.test(plainBody);
+  let text = hasSalutation ? `${plainBody}\n\n` : `Dear ${name},\n\n${plainBody}\n\n`;
 
   if (regId && !plainBody.includes(paymentUrl)) {
     text += `Complete Registration & Payment Link:\n${paymentUrl}\n\n`;
@@ -64,7 +85,8 @@ export function renderEmailText(
   text += `Dates: November 25–26, 2026 • Mode: Hybrid (In-Person / Online)\n\n`;
   text += `Yenepoya School of Engineering & Technology\n`;
   text += `Yenepoya (Deemed to be University), Mangaluru – 575018, India\n`;
-  text += `Website: https://iccaqi.in`;
+  text += `Website: https://www.iccaqi.in\n`;
+  text += `Email: iccaqi2026@yenepoya.edu.in`;
 
   return text;
 }
@@ -77,21 +99,37 @@ export function renderEmailHtml(
   messageBody: string,
   paperId?: string,
   institution?: string,
-  registrationId?: string
+  registrationId?: string,
+  paperTitle?: string
 ): string {
   const regId = registrationId || paperId || '';
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://iccaqi.in';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.iccaqi.in';
   const paymentUrl = `${baseUrl.replace(/\/$/, '')}/complete-payment?id=${encodeURIComponent(regId)}`;
 
   let processedBody = messageBody
     .replace(/{{name}}/g, name)
+    .replace(/\[Author Name\]/g, name)
+    .replace(/Dear Author,/g, `Dear ${name},`)
     .replace(/{{paper_id}}/g, paperId || 'N/A')
+    .replace(/\[Paper ID\]/g, paperId || 'N/A')
+    .replace(/{{paper_title}}/g, paperTitle || 'Your Research Paper')
+    .replace(/\[Paper Title\]/g, paperTitle || 'Your Research Paper')
     .replace(/{{registration_id}}/g, regId || 'N/A')
     .replace(/{{institution}}/g, institution || '')
-    .replace(/{{payment_url}}/g, paymentUrl);
+    .replace(/{{payment_url}}/g, paymentUrl)
+    .replace(/{{registration_link}}/g, paymentUrl)
+    .replace(/\[Insert Registration Link\]/g, `<a href="${paymentUrl}" target="_blank" style="color: #7cb305; font-weight: 700; text-decoration: underline; word-break: break-all;">${paymentUrl}</a>`)
+    .replace(/\[Registration Link\]/g, `<a href="${paymentUrl}" target="_blank" style="color: #7cb305; font-weight: 700; text-decoration: underline; word-break: break-all;">${paymentUrl}</a>`);
 
-  // If body doesn't explicitly contain {{payment_url}}, append a clean CTA button block at bottom
-  const hasPaymentLinkTag = messageBody.includes('{{payment_url}}') || messageBody.includes('/complete-payment');
+  // Check if body already includes salutation
+  const hasSalutation = /^\s*(<p[^>]*>)?\s*Dear\s+/i.test(messageBody.trim());
+
+  // If body doesn't explicitly contain paymentUrl or /complete-payment, append a clean CTA button block at bottom
+  const hasPaymentLinkTag = messageBody.includes('{{payment_url}}') ||
+    messageBody.includes('{{registration_link}}') ||
+    messageBody.includes('[Insert Registration Link]') ||
+    messageBody.includes('[Registration Link]') ||
+    messageBody.includes('/complete-payment');
   
   const ctaButtonBlock = !hasPaymentLinkTag && regId
     ? `
@@ -134,9 +172,11 @@ export function renderEmailHtml(
           <!-- Main Content -->
           <tr>
             <td style="padding: 32px; font-size: 14px; line-height: 1.7; color: #334155;">
+              ${!hasSalutation ? `
               <p style="margin-top: 0; font-weight: 700; color: #0f172a; font-size: 15px;">
                 Dear ${name},
               </p>
+              ` : ''}
               
               <div style="margin: 20px 0;">
                 ${processedBody}
@@ -156,7 +196,7 @@ export function renderEmailHtml(
             <td style="background-color: #f1f5f9; padding: 20px 32px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b; text-align: center; line-height: 1.5;">
               <strong>Yenepoya School of Engineering &amp; Technology</strong><br/>
               Yenepoya (Deemed to be University), University Road, Deralakatte, Mangaluru – 575018, India<br/>
-              Website: <a href="https://yenepoya.edu.in" style="color: #7cb305; text-decoration: none; font-weight: 600;">yenepoya.edu.in</a>
+              Website: <a href="https://www.iccaqi.in/" style="color: #7cb305; text-decoration: none; font-weight: 600;">www.iccaqi.in</a> &bull; Email: <a href="mailto:iccaqi2026@yenepoya.edu.in" style="color: #7cb305; text-decoration: none; font-weight: 600;">iccaqi2026@yenepoya.edu.in</a>
             </td>
           </tr>
         </table>

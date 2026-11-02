@@ -35,8 +35,9 @@ export async function POST(request: Request) {
     // Handle Test Email Option (Sends single preview email to test address)
     if (isTest) {
       const targetEmail = testEmail && isValidEmail(testEmail) ? testEmail : smtpUser;
-      const htmlContent = renderEmailHtml('Administrator Preview', cleanBody, 'ICCAQI-PAPER-001', 'Yenepoya University');
-      const textContent = renderEmailText('Administrator Preview', cleanBody, 'ICCAQI-PAPER-001', 'Yenepoya University');
+      const testTitle = 'Quantum Artificial Intelligence for Future Computing Infrastructures';
+      const htmlContent = renderEmailHtml('Administrator Preview', cleanBody, '101', 'Yenepoya University', '101', testTitle);
+      const textContent = renderEmailText('Administrator Preview', cleanBody, '101', 'Yenepoya University', '101', testTitle);
 
       await transporter.sendMail({
         from: `"ICCAQI 2026 Secretariat" <${smtpUser}>`,
@@ -86,14 +87,16 @@ export async function POST(request: Request) {
         cleanBody,
         recipient.paperId || '',
         recipient.institution || '',
-        recipient.id || recipient.registrationId || recipient.paperId || ''
+        recipient.id || recipient.registrationId || recipient.paperId || '',
+        recipient.paperTitle || ''
       );
       const textContent = renderEmailText(
         recipient.name || 'Delegate',
         cleanBody,
         recipient.paperId || '',
         recipient.institution || '',
-        recipient.id || recipient.registrationId || recipient.paperId || ''
+        recipient.id || recipient.registrationId || recipient.paperId || '',
+        recipient.paperTitle || ''
       );
 
       while (attempts < 2 && !sentSuccessfully) {

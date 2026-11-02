@@ -107,6 +107,68 @@ interface PaymentProof {
   createdAt: string;
 }
 
+const ACCEPTANCE_EMAIL_TEMPLATE = `<p>Dear Author,</p>
+
+<p>Greetings from the ICCAQI 2026 Organising Committee!</p>
+
+<p>We are pleased to inform you that your research paper entitled <strong>&ldquo;{{paper_title}}&rdquo;</strong>, bearing <strong>Paper ID: {{paper_id}}</strong>, has been accepted by the Conference Review Committee for presentation at the <em>International Conference on Computing, AI, Quantum Intelligence and Future Technologies (ICCAQI 2026)</em>.</p>
+
+<p style="color: #15803d; font-weight: bold; font-size: 15px;">Congratulations on your achievement!</p>
+
+<h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Registration and Payment</h3>
+
+<p>You may now proceed with conference registration and payment using the link below:</p>
+
+<p style="margin: 14px 0;">
+  <strong>Registration Link:</strong><br/>
+  <a href="{{payment_url}}" target="_blank" style="color: #7cb305; font-weight: 700; text-decoration: underline; word-break: break-all;">{{payment_url}}</a>
+</p>
+
+<div style="text-align: center; margin: 20px 0;">
+  <a href="{{payment_url}}" target="_blank" style="background-color: #7cb305; color: #ffffff; font-weight: 800; font-size: 14px; text-decoration: none; padding: 13px 26px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 10px rgba(124, 179, 5, 0.25);">
+    Proceed to Conference Registration &amp; Payment &rarr;
+  </a>
+</div>
+
+<p><strong>Registration Fee:</strong></p>
+<ul style="margin: 8px 0; padding-left: 20px;">
+  <li><strong>₹1,500</strong> &ndash; When the first author is an Industry Professional.</li>
+  <li><strong>₹750</strong> &ndash; When the first author is a Faculty Member / Academician / Research Scholar.</li>
+  <li><strong>₹500</strong> &ndash; When the first author is a Student.</li>
+</ul>
+
+<p><strong>Important Registration Instructions:</strong></p>
+<ul style="margin: 8px 0; padding-left: 20px;">
+  <li>The applicable registration fee is determined solely by the professional category of the first author, irrespective of the co-authors&apos; status.</li>
+  <li>Only <strong>one registration per accepted paper</strong> is required, irrespective of the number of co-authors.</li>
+  <li>Kindly ensure that the correct registration category is selected while completing the payment.</li>
+</ul>
+
+<p>Please complete the registration process at your earliest convenience. Upon successful registration, you will receive a confirmation email.</p>
+
+<h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Presentation and Publication</h3>
+
+<p>Following successful registration, authors are required to present their accepted papers at ICCAQI 2026 through their preferred presentation mode (online or offline), as selected during registration. The presentation schedule will be communicated to the authors via email.</p>
+
+<p>The manuscripts and author details will subsequently be forwarded to the Conference Proceedings Committee and associated publication channels for further consideration. All manuscripts will undergo the respective double-blind peer-review and editorial evaluation processes in accordance with the applicable publication guidelines and acceptance criteria of the respective journals or publishers.</p>
+
+<h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Accommodation for Offline Participants</h3>
+
+<p>Participants opting for offline presentation and requesting accommodation through the registration form will receive a separate accommodation confirmation email with the relevant details.</p>
+
+<p>We look forward to your participation and valuable research contribution to ICCAQI 2026.</p>
+
+<p style="margin-top: 20px;">
+  Best regards,<br/><br/>
+  <strong>Organising Committee</strong><br/>
+  ICCAQI 2026<br/>
+  Yenepoya School of Engineering &amp; Technology<br/>
+  Yenepoya (Deemed to be University)<br/>
+  Mangaluru, Karnataka, India<br/><br/>
+  <strong>Website:</strong> <a href="https://www.iccaqi.in/" style="color: #7cb305; text-decoration: underline;">https://www.iccaqi.in/</a><br/>
+  <strong>Email:</strong> <a href="mailto:iccaqi2026@yenepoya.edu.in" style="color: #7cb305; text-decoration: underline;">iccaqi2026@yenepoya.edu.in</a>
+</p>`;
+
 export default function PortalAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
@@ -149,6 +211,14 @@ export default function PortalAdminPage() {
   // Bulk Email State
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [emailTargetType, setEmailTargetType] = useState<'verified_registrations' | 'accepted_submissions'>('verified_registrations');
+  const [singleRecipient, setSingleRecipient] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    paperId: string;
+    paperTitle: string;
+    institution: string;
+  } | null>(null);
   const [emailSubject, setEmailSubject] = useState('ICCAQI 2026 — Official Registration Verification & Conference Information');
   const [emailBody, setEmailBody] = useState(
     `<p>We are pleased to inform you that your delegate registration for <strong>ICCAQI 2026</strong> at Yenepoya (Deemed to be University) has been <strong>OFFICIALLY VERIFIED & CONFIRMED</strong>.</p><div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin: 16px 0; font-size: 13px;"><p style="margin: 0 0 6px 0;"><strong>Delegate Name:</strong> {{name}}</p><p style="margin: 0 0 6px 0;"><strong>Registration Reference ID:</strong> {{registration_id}}</p><p style="margin: 0 0 6px 0;"><strong>Institution / University:</strong> {{institution}}</p><p style="margin: 0;"><strong>Associated Paper ID:</strong> {{paper_id}}</p></div><p>We look forward to welcoming you to Mangaluru for the conference on <strong>November 25–26, 2026</strong>.</p>`
@@ -480,7 +550,27 @@ export default function PortalAdminPage() {
     }
   };
 
+  const handleOpenAcceptanceEmailForSubmission = (sub: Submission) => {
+    setSingleRecipient({
+      id: sub.id,
+      name: sub.authorName,
+      email: sub.email,
+      paperId: sub.submissionId,
+      paperTitle: sub.paperTitle,
+      institution: sub.institution,
+    });
+    setEmailTargetType('accepted_submissions');
+    setEmailSubject(`ICCAQI 2026 — Official Paper Acceptance Notification [Paper ID: ${sub.submissionId}]`);
+    setEmailBody(ACCEPTANCE_EMAIL_TEMPLATE);
+    setEmailError('');
+    setEmailSendReport(null);
+    setIsEmailModalOpen(true);
+  };
+
   const getTargetRecipients = () => {
+    if (singleRecipient) {
+      return [singleRecipient];
+    }
     if (emailTargetType === 'verified_registrations') {
       return registrations
         .filter((r) => r.paymentStatus === 'Verified')
@@ -499,6 +589,7 @@ export default function PortalAdminPage() {
           name: s.authorName,
           email: s.email,
           paperId: s.submissionId,
+          paperTitle: s.paperTitle,
           institution: s.institution,
         }));
     }
@@ -541,7 +632,9 @@ export default function PortalAdminPage() {
       return;
     }
 
-    const confirmMsg = `Are you sure you want to dispatch bulk emails to all ${recipients.length} VERIFIED recipients via SMTP?`;
+    const confirmMsg = singleRecipient
+      ? `Are you sure you want to dispatch the official acceptance notification email to author ${singleRecipient.name} (${singleRecipient.email}) for Paper ID ${singleRecipient.paperId}?`
+      : `Are you sure you want to dispatch bulk emails to all ${recipients.length} VERIFIED recipients via SMTP?`;
     if (!window.confirm(confirmMsg)) return;
 
     setEmailError('');
@@ -2147,18 +2240,32 @@ export default function PortalAdminPage() {
                   </div>
 
                   {/* Review Status Selector Bar */}
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
-                    <span className="text-xs font-bold text-slate-700">Update Review Status:</span>
-                    <select
-                      value={selectedSubmission.reviewStatus}
-                      onChange={(e) => updateSubmissionStatus(selectedSubmission.id, e.target.value)}
-                      className="bg-white border border-slate-300 text-xs font-bold text-slate-800 rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
-                    >
-                      <option value="Submitted">Submitted</option>
-                      <option value="Under Review">Under Review</option>
-                      <option value="Accepted">Accepted</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-700">Update Review Status:</span>
+                      <select
+                        value={selectedSubmission.reviewStatus}
+                        onChange={(e) => updateSubmissionStatus(selectedSubmission.id, e.target.value)}
+                        className="bg-white border border-slate-300 text-xs font-bold text-slate-800 rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#7cb305] shadow-xs"
+                      >
+                        <option value="Submitted">Submitted</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    </div>
+
+                    {selectedSubmission.reviewStatus === 'Accepted' && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAcceptanceEmailForSubmission(selectedSubmission)}
+                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#7cb305] hover:bg-[#689803] text-white shadow-2xs transition-all active:scale-98 cursor-pointer"
+                        title="Send Official Acceptance Notification Email to Author"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Send Acceptance Email</span>
+                      </button>
+                    )}
                   </div>
 
                   {/* Author Details Card */}
@@ -2410,56 +2517,94 @@ export default function PortalAdminPage() {
               </div>
 
               <button
-                onClick={() => setIsEmailModalOpen(false)}
+                onClick={() => {
+                  setIsEmailModalOpen(false);
+                  setSingleRecipient(null);
+                }}
                 className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Target Audience Selector */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Target Recipient Group *
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Target Audience Selector / Single Recipient Indicator */}
+            {singleRecipient ? (
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-900">
+                    <UserCheck className="w-4 h-4 text-emerald-700" />
+                    <span>Single Recipient: {singleRecipient.name} ({singleRecipient.email})</span>
+                  </div>
+                  <div className="text-emerald-700 font-medium">
+                    Paper ID: <span className="font-mono font-bold">{singleRecipient.paperId}</span> &bull; Title: &ldquo;{singleRecipient.paperTitle}&rdquo;
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setEmailTargetType('verified_registrations')}
-                  className={`p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
-                    emailTargetType === 'verified_registrations'
-                      ? 'border-[#7cb305] bg-lime-50/70 shadow-xs'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
+                  onClick={() => setSingleRecipient(null)}
+                  className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-colors self-start sm:self-auto cursor-pointer"
                 >
-                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
-                    <span>Verified Delegates Only</span>
-                    <span className="px-2 py-0.5 rounded-full bg-[#7cb305] text-white text-[10px]">
-                      {registrations.filter((r) => r.paymentStatus === 'Verified').length} Verified
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-1">Paid / Verified Conference Participants</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setEmailTargetType('accepted_submissions')}
-                  className={`p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
-                    emailTargetType === 'accepted_submissions'
-                      ? 'border-indigo-600 bg-indigo-50/70 shadow-xs'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
-                    <span>Accepted Paper Authors</span>
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px]">
-                      {submissions.filter((s) => s.reviewStatus === 'Accepted').length} Accepted
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-1">Authors of Accepted Manuscripts</div>
+                  Clear &amp; Send to All
                 </button>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Target Recipient Group *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmailTargetType('verified_registrations');
+                      if (emailSubject.includes('Paper Acceptance')) {
+                        setEmailSubject('ICCAQI 2026 — Official Registration Verification & Payment Receipt');
+                        setEmailBody(
+                          `<p>We are pleased to inform you that your delegate registration fee for <strong>ICCAQI 2026</strong> at Yenepoya (Deemed to be University) has been <strong>OFFICIALLY VERIFIED & CONFIRMED</strong>.</p><div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin: 16px 0; font-size: 13px;"><p style="margin: 0 0 6px 0;"><strong>Delegate Name:</strong> {{name}}</p><p style="margin: 0 0 6px 0;"><strong>Registration Reference ID:</strong> {{registration_id}}</p><p style="margin: 0 0 6px 0;"><strong>Institution / University:</strong> {{institution}}</p><p style="margin: 0;"><strong>Associated Paper ID:</strong> {{paper_id}}</p></div><p>Your delegate badge and official payment receipt will be issued at the conference desk upon arrival on <strong>November 25, 2026</strong>.</p>`
+                        );
+                      }
+                    }}
+                    className={`p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                      emailTargetType === 'verified_registrations'
+                        ? 'border-[#7cb305] bg-lime-50/70 shadow-xs'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                      <span>Verified Delegates Only</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[#7cb305] text-white text-[10px]">
+                        {registrations.filter((r) => r.paymentStatus === 'Verified').length} Verified
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1">Paid / Verified Conference Participants</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmailTargetType('accepted_submissions');
+                      if (emailSubject.includes('Registration Verification')) {
+                        setEmailSubject('ICCAQI 2026 — Official Paper Acceptance Notification');
+                        setEmailBody(ACCEPTANCE_EMAIL_TEMPLATE);
+                      }
+                    }}
+                    className={`p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                      emailTargetType === 'accepted_submissions'
+                        ? 'border-indigo-600 bg-indigo-50/70 shadow-xs'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                      <span>Accepted Paper Authors</span>
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px]">
+                        {submissions.filter((s) => s.reviewStatus === 'Accepted').length} Accepted
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1">Authors of Accepted Manuscripts</div>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Quick Template Shortcuts */}
             <div className="space-y-1.5">
@@ -2470,6 +2615,7 @@ export default function PortalAdminPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    setEmailTargetType('verified_registrations');
                     setEmailSubject('ICCAQI 2026 — Official Registration Verification & Payment Receipt');
                     setEmailBody(
                       `<p>We are pleased to inform you that your delegate registration fee for <strong>ICCAQI 2026</strong> at Yenepoya (Deemed to be University) has been <strong>OFFICIALLY VERIFIED & CONFIRMED</strong>.</p><div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin: 16px 0; font-size: 13px;"><p style="margin: 0 0 6px 0;"><strong>Delegate Name:</strong> {{name}}</p><p style="margin: 0 0 6px 0;"><strong>Registration Reference ID:</strong> {{registration_id}}</p><p style="margin: 0 0 6px 0;"><strong>Institution / University:</strong> {{institution}}</p><p style="margin: 0;"><strong>Associated Paper ID:</strong> {{paper_id}}</p></div><p>Your delegate badge and official payment receipt will be issued at the conference desk upon arrival on <strong>November 25, 2026</strong>.</p>`
@@ -2483,12 +2629,11 @@ export default function PortalAdminPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    setEmailTargetType('accepted_submissions');
                     setEmailSubject('ICCAQI 2026 — Official Paper Acceptance Notification');
-                    setEmailBody(
-                      `<p>We are delighted to inform you that your manuscript (Paper ID: <strong>{{paper_id}}</strong>) has been <strong>accepted</strong> for presentation at ICCAQI 2026.</p><p>Please prepare your presentation slides and keep them ready for presenting your paper at the conference.</p><p><strong>Official Paper Authors WhatsApp Group:</strong> Please join our presenters WhatsApp group for schedule announcements and technical session links: <a href="https://chat.whatsapp.com/D7F9qGh0kzC9EyR9Of8bFU?s=cl&p=a&mlu=4&ilr=4">https://chat.whatsapp.com/D7F9qGh0kzC9EyR9Of8bFU?s=cl&p=a&mlu=4&ilr=4</a></p><p>We wish you all the very best for your presentation!</p><p>Be confident, present your research clearly, and make the most of this opportunity to share your ideas and connect with fellow researchers.</p><p>Best wishes for a successful and impactful presentation!</p><p>We look forward to your excellent presentations.</p><p>All the best!</p>`
-                    );
+                    setEmailBody(ACCEPTANCE_EMAIL_TEMPLATE);
                   }}
-                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-bold transition-colors cursor-pointer"
                 >
                   Paper Acceptance Notice
                 </button>
@@ -2531,7 +2676,7 @@ export default function PortalAdminPage() {
                   Email Message Body (HTML / Text) *
                 </label>
                 <span className="text-[10px] text-slate-500 font-mono">
-                  Tags: {"{{name}}"}, {"{{paper_id}}"}, {"{{institution}}"}
+                  Tags: {"{{name}}"}, {"{{paper_id}}"}, {"{{paper_title}}"}, {"{{payment_url}}"}
                 </span>
               </div>
               <textarea
