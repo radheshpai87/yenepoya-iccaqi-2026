@@ -150,7 +150,7 @@ const ACCEPTANCE_EMAIL_TEMPLATE = `<p>Dear Author,</p>
 
 <p>Following successful registration, authors are required to present their accepted papers at ICCAQI 2026 through their preferred presentation mode (online or offline), as selected during registration. The presentation schedule will be communicated to the authors via WhatsApp.</p>
 
-<p>The manuscripts and author details will subsequently be forwarded to the Conference Proceedings Committee and associated publication channels for further consideration. All manuscripts will undergo the respective double-blind peer-review and editorial evaluation processes in accordance with the applicable publication guidelines and acceptance criteria of the respective journals or publishers.</p>
+<p>The manuscripts and author details will subsequently be forwarded to the Conference Proceedings Committee and the respective publication channels for further processing. Registered and presented papers will be considered for publication in the authors&apos; opted journals or publication categories, subject to the respective publishers&apos; applicable publication guidelines, peer-review processes, and editorial evaluation.</p>
 
 <h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Accommodation for Offline Participants</h3>
 
