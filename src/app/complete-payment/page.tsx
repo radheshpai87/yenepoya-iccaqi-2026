@@ -20,7 +20,8 @@ import {
   ExternalLink,
   Trash2,
   Eye,
-  Tag
+  Tag,
+  Hotel
 } from 'lucide-react';
 
 interface DelegateDetails {
@@ -67,6 +68,7 @@ function CompletePaymentContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedProofUrl, setSubmittedProofUrl] = useState('');
+  const [accommodationPreference, setAccommodationPreference] = useState<'Yes' | 'No'>('No');
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
   const isDelegateNameInvalid = attemptedSubmit && !delegate.name.trim();
@@ -243,6 +245,7 @@ function CompletePaymentContent() {
       data.append('amount', delegate.amount);
       data.append('mode', delegate.mode || 'Offline');
       data.append('paperTitle', delegate.paperTitle);
+      data.append('accommodation', accommodationPreference);
       data.append('transactionRef', transactionRef);
       data.append('file', selectedFile);
 
@@ -402,6 +405,32 @@ function CompletePaymentContent() {
                 </div>
               );
             })()}
+
+            {/* Accommodation for Offline Participants Card */}
+            <div className="p-5 bg-sky-50 rounded-2xl border border-sky-200 text-xs text-sky-950 max-w-md mx-auto space-y-3 text-center shadow-xs">
+              <div className="flex items-center justify-center gap-2 text-sky-900 font-bold text-sm">
+                <Hotel className="w-5 h-5 text-sky-700 shrink-0" />
+                <span>Accommodation for Offline Participants</span>
+              </div>
+              <p className="text-slate-600 text-[11.5px] leading-relaxed">
+                Participants opting for offline presentation and requesting accommodation through the registration form will receive a separate accommodation confirmation email with the relevant details.
+              </p>
+              <div className="p-3 bg-white/80 rounded-xl border border-sky-100 text-left space-y-1">
+                <span className="font-bold text-slate-800 text-[11px] block">Accommodation Policy:</span>
+                <p className="text-[11px] text-slate-600">
+                  Free accommodation is available for a limited number of registered candidates on a first-come, first-served basis. Paid accommodation at nominal charges is also arranged upon request.
+                </p>
+              </div>
+              <div className="pt-1">
+                <a
+                  href={`mailto:iccaqi2026@yenepoya.edu.in?subject=Accommodation Request - ICCAQI 2026 [Paper ID: ${delegate.paperId || delegate.id}]&body=Respected Organizing Committee,%0D%0A%0D%0AI have completed payment registration for ICCAQI 2026 and wish to request accommodation in Mangaluru.%0D%0A%0D%0ADelegate Name: ${encodeURIComponent(delegate.name)}%0D%0APaper ID: ${encodeURIComponent(delegate.paperId)}%0D%0APaper Title: ${encodeURIComponent(delegate.paperTitle)}%0D%0AEmail: ${encodeURIComponent(delegate.email)}%0D%0APhone: ${encodeURIComponent(delegate.phone)}%0D%0AInstitution: ${encodeURIComponent(delegate.institution)}%0D%0APreferred Accommodation: Free (subject to availability) / Nominal Paid%0D%0ACheck-in Date: 24/25 November 2026%0D%0ACheck-out Date: 26/27 November 2026%0D%0A%0D%0AThank you.`}
+                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-700 hover:bg-sky-800 text-white shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Request / Confirm Accommodation via Email</span>
+                </a>
+              </div>
+            </div>
 
             <a
               href="/"
@@ -584,6 +613,51 @@ function CompletePaymentContent() {
                       </option>
                     </select>
                   </div>
+
+                  {/* Accommodation Requirement (Offline Candidates) */}
+                  {(delegate.mode || 'Offline').toLowerCase().includes('offline') && (
+                    <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-200/80 text-left space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-bold text-sky-950">
+                        <Hotel className="w-4 h-4 text-sky-700 shrink-0" />
+                        <span>Accommodation Facility (for Offline Presentation)</span>
+                      </div>
+                      <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                        Free accommodation is available for a limited number of registered candidates on a first-come, first-served basis. Paid accommodation at nominal charges is also arranged upon request.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                        <label className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 cursor-pointer transition-all ${
+                          accommodationPreference === 'Yes' 
+                            ? 'border-sky-500 bg-white text-sky-950 ring-1 ring-sky-300 font-bold' 
+                            : 'border-slate-200 bg-white/70 text-slate-700 hover:bg-white'
+                        }`}>
+                          <input
+                            type="radio"
+                            name="payAccommodation"
+                            value="Yes"
+                            checked={accommodationPreference === 'Yes'}
+                            onChange={() => setAccommodationPreference('Yes')}
+                            className="text-sky-600 accent-sky-600"
+                          />
+                          <span>Yes, Request Accommodation</span>
+                        </label>
+                        <label className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 cursor-pointer transition-all ${
+                          accommodationPreference === 'No' 
+                            ? 'border-slate-400 bg-white text-slate-900 font-bold' 
+                            : 'border-slate-200 bg-white/70 text-slate-700 hover:bg-white'
+                        }`}>
+                          <input
+                            type="radio"
+                            name="payAccommodation"
+                            value="No"
+                            checked={accommodationPreference === 'No'}
+                            onChange={() => setAccommodationPreference('No')}
+                            className="text-slate-600 accent-slate-600"
+                          />
+                          <span>No, Accommodation Not Required</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

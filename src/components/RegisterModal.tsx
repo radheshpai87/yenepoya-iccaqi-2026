@@ -12,7 +12,9 @@ import {
   Sparkles,
   QrCode,
   Building,
-  HelpCircle
+  HelpCircle,
+  Hotel,
+  Mail
 } from 'lucide-react';
 
 interface RegisterModalProps {
@@ -44,6 +46,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState('');
   const [registrationError, setRegistrationError] = useState('');
+  const [accommodationRequired, setAccommodationRequired] = useState<'Yes' | 'No'>('No');
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const attempt = useRef<RequestAttempt | null>(null);
 
@@ -119,8 +122,12 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     setPaymentUrl(generatedPaymentUrl);
 
     try {
+      const notes = mode === 'Offline' && accommodationRequired === 'Yes'
+        ? 'Accommodation Requested (Offline Candidate)'
+        : '';
       const payload = {
         ...formData, category, currency: delegateType, amount, mode,
+        notes,
         paymentStatus: isParticipant ? 'Redirected to Razorpay' : 'Pending Acceptance',
       };
       attempt.current = requestAttempt(attempt.current, JSON.stringify(payload));
@@ -281,6 +288,26 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
                   </svg>
                   <span>Join Official WhatsApp Group</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Accommodation for Offline Participants Card */}
+            <div className="p-4 bg-sky-50 rounded-2xl border border-sky-200 text-xs text-sky-950 max-w-md mx-auto space-y-2.5 text-center shadow-xs">
+              <div className="flex items-center justify-center gap-2 text-sky-900 font-bold text-sm">
+                <Hotel className="w-4.5 h-4.5 text-sky-700 shrink-0" />
+                <span>Accommodation for Offline Participants</span>
+              </div>
+              <p className="text-slate-600 text-[11.5px] leading-relaxed">
+                Participants opting for offline presentation and requesting accommodation through the registration form will receive a separate accommodation confirmation email with the relevant details.
+              </p>
+              <div className="pt-1">
+                <a
+                  href={`mailto:iccaqi2026@yenepoya.edu.in?subject=Accommodation Request - ICCAQI 2026 [${encodeURIComponent(formData.name || 'Delegate')}]&body=Respected Organizing Committee,%0D%0A%0D%0AI have submitted conference registration for ICCAQI 2026 and wish to request accommodation assistance in Mangaluru.%0D%0A%0D%0ADelegate Name: ${encodeURIComponent(formData.name)}%0D%0APaper ID: ${encodeURIComponent(formData.paperId || 'N/A')}%0D%0AEmail: ${encodeURIComponent(formData.email)}%0D%0APhone: ${encodeURIComponent(formData.phone)}%0D%0AInstitution: ${encodeURIComponent(formData.institution)}%0D%0APreferred Mode: Offline (In-Person)%0D%0ACheck-in Date: 24/25 November 2026%0D%0ACheck-out Date: 26/27 November 2026%0D%0A%0D%0AThank you.`}
+                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-700 hover:bg-sky-800 text-white shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Request / Confirm Accommodation via Email</span>
                 </a>
               </div>
             </div>
@@ -526,6 +553,51 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   </label>
                 </div>
               </div>
+
+              {/* Accommodation Requirement (Offline Candidates) */}
+              {mode === 'Offline' && (
+                <div className="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200/80 text-left space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-sky-950">
+                    <Hotel className="w-4 h-4 text-sky-700 shrink-0" />
+                    <span>Accommodation Facility (for Offline Candidates)</span>
+                  </div>
+                  <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                    Free accommodation is available for a limited number of registered candidates on a first-come, first-served basis. Paid accommodation at nominal charges is also arranged upon request.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                    <label className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 cursor-pointer transition-all ${
+                      accommodationRequired === 'Yes' 
+                        ? 'border-sky-500 bg-white text-sky-950 ring-1 ring-sky-300 font-bold' 
+                        : 'border-slate-200 bg-white/70 text-slate-700 hover:bg-white'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="modalAccommodation"
+                        value="Yes"
+                        checked={accommodationRequired === 'Yes'}
+                        onChange={() => setAccommodationRequired('Yes')}
+                        className="text-sky-600 accent-sky-600"
+                      />
+                      <span>Yes, Request Accommodation</span>
+                    </label>
+                    <label className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 cursor-pointer transition-all ${
+                      accommodationRequired === 'No' 
+                        ? 'border-slate-400 bg-white text-slate-900 font-bold' 
+                        : 'border-slate-200 bg-white/70 text-slate-700 hover:bg-white'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="modalAccommodation"
+                        value="No"
+                        checked={accommodationRequired === 'No'}
+                        onChange={() => setAccommodationRequired('No')}
+                        className="text-slate-600 accent-slate-600"
+                      />
+                      <span>No, Accommodation Not Required</span>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {/* Informational Callout based on Category */}
               {isParticipant ? (

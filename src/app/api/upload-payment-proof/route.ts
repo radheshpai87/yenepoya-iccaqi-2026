@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     const currency = sanitizeText(formData.get('currency'), 10);
     const amount = sanitizeText(formData.get('amount'), 20);
     const mode = sanitizeText(formData.get('mode'), 100);
+    const accommodation = sanitizeText(formData.get('accommodation'), 50);
     const paperTitle = sanitizeText(formData.get('paperTitle'), 300);
     const transactionRef = sanitizeText(formData.get('transactionRef'), 100);
     const fileValue = formData.get('file');
@@ -110,7 +111,13 @@ export async function POST(request: Request) {
     }
 
     if (targetRegistration?.data?.id) {
-      await supabaseAdmin.from('registrations').update({ payment_status: 'Pending Verification' }).eq('id', targetRegistration.data.id);
+      const updatePayload: Record<string, any> = { payment_status: 'Pending Verification' };
+      if (accommodation) {
+        updatePayload.notes = accommodation === 'Yes'
+          ? 'Accommodation Requested (Offline Candidate)'
+          : 'Accommodation Not Required';
+      }
+      await supabaseAdmin.from('registrations').update(updatePayload).eq('id', targetRegistration.data.id);
     }
 
     return NextResponse.json({

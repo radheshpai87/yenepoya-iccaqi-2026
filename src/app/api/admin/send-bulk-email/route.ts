@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/lib/adminAuth';
 import { getSmtpTransporter, renderEmailHtml, renderEmailText } from '@/lib/smtpHelper';
 import { isValidEmail, sanitizeText } from '@/lib/validation';
+import { getSupabaseAdminClient } from '@/lib/supabaseClient';
 
 async function isAuthorized() {
   const cookieStore = await cookies();
@@ -35,9 +36,53 @@ export async function POST(request: Request) {
     // Handle Test Email Option (Sends single preview email to test address)
     if (isTest) {
       const targetEmail = testEmail && isValidEmail(testEmail) ? testEmail : smtpUser;
-      const testTitle = 'Quantum Artificial Intelligence for Future Computing Infrastructures';
-      const htmlContent = renderEmailHtml('Administrator Preview', cleanBody, '101', 'Yenepoya University', '101', testTitle);
-      const textContent = renderEmailText('Administrator Preview', cleanBody, '101', 'Yenepoya University', '101', testTitle);
+
+      // Extract sample recipient from recipients payload if provided
+      const sample = Array.isArray(recipients) && recipients.length > 0 ? recipients[0] : null;
+      let previewPaperId = sample?.paperId || '';
+      let previewTitle = sample?.paperTitle || '';
+      let previewName = sample?.name || '';
+      let previewInstitution = sample?.institution || '';
+      let previewRegId = sample?.paperId || sample?.id || sample?.registrationId || '';
+
+      // If missing paperId, extract from subject (e.g. "Paper ID: 138")
+      if (!previewPaperId) {
+        const idMatch = cleanSubject.match(/Paper ID:\s*([A-Za-z0-9_-]+)/i);
+        if (idMatch) {
+          previewPaperId = idMatch[1].trim();
+        }
+      }
+
+      // If we have a paperId, try loading latest details from Supabase paper_submissions if title or name is missing
+      if (previewPaperId) {
+        try {
+          const supabase = getSupabaseAdminClient();
+          const cleanId = previewPaperId.replace(/^ICCAQI-?/i, '').trim();
+          const { data: subData } = await supabase
+            .from('paper_submissions')
+            .select('author_name, paper_title, institution')
+            .or(`submission_id.eq.${previewPaperId},submission_id.eq.${cleanId}`)
+            .limit(1);
+
+          if (subData && subData[0]) {
+            if (!previewTitle) previewTitle = subData[0].paper_title;
+            if (!previewName) previewName = subData[0].author_name;
+            if (!previewInstitution) previewInstitution = subData[0].institution;
+          }
+        } catch (dbErr) {
+          console.warn('Test email preview paper lookup notice:', dbErr);
+        }
+      }
+
+      // Safe fallbacks only if completely unresolved
+      if (!previewName) previewName = 'Administrator Preview';
+      if (!previewPaperId) previewPaperId = '101';
+      if (!previewTitle) previewTitle = 'Quantum Artificial Intelligence for Future Computing Infrastructures';
+      if (!previewInstitution) previewInstitution = 'Yenepoya (Deemed to be University)';
+      if (!previewRegId) previewRegId = previewPaperId;
+
+      const htmlContent = renderEmailHtml(previewName, cleanBody, previewPaperId, previewInstitution, previewRegId, previewTitle);
+      const textContent = renderEmailText(previewName, cleanBody, previewPaperId, previewInstitution, previewRegId, previewTitle);
 
       await transporter.sendMail({
         from: `"ICCAQI 2026 Secretariat" <${smtpUser}>`,

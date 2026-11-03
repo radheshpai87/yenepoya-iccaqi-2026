@@ -148,9 +148,9 @@ const ACCEPTANCE_EMAIL_TEMPLATE = `<p>Dear Author,</p>
 
 <h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Presentation and Publication</h3>
 
-<p>Following successful registration, authors are required to present their accepted papers at ICCAQI 2026 through their preferred presentation mode (online or offline), as selected during registration. The presentation schedule will be communicated to the authors via WhatsApp.</p>
+<p>Following successful registration, authors are required to present their accepted papers at ICCAQI 2026 through their preferred presentation mode (Online or Offline), as selected during registration. The detailed presentation schedule will be communicated to the authors through the official WhatsApp group, &ldquo;ICCAQI&apos;26 AUTHORS.&rdquo; The WhatsApp group joining link will be provided during the registration process. Authors are requested to join the group to receive important updates and presentation-related announcements.</p>
 
-<p>The manuscripts and author details will subsequently be forwarded to the Conference Proceedings Committee and the respective publication channels for further processing. Registered and presented papers will be considered for publication in the authors&apos; opted journals or publication categories, subject to the respective publishers&apos; applicable publication guidelines, peer-review processes, and editorial evaluation.</p>
+<p>The manuscripts and corresponding author details will subsequently be forwarded to the Conference Proceedings Editorial Committee and the respective publication channels for further processing, once the registration has been successfully completed and confirmed.</p>
 
 <h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Accommodation for Offline Participants</h3>
 
@@ -609,6 +609,7 @@ export default function PortalAdminPage() {
           testEmail: testEmailAddress,
           subject: emailSubject,
           messageBody: emailBody,
+          recipients: getTargetRecipients(),
         }),
       });
 

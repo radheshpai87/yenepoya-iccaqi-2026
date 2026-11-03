@@ -47,7 +47,7 @@ export const Speakers: React.FC = () => {
     },
     {
       id: 'prof-joerg-molt',
-      name: 'Prof. (Dr.) h. c. Joerg Molt',
+      name: 'Prof. (Dr.) H. C. Joerg Molt',
       role: 'Expert Speaker',
       image: '/speakers/prof-joerg-molt.webp',
       country: 'Germany',
