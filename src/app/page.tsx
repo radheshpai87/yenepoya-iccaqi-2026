@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/components/Hero';
 import { About } from '@/components/About';
 import { ConferenceTracks } from '@/components/ConferenceTracks';
+import { Speakers } from '@/components/Speakers';
 import { ImportantDates } from '@/components/ImportantDates';
 import { CallForPapers } from '@/components/CallForPapers';
 import { Registration } from '@/components/Registration';
@@ -85,6 +86,9 @@ export default function HomePage() {
 
         {/* Conference Themes & Tracks */}
         <ConferenceTracks onSelectTrackForSubmission={handleSelectTrackForSubmission} />
+
+        {/* Distinguished Speakers & Keynotes */}
+        <Speakers />
 
         {/* Important Dates */}
         <ImportantDates />
