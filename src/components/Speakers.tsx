@@ -145,8 +145,10 @@ export const Speakers: React.FC = () => {
                   <div className="flex items-center justify-center sm:justify-start lg:justify-center gap-2 pt-1 text-slate-700 font-semibold text-xs sm:text-sm">
                     <img 
                       src={keynoteSpeaker.flagUrl} 
-                      alt={keynoteSpeaker.country} 
-                      className="h-4 w-auto rounded-xs object-contain shadow-2xs" 
+                      alt={`${keynoteSpeaker.country} flag`} 
+                      width={24}
+                      height={16}
+                      className="h-3.5 w-5 rounded-xs object-cover border border-slate-300 shadow-2xs shrink-0" 
                     />
                     <span>{keynoteSpeaker.country}</span>
                   </div>
@@ -214,8 +216,10 @@ export const Speakers: React.FC = () => {
                       <div className="inline-flex items-center gap-1.5 text-xs text-slate-700 font-medium">
                         <img 
                           src={speaker.flagUrl} 
-                          alt={speaker.country} 
-                          className="h-3.5 w-auto rounded-xs object-contain shadow-2xs" 
+                          alt={`${speaker.country} flag`} 
+                          width={20}
+                          height={14}
+                          className="h-3.5 w-5 rounded-xs object-cover border border-slate-300 shadow-2xs shrink-0" 
                         />
                         <span>{speaker.country}</span>
                       </div>
