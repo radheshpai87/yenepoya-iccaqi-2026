@@ -367,16 +367,16 @@ function CompletePaymentContent() {
 
             {/* Official WhatsApp Group Join Card */}
             {(() => {
-              const isPaperAuthor = Boolean(delegate.paperId || delegate.category !== 'Attendees / Observers (Participants)');
+              const isPaperAuthor = !isParticipantPayment;
               const waLink = isPaperAuthor
                 ? 'https://chat.whatsapp.com/D7F9qGh0kzC9EyR9Of8bFU?s=cl&p=a&mlu=4&ilr=4'
                 : 'https://chat.whatsapp.com/E4Drk0R05RFBWAts7pYPkq?s=cl&p=a&mlu=4&ilr=4';
               const waTitle = isPaperAuthor
                 ? 'Join Official Paper Authors WhatsApp Group'
-                : 'Join Official Conference WhatsApp Group';
+                : 'Join Official ICCAQI 2026 Participants WhatsApp Group';
               const waDesc = isPaperAuthor
                 ? 'Connect with the technical review committee, track presentation session schedules, get room/virtual links, and receive live announcements.'
-                : 'Connect with delegates and researchers, receive technical session updates, track presentation schedules, and get live conference announcements.';
+                : 'Connect with fellow participants and receive conference announcements, session schedules, and event updates.';
 
               return (
                 <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 max-w-md mx-auto space-y-3 text-center shadow-xs">
