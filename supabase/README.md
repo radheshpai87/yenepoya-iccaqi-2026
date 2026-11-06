@@ -36,6 +36,12 @@ four-digit random numbers. Never delete retry records while clients may retry.
 payment proof form and admin console changes. The admin API creates temporary
 signed links so receipts stay private while administrators can view them.
 
+`202611060001_participant_fee_waiver.sql` adds the participant country field and
+updates `save_registration` to persist the server-calculated registration fee
+status. Apply it before deploying the participant country selector and waiver
+flow. The six eligible countries receive `Fee Waived` status and a zero amount;
+this is distinct from a payment being verified.
+
 Run the isolated API tests with `node tests/persistence.test.cjs`. They simulate
 failures without contacting the hosted project. Database behavior checks are in
 `tests/persistence.sql`; run them only on a disposable PostgreSQL/Supabase test

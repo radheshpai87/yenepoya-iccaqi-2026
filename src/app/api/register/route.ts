@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdminClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { checkRateLimit, getClientIP } from '@/lib/rateLimit';
 import { isValidEmail, sanitizeText } from '@/lib/validation';
+import { isParticipantCategory, isParticipantFeeWaiverCountry, OTHER_COUNTRIES_OPTION } from '@/lib/feeWaiver';
 
 export async function POST(request: Request) {
   try {
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
     const mode = sanitizeText(body.mode, 100);
     const paperId = sanitizeText(body.paperId, 50);
     const paperTitle = sanitizeText(body.paperTitle, 300);
+    const country = sanitizeText(body.country, 80);
 
     if (!name || !email || !institution || !category) {
       return NextResponse.json(
@@ -44,18 +46,30 @@ export async function POST(request: Request) {
       );
     }
 
+    const isParticipant = isParticipantCategory(category);
+    if (isParticipant && !country) {
+      throw new ApiError(400, 'Please select your country to continue registration.');
+    }
+    if (isParticipant && country && country !== OTHER_COUNTRIES_OPTION && !isParticipantFeeWaiverCountry(country)) {
+      throw new ApiError(400, 'Please select a valid country from the list.');
+    }
+
+    const feeWaived = isParticipant && isParticipantFeeWaiverCountry(country);
+    const normalizedCurrency = currency.toUpperCase() === 'USD' ? 'USD' : 'INR';
+
     const regRecord = {
       name,
       email,
       phone: phone || '',
       institution,
       category,
-      currency: currency || 'INR',
-      amount: amount || '₹500',
+      currency: normalizedCurrency,
+      amount: feeWaived ? (normalizedCurrency === 'USD' ? '$0' : '₹0') : amount || '₹500',
+      country: country || null,
       mode: mode || 'In-Person',
       paper_id: paperId || '',
       paper_title: paperTitle || '',
-      payment_status: 'Pending',
+      payment_status: feeWaived ? 'Fee Waived' : 'Pending',
     };
 
     if (!isSupabaseConfigured()) {

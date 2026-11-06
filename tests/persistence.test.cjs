@@ -96,7 +96,7 @@ const OTHER_REQUEST_ID = '4b73f6ee-8cd4-4bbb-82fc-024b28326347';
 function registrationRequest(overrides = {}) {
   return new Request('http://localhost/api/register', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ requestId: REQUEST_ID, name: 'Test', email: 'test@example.com', institution: 'University', category: 'Participants only', ...overrides }),
+    body: JSON.stringify({ requestId: REQUEST_ID, name: 'Test', email: 'test@example.com', institution: 'University', category: 'Participants only', country: 'Other country', ...overrides }),
   });
 }
 function submissionRequest(file = new File(['%PDF-1.7 test'], 'paper.pdf', { type: 'application/pdf' }), overrides = {}) {
@@ -125,6 +125,40 @@ test('registration returns success only with saved record', async () => {
   const response = await b.route('register').POST(registrationRequest());
   assert.equal(response.status, 200);
   assert.equal((await response.json()).registration.id, 'saved-id');
+});
+test('eligible participant country receives a zero-fee status and is persisted', async () => {
+  const b = backend();
+  const response = await b.route('register').POST(registrationRequest({ country: 'Sri Lanka', currency: 'USD', amount: '$5.00' }));
+  const result = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(result.registration.country, 'Sri Lanka');
+  assert.equal(result.registration.amount, '$0');
+  assert.equal(result.registration.payment_status, 'Fee Waived');
+  assert.equal(b.writes.find((write) => write.table === 'registrations').records[0].payment_status, 'Fee Waived');
+});
+test('waiver country does not waive paper-author registration', async () => {
+  const b = backend();
+  const response = await b.route('register').POST(registrationRequest({
+    category: 'Research scholars / Academicians', country: 'Nepal', amount: '$15.00', currency: 'USD',
+  }));
+  const result = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(result.registration.country, 'Nepal');
+  assert.equal(result.registration.amount, '$15.00');
+  assert.equal(result.registration.payment_status, 'Pending');
+});
+test('participant registration requires a country selection', async () => {
+  const b = backend();
+  const response = await b.route('register').POST(registrationRequest({ country: '' }));
+  assert.equal(response.status, 400);
+  assert.equal(b.writes.length, 0);
+});
+test('only the six approved countries qualify for the participant fee waiver', () => {
+  const { PARTICIPANT_FEE_WAIVER_COUNTRIES, isParticipantFeeWaiverCountry } = loadModule('src/lib/feeWaiver.ts', {});
+  assert.deepEqual([...PARTICIPANT_FEE_WAIVER_COUNTRIES], ['Sri Lanka', 'Nepal', 'Bangladesh', 'Maldives', 'Bhutan', 'Myanmar']);
+  for (const country of PARTICIPANT_FEE_WAIVER_COUNTRIES) assert.equal(isParticipantFeeWaiverCountry(country), true);
+  assert.equal(isParticipantFeeWaiverCountry('India'), false);
+  assert.equal(isParticipantFeeWaiverCountry('Other country'), false);
 });
 for (const file of [null, new File([], 'empty.pdf')]) {
   test(`submission rejects ${file === null ? 'missing' : 'empty'} manuscript before any writes`, async () => {

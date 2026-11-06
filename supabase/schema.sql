@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.registrations (
     category TEXT NOT NULL,
     currency VARCHAR(10) NOT NULL,
     amount TEXT NOT NULL,
+    country TEXT,
     mode TEXT NOT NULL,
     paper_id TEXT,
     paper_title TEXT,
