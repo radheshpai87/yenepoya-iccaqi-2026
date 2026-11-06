@@ -53,6 +53,7 @@ interface Registration {
   email: string;
   phone: string;
   institution: string;
+  country: string;
   category: string;
   currency: string;
   amount: string;
@@ -281,6 +282,7 @@ export default function PortalAdminPage() {
               email: r.email,
               phone: r.phone || '',
               institution: r.institution,
+              country: r.country || '',
               category: r.category,
               currency: r.currency,
               amount: r.amount,
@@ -673,6 +675,7 @@ export default function PortalAdminPage() {
       'Email Address',
       'Phone Number',
       'Institution / University',
+      'Country',
       'Participant Category',
       'Currency',
       'Amount Payable',
@@ -688,6 +691,7 @@ export default function PortalAdminPage() {
       `"${r.email}"`,
       `"${r.phone}"`,
       `"${r.institution}"`,
+      `"${r.country || ''}"`,
       `"${r.category}"`,
       `"${r.currency}"`,
       `"${r.amount}"`,
@@ -766,6 +770,7 @@ export default function PortalAdminPage() {
       reg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       reg.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       reg.institution.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (reg.country && reg.country.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (reg.paperId && reg.paperId.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = regCategoryFilter === 'All' || reg.category === regCategoryFilter;
@@ -1496,6 +1501,7 @@ export default function PortalAdminPage() {
                       <option value="All">All Payment Statuses</option>
                       <option value="Verified">Verified Only</option>
                       <option value="Pending">Pending Only</option>
+                      <option value="Fee Waived">Fee Waived Only</option>
                     </select>
 
                     <button
@@ -1611,6 +1617,7 @@ export default function PortalAdminPage() {
                               {/* Category & Mode */}
                               <td className="py-3.5 px-4 space-y-1">
                                 <div className="font-semibold text-slate-800 truncate max-w-[150px]">{reg.category}</div>
+                                {reg.country && <div className="text-[10px] text-slate-500">{reg.country}</div>}
                                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-sm ${
                                   reg.mode === 'Online'
                                     ? 'bg-purple-50 text-purple-700 border border-purple-200'
@@ -1643,10 +1650,12 @@ export default function PortalAdminPage() {
                                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
                                     reg.paymentStatus === 'Verified'
                                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : reg.paymentStatus === 'Fee Waived'
+                                        ? 'bg-sky-50 text-sky-700 border border-sky-200'
                                       : 'bg-amber-50 text-amber-700 border border-amber-200'
                                   }`}
                                 >
-                                  {reg.paymentStatus === 'Verified' ? (
+                                  {reg.paymentStatus === 'Verified' || reg.paymentStatus === 'Fee Waived' ? (
                                     <Check className="w-3 h-3 text-emerald-600" />
                                   ) : (
                                     <Clock className="w-3 h-3 text-amber-600" />
@@ -1977,7 +1986,11 @@ export default function PortalAdminPage() {
                   {/* Payment Verification Quick Action Bar */}
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
                     <span className="text-xs font-bold text-slate-700 block">Payment Verification Status</span>
-                    <div className="flex gap-3">
+                    {selectedRegistration.paymentStatus === 'Fee Waived' ? (
+                      <p className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs font-semibold text-sky-800">
+                        No payment is due. The 100% fee waiver applies to {selectedRegistration.country || 'this registration'}.
+                      </p>
+                    ) : <div className="flex gap-3">
                       <button
                         onClick={() => updateRegistrationStatus(selectedRegistration.id, 'Verified')}
                         className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
@@ -1999,7 +2012,7 @@ export default function PortalAdminPage() {
                       >
                         <Clock className="w-4 h-4" /> Set Pending
                       </button>
-                    </div>
+                    </div>}
                   </div>
 
                   {/* Comprehensive Info Grid */}
@@ -2025,6 +2038,12 @@ export default function PortalAdminPage() {
                         </span>
                         <div className="font-bold text-slate-900">{selectedRegistration.institution}</div>
                       </div>
+                      {selectedRegistration.country && (
+                        <div className="pt-2.5 border-t border-slate-200 space-y-0.5">
+                          <span className="text-slate-500 font-medium">Country</span>
+                          <div className="font-bold text-slate-900">{selectedRegistration.country}</div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3.5 p-4 rounded-2xl bg-sky-50/40 border border-sky-100">

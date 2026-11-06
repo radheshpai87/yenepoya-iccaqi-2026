@@ -45,6 +45,7 @@ export async function GET() {
           email: r.email,
           phone: r.phone,
           institution: r.institution,
+          country: r.country || '',
           category: r.category,
           currency: r.currency,
           amount: r.amount,
