@@ -109,6 +109,7 @@ export async function GET(request: Request) {
         email: regRecord?.email || subRecord?.email || '',
         phone: regRecord?.phone || subRecord?.phone || '',
         institution: regRecord?.institution || subRecord?.institution || '',
+        country: regRecord?.country || '',
         category: category,
         paperId: regRecord?.paper_id || subRecord?.submission_id || cleanId,
         paperTitle: regRecord?.paper_title || subRecord?.paper_title || '',

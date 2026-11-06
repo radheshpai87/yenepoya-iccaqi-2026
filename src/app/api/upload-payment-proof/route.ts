@@ -65,10 +65,13 @@ export async function POST(request: Request) {
     if (!isSupabaseConfigured()) throw new ApiError(503, 'Payment proof saving is temporarily unavailable. Please try again later.');
     const supabaseAdmin = getSupabaseAdminClient();
     const targetRegistration = registrationId
-      ? await supabaseAdmin.from('registrations').select('id, category').eq('id', registrationId).maybeSingle()
+      ? await supabaseAdmin.from('registrations').select('id, category, payment_status').eq('id', registrationId).maybeSingle()
       : paperId
-        ? await supabaseAdmin.from('registrations').select('id, category').eq('paper_id', paperId).maybeSingle()
+        ? await supabaseAdmin.from('registrations').select('id, category, payment_status').eq('paper_id', paperId).maybeSingle()
         : null;
+    if (targetRegistration?.data?.payment_status === 'Fee Waived') {
+      throw new ApiError(409, 'This registration has a 100% fee waiver. No payment receipt is required.');
+    }
     const sourceCategory = targetRegistration?.data?.category || category;
     const normalizedCategory = sourceCategory.toLowerCase();
     const paymentType = normalizedCategory.includes('participant') || normalizedCategory.includes('attendee') || normalizedCategory.includes('observer')

@@ -23,6 +23,7 @@ import {
   Tag,
   Hotel
 } from 'lucide-react';
+import { isParticipantFeeWaiverCountry } from '@/lib/feeWaiver';
 
 interface DelegateDetails {
   id: string;
@@ -30,6 +31,7 @@ interface DelegateDetails {
   email: string;
   phone: string;
   institution: string;
+  country: string;
   category: string;
   paperId: string;
   paperTitle: string;
@@ -50,6 +52,7 @@ function CompletePaymentContent() {
     email: '',
     phone: '',
     institution: '',
+    country: '',
     category: 'Research Scholars / Academicians',
     paperId: '',
     paperTitle: '',
@@ -67,6 +70,7 @@ function CompletePaymentContent() {
   const [uploadError, setUploadError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isFeeWaived, setIsFeeWaived] = useState(false);
   const [submittedProofUrl, setSubmittedProofUrl] = useState('');
   const [accommodationPreference, setAccommodationPreference] = useState<'Yes' | 'No'>('No');
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
@@ -138,12 +142,16 @@ function CompletePaymentContent() {
             sessionStorage.setItem('iccaqi-payment-registration', JSON.stringify(found));
             const normCat = normalizeCategory(found.category || '');
             const fee = calculateFee(normCat, found.currency);
+            const registrationIsWaived = found.paymentStatus === 'Fee Waived'
+              && normCat === 'Attendees / Observers (Participants)'
+              && isParticipantFeeWaiverCountry(found.country || '');
             setDelegate({
               id: found.id || idFromUrl,
               name: found.name || '',
               email: found.email || '',
               phone: found.phone || '',
               institution: found.institution || '',
+              country: found.country || '',
               category: normCat,
               paperId: found.paperId || '',
               paperTitle: found.paperTitle || '',
@@ -152,6 +160,10 @@ function CompletePaymentContent() {
               amount: found.amount || fee.amount,
               paymentStatus: found.paymentStatus || 'Pending',
             });
+            if (registrationIsWaived) {
+              setIsFeeWaived(true);
+              setIsSubmitted(true);
+            }
             return;
           }
         }
@@ -164,12 +176,16 @@ function CompletePaymentContent() {
         if (cached && (!idFromUrl || cached.id === idFromUrl || cached.paperId === idFromUrl)) {
           const normCat = normalizeCategory(cached.category || '');
           const fee = calculateFee(normCat, cached.currency);
+          const registrationIsWaived = cached.paymentStatus === 'Fee Waived'
+            && normCat === 'Attendees / Observers (Participants)'
+            && isParticipantFeeWaiverCountry(cached.country || '');
           setDelegate({
             id: cached.id,
             name: cached.name || '',
             email: cached.email || '',
             phone: cached.phone || '',
             institution: cached.institution || '',
+            country: cached.country || '',
             category: normCat,
             paperId: cached.paperId || '',
             paperTitle: cached.paperTitle || '',
@@ -178,6 +194,10 @@ function CompletePaymentContent() {
             amount: cached.amount || fee.amount,
             paymentStatus: cached.paymentStatus || 'Pending',
           });
+          if (registrationIsWaived) {
+            setIsFeeWaived(true);
+            setIsSubmitted(true);
+          }
           return;
         }
       }
@@ -299,10 +319,12 @@ function CompletePaymentContent() {
 
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Registration Fee Payment &amp; Proof Verification
+              {isFeeWaived ? 'Participant Registration Confirmation' : 'Registration Fee Payment & Proof Verification'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Verify your auto-filled delegate details, confirm participation category, and upload your payment transaction screenshot.
+              {isFeeWaived
+                ? 'Your country qualifies for the 100% participant registration fee waiver. No payment or receipt upload is required.'
+                : 'Verify your auto-filled delegate details, confirm participation category, and upload your payment transaction screenshot.'}
             </p>
           </div>
         </div>
@@ -316,10 +338,10 @@ function CompletePaymentContent() {
 
             <div className="space-y-1">
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
-                Verification Pending
+                {isFeeWaived ? '100% Fee Waiver Applied' : 'Verification Pending'}
               </span>
               <h2 className="text-2xl font-extrabold text-slate-900">
-                Payment Proof Uploaded Successfully!
+                {isFeeWaived ? 'No Payment Needed — Your Fee Is Waived!' : 'Payment Proof Uploaded Successfully!'}
               </h2>
             </div>
 
@@ -336,11 +358,17 @@ function CompletePaymentContent() {
                 <span className="text-slate-500 font-medium">Participant Category:</span>
                 <span className="font-bold text-slate-800">{delegate.category}</span>
               </div>
+              {isFeeWaived && (
+                <div className="flex justify-between border-b border-slate-200 pb-2">
+                  <span className="text-slate-500 font-medium">Waiver-Eligible Country:</span>
+                  <span className="font-bold text-slate-800">{delegate.country}</span>
+                </div>
+              )}
               <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="text-slate-500 font-medium">Calculated Fee Amount:</span>
+                <span className="text-slate-500 font-medium">{isFeeWaived ? 'Registration Fee:' : 'Calculated Fee Amount:'}</span>
                 <span className="font-extrabold text-emerald-700 text-sm">{delegate.amount} ({delegate.currency})</span>
               </div>
-              {transactionRef && (
+              {!isFeeWaived && transactionRef && (
                 <div className="flex justify-between">
                   <span className="text-slate-500 font-medium">Transaction Ref:</span>
                   <span className="font-mono font-bold text-slate-900">{transactionRef}</span>
@@ -348,7 +376,7 @@ function CompletePaymentContent() {
               )}
             </div>
 
-            {previewUrl && (
+            {!isFeeWaived && previewUrl && (
               <div className="max-w-md mx-auto space-y-2">
                 <span className="text-xs font-bold text-slate-700 block text-left">Uploaded Screenshot Preview:</span>
                 <div className="p-2 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
@@ -362,7 +390,9 @@ function CompletePaymentContent() {
             )}
 
             <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-              Your payment receipt screenshot has been transmitted to the <strong>ICCAQI 2026 Admin Portal</strong>. Once verified by our finance team, an official receipt will be generated.
+              {isFeeWaived
+                ? <>Your registration is recorded with <strong>Fee Waived</strong> status. Continue to the participant WhatsApp group below for conference updates.</>
+                : <>Your payment receipt screenshot has been transmitted to the <strong>ICCAQI 2026 Admin Portal</strong>. Once verified by our finance team, an official receipt will be generated.</>}
             </p>
 
             {/* Official WhatsApp Group Join Card */}

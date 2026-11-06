@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { isParticipantFeeWaiverCountry, OTHER_COUNTRIES_OPTION, PARTICIPANT_FEE_WAIVER_COUNTRIES } from '@/lib/feeWaiver';
 import { requestAttempt, type RequestAttempt } from '@/lib/clientRequestId';
 import { 
   X, 
@@ -39,6 +40,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     email: '',
     phone: '',
     institution: '',
+    country: '',
     paperId: '',
     paperTitle: '',
   });
@@ -54,13 +56,16 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const isEmailInvalid = attemptedSubmit && (!formData.email.trim() || !formData.email.includes('@'));
   const isPhoneInvalid = attemptedSubmit && !formData.phone.trim();
   const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
+  const isParticipant = category === 'Participants only';
+  const hasParticipantFeeWaiver = isParticipant && isParticipantFeeWaiverCountry(formData.country);
 
   const isRegisterComplete = Boolean(
     formData.name.trim() &&
     formData.email.trim() &&
     formData.email.includes('@') &&
     formData.phone.trim() &&
-    formData.institution.trim()
+    formData.institution.trim() &&
+    (!isParticipant || formData.country)
   );
 
   // Sync currency state when modal opens
@@ -86,8 +91,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isParticipant = category === 'Participants only';
-
   const categoryPricing: Record<string, { inr: string; usd: string }> = {
     'Participants only': { inr: '₹300', usd: '$5.00' },
     'Students (UG / PG)': { inr: '₹500', usd: '$10.00' },
@@ -106,7 +109,12 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       return;
     }
 
-    const paymentWindow = isParticipant ? window.open('about:blank', '_blank') : null;
+    if (isParticipant && !formData.country) {
+      setRegistrationError('Please select your country to continue registration.');
+      return;
+    }
+
+    const paymentWindow = isParticipant && !hasParticipantFeeWaiver ? window.open('about:blank', '_blank') : null;
     setIsSubmitting(true);
 
     const amount = delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd;
@@ -148,10 +156,12 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
           email: formData.email,
           phone: formData.phone,
           institution: formData.institution,
+          country: formData.country,
           category,
           currency: delegateType,
-          amount,
+          amount: result.registration.amount || amount,
           mode,
+          paymentStatus: result.registration.payment_status || 'Pending',
           paperId: formData.paperId,
           paperTitle: formData.paperTitle,
         };
@@ -210,11 +220,11 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
-                {isParticipant ? 'Redirecting to Payment' : 'Enrollment Initiated'}
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
+                {hasParticipantFeeWaiver ? '100% Fee Waiver Applied' : isParticipant ? 'Redirecting to Payment' : 'Enrollment Initiated'}
               </span>
               <h3 className="text-2xl font-extrabold text-slate-900">
-                {isParticipant ? 'Participant Registration & Payment' : 'Registration Request Logged'}
+                {hasParticipantFeeWaiver ? 'Participant Registration Confirmed' : isParticipant ? 'Participant Registration & Payment' : 'Registration Request Logged'}
               </h3>
             </div>
 
@@ -226,7 +236,9 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Fee Amount:</span>
                 <span className="font-extrabold text-emerald-700">
-                  {delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd}
+                  {hasParticipantFeeWaiver
+                    ? (delegateType === 'INR' ? '₹0' : '$0')
+                    : (delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -242,6 +254,11 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
             </div>
 
             {isParticipant ? (
+              hasParticipantFeeWaiver ? (
+                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 max-w-md mx-auto">
+                  <strong>{formData.country} is eligible for a 100% registration fee waiver.</strong> No payment or receipt upload is required. Opening your registration confirmation and participant WhatsApp details…
+                </div>
+              ) : (
               <div className="p-4 bg-sky-50 rounded-2xl border border-sky-200 text-xs text-sky-950 max-w-md mx-auto space-y-3">
                 <p>
                   <strong>Payment Page Opened:</strong> We have opened the official Razorpay payment page with the <strong>Amount ({delegateType === 'INR' ? '₹300' : '$5.00'})</strong>, Name, and Email autofilled.
@@ -260,6 +277,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   Direct short link: <a href="https://rzp.io/rzp/6wlQVvT3" target="_blank" rel="noopener noreferrer" className="underline font-mono">rzp.io/rzp/6wlQVvT3</a>
                 </p>
               </div>
+              )
             ) : (
               <div className="p-3 bg-amber-50 rounded-xl text-xs text-amber-900 max-w-md mx-auto">
                 <strong>Next Step for Authors:</strong> As per conference guidelines, official payment gateway link and invoice token are dispatched to <strong>{formData.email}</strong> upon paper acceptance intimation.
@@ -395,6 +413,26 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     <option value="Research scholars / Academicians">Faculty / Scholar Paper Author — {delegateType === 'INR' ? '₹750' : '$15.00'}</option>
                     <option value="Industry Delegates">Industry Delegate Paper Author — {delegateType === 'INR' ? '₹1,500' : '$20.00'}</option>
                   </select>
+                  {isParticipant && (
+                    <div className="mt-3">
+                      <label htmlFor="participant-country" className="block text-xs font-bold text-slate-700 mb-1">
+                        Country *
+                      </label>
+                      <select
+                        id="participant-country"
+                        required
+                        value={formData.country}
+                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                        className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
+                      >
+                        <option value="">Select your country</option>
+                        {PARTICIPANT_FEE_WAIVER_COUNTRIES.map((countryOption) => (
+                          <option key={countryOption} value={countryOption}>{countryOption}</option>
+                        ))}
+                        <option value={OTHER_COUNTRIES_OPTION}>Other country</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -406,9 +444,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                       <span>{isParticipant ? 'Participant Fee:' : 'Author Fee:'}</span>
                     </div>
                     <span className="text-sm font-extrabold text-[#0369a1]">
-                      {delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd} <span className="text-[11px] font-normal text-slate-500">(incl. GST)</span>
+                      {hasParticipantFeeWaiver
+                        ? (delegateType === 'INR' ? '₹0' : '$0')
+                        : (delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd)}
+                      {!hasParticipantFeeWaiver && <span className="text-[11px] font-normal text-slate-500"> (incl. GST)</span>}
                     </span>
                   </div>
+                  {hasParticipantFeeWaiver && (
+                    <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] leading-relaxed text-emerald-900">
+                      100% registration fee waiver for participants from this country. You can skip payment and continue to the next step.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -605,10 +651,14 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   <CreditCard className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <span className="font-bold block text-slate-900">
-                      Razorpay Payment for Participants ({delegateType === 'INR' ? '₹300' : '$5.00'})
+                      {hasParticipantFeeWaiver
+                        ? '100% Registration Fee Waiver'
+                        : `Razorpay Payment for Participants (${delegateType === 'INR' ? '₹300' : '$5.00'})`}
                     </span>
                     <p className="text-slate-600 leading-relaxed text-[11.5px]">
-                      Upon confirming, you will be redirected to the official Yenepoya University Razorpay gateway with the <strong>Amount ({delegateType === 'INR' ? '₹300' : '$5.00'})</strong>, Name, and Phone automatically filled in.
+                      {hasParticipantFeeWaiver
+                        ? <><strong>{formData.country}</strong> is eligible for a 100% fee waiver. No payment or receipt upload is required; you will continue to your registration confirmation and WhatsApp details.</>
+                        : <>Upon confirming, you will be redirected to the official Yenepoya University Razorpay gateway with the <strong>Amount ({delegateType === 'INR' ? '₹300' : '$5.00'})</strong>, Name, and Phone automatically filled in.</>}
                     </p>
                   </div>
                 </div>
@@ -638,8 +688,14 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                         : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
                     }`}
                   >
-                    <CreditCard className="w-4 h-4" />
-                    <span>{isSubmitting ? 'Opening Razorpay Gateway...' : `Proceed to Pay ${delegateType === 'INR' ? '₹300' : '$5.00'} via Razorpay`}</span>
+                    {hasParticipantFeeWaiver ? <CheckCircle2 className="w-4 h-4" /> : <CreditCard className="w-4 h-4" />}
+                    <span>
+                      {isSubmitting
+                        ? (hasParticipantFeeWaiver ? 'Saving registration...' : 'Opening Razorpay Gateway...')
+                        : hasParticipantFeeWaiver
+                          ? 'Continue with 100% Fee Waiver'
+                          : `Proceed to Pay ${delegateType === 'INR' ? '₹300' : '$5.00'} via Razorpay`}
+                    </span>
                   </button>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-2">
