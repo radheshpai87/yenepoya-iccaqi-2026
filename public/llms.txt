@@ -1,7 +1,7 @@
 # ICCAQI 2026: International Conference on Computing, AI, Quantum Intelligence and Future Technologies
 
 > Organized by Yenepoya School of Engineering & Technology, Yenepoya (Deemed to be University), Mangaluru, Karnataka, India.
-> Conference Dates: November 6–7, 2026
+> Conference Dates: November 25–26, 2026
 > Participation Mode: Hybrid (In-Person at Mangaluru Campus & Virtual Online Presentations)
 > Official Website: https://yenepoya.edu.in/iccaqi-2026
 > Secretariat Email: iccaqi2026@yenepoya.edu.in
@@ -20,10 +20,10 @@ ICCAQI 2026 invites original research contributions from academicians, researche
   High-performance computing (HPC), distributed ledger technologies, cloud-native virtualization, green computing, neuromorphic computing, and 6G communication networks.
 
 ## Important Dates (Deadlines)
-- Full Paper Submission: October 10, 2026
-- Acceptance Notification: October 20, 2026
-- Registration Deadline: October 25, 2026
-- Conference Dates: November 6–7, 2026
+- Full Paper Submission: November 15, 2026
+- Acceptance Notification: November 20, 2026
+- Registration Deadline: November 23, 2026
+- Conference Dates: November 25–26, 2026
 
 ## Publication Opportunities
 - **Category I: Conference Proceedings & Double-Blind Peer-Reviewed Journals**

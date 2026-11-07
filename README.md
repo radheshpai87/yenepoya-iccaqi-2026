@@ -5,7 +5,7 @@
 **Hosted by:** Yenepoya School of Engineering & Technology  
 **Institution:** Yenepoya (Deemed to be University), Mangaluru, Karnataka, India  
 **Accreditation:** NAAC Grade 'A+' Accredited  
-**Dates:** November 6–7, 2026  
+**Dates:** November 25–26, 2026  
 **Format:** Hybrid Mode (In-Person / Online)  
 **Official Portal:** https://yenepoya.edu.in/iccaqi-2026  
 
@@ -37,7 +37,7 @@ The conference provides a global platform for researchers, academicians, industr
 | Notification of Acceptance | October 25, 2026 |
 | Camera-Ready Submission | October 30, 2026 |
 | Registration Deadline | November 1, 2026 |
-| Conference Dates | November 6–7, 2026 |
+| Conference Dates | November 25–26, 2026 |
 
 ---
 
