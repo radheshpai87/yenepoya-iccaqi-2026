@@ -120,10 +120,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             type="button"
             onClick={onOpenRegisterModal}
-            className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 text-white font-bold text-[11px] border border-white/25 shrink-0 shadow-2xs transition-all duration-150 cursor-pointer z-20"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-slate-950 font-bold text-[11px] sm:text-xs shadow-xs transition-all duration-150 cursor-pointer shrink-0 z-20 antialiased group"
           >
             <span>Register Now</span>
-            <ArrowRight className="w-3 h-3 text-amber-300" />
+            <ArrowRight className="w-3 h-3 text-slate-950 transition-transform group-hover:translate-x-0.5" />
           </button>
         </div>
 
