@@ -147,6 +147,10 @@ export const Registration: React.FC<RegistrationProps> = ({
 
         {/* Instructions & Next Steps */}
         <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 max-w-2xl mx-auto space-y-3">
+          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs text-center font-medium">
+            📢 <strong>Important Update:</strong> Article Registration Deadline has been preponed to <strong>November 20, 2026</strong>. Participant Registration closes on <strong>November 23, 2026</strong>.
+          </div>
+
           <p className="text-xs text-slate-600 leading-relaxed text-center">
             * <strong>Paper Authors:</strong> Register and pay only upon intimation of acceptance. Paper submission is free at this stage.
             <br />

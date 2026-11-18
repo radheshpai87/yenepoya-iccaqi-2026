@@ -64,7 +64,7 @@ export const Hero: React.FC<HeroProps> = ({
   }, [campusImages.length]);
 
   return (
-    <section id="home" className="relative min-h-[90vh] md:min-h-[92vh] flex items-center justify-center pt-28 pb-20 overflow-hidden bg-slate-900 text-white">
+    <section id="home" className="relative min-h-[90vh] md:min-h-[92vh] flex items-center justify-center pt-36 sm:pt-40 md:pt-44 pb-20 overflow-hidden bg-slate-900 text-white">
       
       {/* Background Campus Carousel - Visible through Subtle Dark Tint */}
       <div className="absolute inset-0 z-0 overflow-hidden">

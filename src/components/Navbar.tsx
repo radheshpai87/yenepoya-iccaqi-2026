@@ -72,15 +72,52 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-slate-200/80 py-2.5 sm:py-3'
-            : 'bg-white/85 backdrop-blur-sm border-b border-slate-200/40 py-3 sm:py-4'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3">
+      <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        {/* Running Announcement Ticker Bar */}
+        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white text-[11px] sm:text-xs py-1.5 px-3 sm:px-4 shadow-xs border-b border-red-700/40 flex items-center gap-2 sm:gap-3 overflow-hidden select-none">
+          {/* Static Alert Badge */}
+          <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full bg-black/25 text-white font-extrabold text-[10px] sm:text-[11px] tracking-wider uppercase shrink-0 z-10 shadow-2xs border border-white/20">
+            <span className="animate-pulse">📢</span>
+            <span>IMPORTANT</span>
+          </div>
+
+          {/* Scrolling Marquee Area */}
+          <div 
+            className="overflow-hidden whitespace-nowrap flex-1 flex items-center cursor-pointer"
+            onClick={(e) => scrollToSection(e as any, '#dates')}
+            title="Click to view updated deadlines"
+          >
+            <div className="animate-marquee flex items-center gap-10 sm:gap-14 font-medium text-white/95">
+              <span className="flex items-center gap-2">
+                <span>The <strong>Paper Registration Deadline</strong> for ICCAQI 2026 has been preponed to <span className="bg-white text-red-700 font-black px-1.5 py-0.5 rounded shadow-2xs">20 November 2026</span>. Participant Registration remains open until <span className="bg-white/20 text-white font-black px-1.5 py-0.5 rounded border border-white/30">23 November 2026</span>. Register within the respective deadlines!</span>
+              </span>
+              <span className="flex items-center gap-2">
+                <span>The <strong>Paper Registration Deadline</strong> for ICCAQI 2026 has been preponed to <span className="bg-white text-red-700 font-black px-1.5 py-0.5 rounded shadow-2xs">20 November 2026</span>. Participant Registration remains open until <span className="bg-white/20 text-white font-black px-1.5 py-0.5 rounded border border-white/30">23 November 2026</span>. Register within the respective deadlines!</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Action Button */}
+          <button
+            type="button"
+            onClick={onOpenRegisterModal}
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white hover:bg-amber-100 text-red-700 font-extrabold text-[10.5px] shrink-0 shadow-2xs transition-colors cursor-pointer"
+          >
+            <span>Register</span>
+            <span>→</span>
+          </button>
+        </div>
+
+        {/* Main Navbar */}
+        <div
+          className={`transition-all duration-300 ${
+            isScrolled
+              ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-slate-200/80 py-2 sm:py-2.5'
+              : 'bg-white/90 backdrop-blur-sm border-b border-slate-200/40 py-2.5 sm:py-3.5'
+          }`}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between gap-3">
             
             {/* Logo */}
             <a
@@ -154,6 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
           </div>
+        </div>
         </div>
       </header>
 

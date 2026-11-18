@@ -33,10 +33,10 @@ The conference provides a global platform for researchers, academicians, industr
 
 | Milestone | Date |
 | :--- | :--- |
-| Paper Submission Deadline | October 20, 2026 |
-| Notification of Acceptance | October 25, 2026 |
-| Camera-Ready Submission | October 30, 2026 |
-| Registration Deadline | November 1, 2026 |
+| Paper Submission Deadline | November 15, 2026 |
+| Notification of Acceptance | November 18, 2026 (Preponed) |
+| Article Registration Deadline | November 20, 2026 (Preponed) |
+| Participant Registration Deadline | November 23, 2026 |
 | Conference Dates | November 25–26, 2026 |
 
 ---

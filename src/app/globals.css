@@ -69,6 +69,26 @@ html.lenis, html.lenis body {
   animation: pulseGlow 4s ease-in-out infinite;
 }
 
+/* Smooth running text marquee */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* Custom scrollbar */
 * {
   scrollbar-width: thin;
