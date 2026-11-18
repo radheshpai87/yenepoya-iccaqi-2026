@@ -76,9 +76,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Running Announcement Ticker Bar */}
         <div className="bg-gradient-to-r from-[#1c0409] via-[#4c0519] to-[#1c0409] text-white text-[11px] sm:text-xs h-9 sm:h-10 px-3 sm:px-5 shadow-xs border-b border-rose-900/60 flex items-center gap-2 sm:gap-4 overflow-hidden select-none">
           {/* Static Alert Badge */}
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-950/90 border border-rose-400/40 text-rose-200 font-extrabold text-[10px] sm:text-[11px] tracking-wider uppercase shrink-0 z-20 shadow-xs">
+          <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-rose-900/70 border border-rose-400/30 text-rose-50 shadow-xs shrink-0 z-20 antialiased">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
-            <span>Important Notice</span>
+            <span className="text-[11px] sm:text-xs font-semibold text-rose-50 tracking-normal">
+              Important Notice
+            </span>
           </div>
 
           {/* Marquee Wrapper with soft fade gradients on both ends */}
