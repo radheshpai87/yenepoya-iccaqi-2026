@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { YenepoyaLogo } from './YenepoyaLogo';
-import { Menu, X, ArrowUpRight } from 'lucide-react';
+import { Menu, X, ArrowUpRight, ArrowRight } from 'lucide-react';
 
 interface NavbarProps {
   onOpenSubmitModal: () => void;
@@ -74,37 +74,54 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
         {/* Running Announcement Ticker Bar */}
-        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 text-white text-[11px] sm:text-xs py-1.5 px-3 sm:px-4 shadow-xs border-b border-red-700/40 flex items-center gap-2 sm:gap-3 overflow-hidden select-none">
+        <div className="bg-gradient-to-r from-[#1c0409] via-[#4c0519] to-[#1c0409] text-white text-[11px] sm:text-xs h-9 sm:h-10 px-3 sm:px-5 shadow-xs border-b border-rose-900/60 flex items-center gap-2 sm:gap-4 overflow-hidden select-none">
           {/* Static Alert Badge */}
-          <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full bg-black/25 text-white font-extrabold text-[10px] sm:text-[11px] tracking-wider uppercase shrink-0 z-10 shadow-2xs border border-white/20">
-            <span className="animate-pulse">📢</span>
-            <span>IMPORTANT</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-950/90 border border-rose-400/40 text-rose-200 font-extrabold text-[10px] sm:text-[11px] tracking-wider uppercase shrink-0 z-20 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+            <span>Important Notice</span>
           </div>
 
-          {/* Scrolling Marquee Area */}
-          <div 
-            className="overflow-hidden whitespace-nowrap flex-1 flex items-center cursor-pointer"
-            onClick={(e) => scrollToSection(e as any, '#dates')}
-            title="Click to view updated deadlines"
-          >
-            <div className="animate-marquee flex items-center gap-10 sm:gap-14 font-medium text-white/95">
-              <span className="flex items-center gap-2">
-                <span>The <strong>Paper Registration Deadline</strong> for ICCAQI 2026 has been preponed to <span className="bg-white text-red-700 font-black px-1.5 py-0.5 rounded shadow-2xs">20 November 2026</span>. Participant Registration remains open until <span className="bg-white/20 text-white font-black px-1.5 py-0.5 rounded border border-white/30">23 November 2026</span>. Register within the respective deadlines!</span>
-              </span>
-              <span className="flex items-center gap-2">
-                <span>The <strong>Paper Registration Deadline</strong> for ICCAQI 2026 has been preponed to <span className="bg-white text-red-700 font-black px-1.5 py-0.5 rounded shadow-2xs">20 November 2026</span>. Participant Registration remains open until <span className="bg-white/20 text-white font-black px-1.5 py-0.5 rounded border border-white/30">23 November 2026</span>. Register within the respective deadlines!</span>
-              </span>
+          {/* Marquee Wrapper with soft fade gradients on both ends */}
+          <div className="relative flex-1 overflow-hidden h-full flex items-center">
+            {/* Left soft fade gradient */}
+            <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-r from-[#24050c] to-transparent z-10 pointer-events-none" />
+
+            {/* Scrolling Marquee */}
+            <div 
+              className="overflow-hidden whitespace-nowrap flex-1 flex items-center cursor-pointer py-1"
+              onClick={(e) => scrollToSection(e as any, '#dates')}
+              title="Click to view updated conference schedule"
+            >
+              <div className="animate-marquee flex items-center gap-14 sm:gap-20 font-medium text-rose-100/90 tracking-wide">
+                <span className="flex items-center gap-2">
+                  <span>Paper Registration Deadline preponed to <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-400/20 border border-amber-300/40 text-amber-200 font-bold text-[11px] sm:text-xs">20 November 2026</span></span>
+                  <span className="text-rose-400/60">•</span>
+                  <span>Participant Registration remains open until <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-400/20 border border-emerald-300/40 text-emerald-200 font-bold text-[11px] sm:text-xs">23 November 2026</span></span>
+                  <span className="text-rose-400/60">•</span>
+                  <span className="text-rose-200/80">Register within the respective deadlines!</span>
+                </span>
+                <span className="flex items-center gap-2">
+                  <span>Paper Registration Deadline preponed to <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-400/20 border border-amber-300/40 text-amber-200 font-bold text-[11px] sm:text-xs">20 November 2026</span></span>
+                  <span className="text-rose-400/60">•</span>
+                  <span>Participant Registration remains open until <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-400/20 border border-emerald-300/40 text-emerald-200 font-bold text-[11px] sm:text-xs">23 November 2026</span></span>
+                  <span className="text-rose-400/60">•</span>
+                  <span className="text-rose-200/80">Register within the respective deadlines!</span>
+                </span>
+              </div>
             </div>
+
+            {/* Right soft fade gradient */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-[#24050c] to-transparent z-10 pointer-events-none" />
           </div>
 
           {/* Quick Action Button */}
           <button
             type="button"
             onClick={onOpenRegisterModal}
-            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white hover:bg-amber-100 text-red-700 font-extrabold text-[10.5px] shrink-0 shadow-2xs transition-colors cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/25 text-white font-bold text-[11px] border border-white/25 shrink-0 shadow-2xs transition-all duration-150 cursor-pointer z-20"
           >
-            <span>Register</span>
-            <span>→</span>
+            <span>Register Now</span>
+            <ArrowRight className="w-3 h-3 text-amber-300" />
           </button>
         </div>
 
