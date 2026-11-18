@@ -56,8 +56,10 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const isEmailInvalid = attemptedSubmit && (!formData.email.trim() || !formData.email.includes('@'));
   const isPhoneInvalid = attemptedSubmit && !formData.phone.trim();
   const isInstitutionInvalid = attemptedSubmit && !formData.institution.trim();
+  const isCountryInvalid = attemptedSubmit && !formData.country;
   const isParticipant = category === 'Participants only';
-  const hasParticipantFeeWaiver = isParticipant && isParticipantFeeWaiverCountry(formData.country);
+  const hasFeeWaiver = isParticipantFeeWaiverCountry(formData.country);
+  const hasParticipantFeeWaiver = hasFeeWaiver;
 
   const isRegisterComplete = Boolean(
     formData.name.trim() &&
@@ -65,7 +67,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     formData.email.includes('@') &&
     formData.phone.trim() &&
     formData.institution.trim() &&
-    (!isParticipant || formData.country)
+    formData.country
   );
 
   // Sync currency state when modal opens
@@ -109,15 +111,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       return;
     }
 
-    if (isParticipant && !formData.country) {
+    if (!formData.country) {
       setRegistrationError('Please select your country to continue registration.');
       return;
     }
 
-    const paymentWindow = isParticipant && !hasParticipantFeeWaiver ? window.open('about:blank', '_blank') : null;
+    const paymentWindow = isParticipant && !hasFeeWaiver ? window.open('about:blank', '_blank') : null;
     setIsSubmitting(true);
 
-    const amount = delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd;
+    const amount = hasFeeWaiver
+      ? (delegateType === 'USD' ? '$0' : '₹0')
+      : (delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd);
     
     // Construct Razorpay URL with prefilled Amount and user details
     const rzpBase = 'https://pages.razorpay.com/pl_ThkevehUyi20yw/view';
@@ -136,7 +140,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
       const payload = {
         ...formData, category, currency: delegateType, amount, mode,
         notes,
-        paymentStatus: isParticipant ? 'Redirected to Razorpay' : 'Pending Acceptance',
+        paymentStatus: hasFeeWaiver ? 'Fee Waived' : (isParticipant ? 'Redirected to Razorpay' : 'Pending Acceptance'),
       };
       attempt.current = requestAttempt(attempt.current, JSON.stringify(payload));
       const response = await fetch('/api/register', {
@@ -149,7 +153,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
         throw new Error(result.error || 'Registration save could not be confirmed. Please retry.');
       }
       setRegistered(true);
-      if (isParticipant) {
+      if (isParticipant && !hasFeeWaiver) {
         const registeredDelegate = {
           id: result.registration.id,
           name: formData.name,
@@ -220,11 +224,11 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
             </div>
 
             <div className="space-y-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
-                {hasParticipantFeeWaiver ? '100% Fee Waiver Applied' : isParticipant ? 'Redirecting to Payment' : 'Enrollment Initiated'}
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 font-mono">
+                {hasFeeWaiver ? '100% Fee Waiver Applied' : isParticipant ? 'Redirecting to Payment' : 'Enrollment Initiated'}
               </span>
               <h3 className="text-2xl font-extrabold text-slate-900">
-                {hasParticipantFeeWaiver ? 'Participant Registration Confirmed' : isParticipant ? 'Participant Registration & Payment' : 'Registration Request Logged'}
+                {hasFeeWaiver ? 'Registration Confirmed (Fee Waived)' : isParticipant ? 'Participant Registration & Payment' : 'Registration Request Logged'}
               </h3>
             </div>
 
@@ -234,11 +238,16 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 <span className="font-bold text-slate-900">{category}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Country:</span>
+                <span className="font-bold text-emerald-800">{formData.country}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Fee Amount:</span>
                 <span className="font-extrabold text-emerald-700">
-                  {hasParticipantFeeWaiver
+                  {hasFeeWaiver
                     ? (delegateType === 'INR' ? '₹0' : '$0')
                     : (delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd)}
+                  {hasFeeWaiver && <span className="text-[11px] font-semibold text-emerald-600 ml-1.5">(100% Waived)</span>}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -253,12 +262,17 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               </div>
             </div>
 
-            {isParticipant ? (
-              hasParticipantFeeWaiver ? (
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 max-w-md mx-auto">
-                  <strong>{formData.country} is eligible for a 100% registration fee waiver.</strong> No payment or receipt upload is required. Opening your registration confirmation and participant WhatsApp details…
+            {hasFeeWaiver ? (
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 max-w-md mx-auto space-y-1.5 text-left">
+                <div className="flex items-center gap-1.5 font-bold text-emerald-900 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>100% Registration Fee Waiver Applied</span>
                 </div>
-              ) : (
+                <p className="text-slate-700 leading-relaxed text-[11.5px]">
+                  Delegates from <strong>{formData.country}</strong> are granted a 100% registration fee waiver for ICCAQI 2026. No payment or receipt upload is required. Please join the official WhatsApp group below to stay updated with conference announcements.
+                </p>
+              </div>
+            ) : isParticipant ? (
               <div className="p-4 bg-sky-50 rounded-2xl border border-sky-200 text-xs text-sky-950 max-w-md mx-auto space-y-3">
                 <p>
                   <strong>Payment Page Opened:</strong> We have opened the official Razorpay payment page with the <strong>Amount ({delegateType === 'INR' ? '₹300' : '$5.00'})</strong>, Name, and Email autofilled.
@@ -277,7 +291,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                   Direct short link: <a href="https://rzp.io/rzp/6wlQVvT3" target="_blank" rel="noopener noreferrer" className="underline font-mono">rzp.io/rzp/6wlQVvT3</a>
                 </p>
               </div>
-              )
             ) : (
               <div className="p-3 bg-amber-50 rounded-xl text-xs text-amber-900 max-w-md mx-auto">
                 <strong>Next Step for Authors:</strong> As per conference guidelines, official payment gateway link and invoice token are dispatched to <strong>{formData.email}</strong> upon paper acceptance intimation.
@@ -285,30 +298,41 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
             )}
 
             {/* Official WhatsApp Group Join Card */}
-            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 max-w-md mx-auto space-y-2.5 text-center shadow-xs">
-              <div className="flex items-center justify-center gap-2 text-emerald-900 font-bold text-sm">
-                <svg className="w-5 h-5 fill-[#25D366] shrink-0" viewBox="0 0 24 24">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                </svg>
-                <span>Join Official Conference WhatsApp Group</span>
-              </div>
-              <p className="text-slate-600 text-[11.5px] leading-relaxed">
-                Connect with delegates, receive technical session updates, track presentation schedules, and get live conference announcements.
-              </p>
-              <div className="pt-1">
-                <a
-                  href="https://chat.whatsapp.com/E4Drk0R05RFBWAts7pYPkq?s=cl&p=a&mlu=4&ilr=4"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-md transition-all active:scale-[0.99] cursor-pointer"
-                >
-                  <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                  </svg>
-                  <span>Join Official WhatsApp Group</span>
-                </a>
-              </div>
-            </div>
+            {(() => {
+              const isAuthorCategory = !isParticipant;
+              const waLink = isAuthorCategory
+                ? 'https://chat.whatsapp.com/D7F9qGh0kzC9EyR9Of8bFU?s=cl&p=a&mlu=4&ilr=4'
+                : 'https://chat.whatsapp.com/E4Drk0R05RFBWAts7pYPkq?s=cl&p=a&mlu=4&ilr=4';
+              const waTitle = isAuthorCategory
+                ? 'Join Official Paper Authors WhatsApp Group'
+                : 'Join Official Conference WhatsApp Group';
+              return (
+                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-950 max-w-md mx-auto space-y-2.5 text-center shadow-xs">
+                  <div className="flex items-center justify-center gap-2 text-emerald-900 font-bold text-sm">
+                    <svg className="w-5 h-5 fill-[#25D366] shrink-0" viewBox="0 0 24 24">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                    <span>{waTitle}</span>
+                  </div>
+                  <p className="text-slate-600 text-[11.5px] leading-relaxed">
+                    Connect with delegates, receive technical session updates, track presentation schedules, and get live conference announcements.
+                  </p>
+                  <div className="pt-1">
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-md transition-all active:scale-[0.99] cursor-pointer"
+                    >
+                      <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                      </svg>
+                      <span>{waTitle}</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Accommodation for Offline Participants Card */}
             <div className="p-4 bg-sky-50 rounded-2xl border border-sky-200 text-xs text-sky-950 max-w-md mx-auto space-y-2.5 text-center shadow-xs">
@@ -413,49 +437,57 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     <option value="Research scholars / Academicians">Faculty / Scholar Paper Author — {delegateType === 'INR' ? '₹750' : '$15.00'}</option>
                     <option value="Industry Delegates">Industry Delegate Paper Author — {delegateType === 'INR' ? '₹1,500' : '$20.00'}</option>
                   </select>
-                  {isParticipant && (
-                    <div className="mt-3">
-                      <label htmlFor="participant-country" className="block text-xs font-bold text-slate-700 mb-1">
-                        Country *
-                      </label>
-                      <select
-                        id="participant-country"
-                        required
-                        value={formData.country}
-                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                        className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
-                      >
-                        <option value="">Select your country</option>
-                        {PARTICIPANT_FEE_WAIVER_COUNTRIES.map((countryOption) => (
-                          <option key={countryOption} value={countryOption}>{countryOption}</option>
-                        ))}
-                        <option value={OTHER_COUNTRIES_OPTION}>Other country</option>
-                      </select>
-                    </div>
-                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Registration Fee
+                  <label htmlFor="participant-country" className="block text-xs font-bold text-slate-700 mb-1">
+                    Country *
                   </label>
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 min-h-[42px]">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold">
-                      <span>{isParticipant ? 'Participant Fee:' : 'Author Fee:'}</span>
-                    </div>
-                    <span className="text-sm font-extrabold text-[#0369a1]">
-                      {hasParticipantFeeWaiver
-                        ? (delegateType === 'INR' ? '₹0' : '$0')
-                        : (delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd)}
-                      {!hasParticipantFeeWaiver && <span className="text-[11px] font-normal text-slate-500"> (incl. GST)</span>}
-                    </span>
-                  </div>
-                  {hasParticipantFeeWaiver && (
-                    <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] leading-relaxed text-emerald-900">
-                      100% registration fee waiver for participants from this country. You can skip payment and continue to the next step.
+                  <select
+                    id="participant-country"
+                    required
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className={`w-full px-3.5 py-2.5 sm:py-2 rounded-xl border text-base sm:text-xs focus:outline-hidden bg-white transition-all ${
+                      isCountryInvalid
+                        ? 'border-rose-500 bg-rose-50/25 text-rose-950 ring-2 ring-rose-200'
+                        : 'border-slate-300 text-slate-900 focus:border-emerald-500'
+                    }`}
+                  >
+                    <option value="">Select your country</option>
+                    {PARTICIPANT_FEE_WAIVER_COUNTRIES.map((countryOption) => (
+                      <option key={countryOption} value={countryOption}>{countryOption} (100% Fee Waived)</option>
+                    ))}
+                    <option value={OTHER_COUNTRIES_OPTION}>Other country</option>
+                  </select>
+                  {isCountryInvalid && (
+                    <p className="text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" /> Country is required
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Registration Fee
+                </label>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 min-h-[42px]">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold">
+                    <span>{isParticipant ? 'Participant Fee:' : 'Author Fee:'}</span>
+                  </div>
+                  <span className="text-sm font-extrabold text-[#0369a1]">
+                    {hasFeeWaiver
+                      ? (delegateType === 'INR' ? '₹0' : '$0')
+                      : (delegateType === 'INR' ? categoryPricing[category]?.inr : categoryPricing[category]?.usd)}
+                    {!hasFeeWaiver && <span className="text-[11px] font-normal text-slate-500"> (incl. GST)</span>}
+                  </span>
+                </div>
+                {hasFeeWaiver && (
+                  <p className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] leading-relaxed text-emerald-900">
+                    🎉 100% registration fee waiver applied for delegates from <strong>{formData.country}</strong>. You do not need to pay or upload payment receipts.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -645,20 +677,28 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 </div>
               )}
 
-              {/* Informational Callout based on Category */}
-              {isParticipant ? (
+              {/* Informational Callout based on Category & Waiver */}
+              {hasFeeWaiver ? (
+                <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200/90 text-xs text-emerald-950 flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <span className="font-bold block text-emerald-950">
+                      100% Registration Fee Waiver Applied
+                    </span>
+                    <p className="text-emerald-900/90 leading-relaxed text-[11.5px]">
+                      Delegates from <strong>{formData.country}</strong> receive a 100% registration fee waiver. No payment or receipt upload is required. Confirm below to register directly with ₹0 / $0 fee.
+                    </p>
+                  </div>
+                </div>
+              ) : isParticipant ? (
                 <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200/90 text-xs text-emerald-950 flex items-start gap-2.5">
                   <CreditCard className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <span className="font-bold block text-slate-900">
-                      {hasParticipantFeeWaiver
-                        ? '100% Registration Fee Waiver'
-                        : `Razorpay Payment for Participants (${delegateType === 'INR' ? '₹300' : '$5.00'})`}
+                      Razorpay Payment for Participants ({delegateType === 'INR' ? '₹300' : '$5.00'})
                     </span>
                     <p className="text-slate-600 leading-relaxed text-[11.5px]">
-                      {hasParticipantFeeWaiver
-                        ? <><strong>{formData.country}</strong> is eligible for a 100% fee waiver. No payment or receipt upload is required; you will continue to your registration confirmation and WhatsApp details.</>
-                        : <>Upon confirming, you will be redirected to the official Yenepoya University Razorpay gateway with the <strong>Amount ({delegateType === 'INR' ? '₹300' : '$5.00'})</strong>, Name, and Phone automatically filled in.</>}
+                      Upon confirming, you will be redirected to the official Yenepoya University Razorpay gateway with the <strong>Amount ({delegateType === 'INR' ? '₹300' : '$5.00'})</strong>, Name, and Phone automatically filled in.
                     </p>
                   </div>
                 </div>
@@ -678,7 +718,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
               {/* Submit Button */}
               <div className="pt-2">
-                {isParticipant ? (
+                {hasFeeWaiver ? (
                   <button
                     type="submit"
                     disabled={!isRegisterComplete || isSubmitting}
@@ -688,13 +728,26 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                         : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
                     }`}
                   >
-                    {hasParticipantFeeWaiver ? <CheckCircle2 className="w-4 h-4" /> : <CreditCard className="w-4 h-4" />}
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>
+                      {isSubmitting ? 'Confirming registration...' : 'Confirm Registration (100% Fee Waived)'}
+                    </span>
+                  </button>
+                ) : isParticipant ? (
+                  <button
+                    type="submit"
+                    disabled={!isRegisterComplete || isSubmitting}
+                    className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold transition-all ${
+                      isRegisterComplete && !isSubmitting
+                        ? 'bg-[#7cb305] hover:bg-[#689803] text-white shadow-md cursor-pointer active:scale-98'
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4" />
                     <span>
                       {isSubmitting
-                        ? (hasParticipantFeeWaiver ? 'Saving registration...' : 'Opening Razorpay Gateway...')
-                        : hasParticipantFeeWaiver
-                          ? 'Continue with 100% Fee Waiver'
-                          : `Proceed to Pay ${delegateType === 'INR' ? '₹300' : '$5.00'} via Razorpay`}
+                        ? 'Opening Razorpay Gateway...'
+                        : `Proceed to Pay ${delegateType === 'INR' ? '₹300' : '$5.00'} via Razorpay`}
                     </span>
                   </button>
                 ) : (
@@ -726,7 +779,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 )}
                 {!isRegisterComplete && (
                   <p className="text-[11px] text-slate-400 text-center mt-2 font-medium">
-                    Fill in all required delegate details to activate {isParticipant ? 'payment' : 'registration'}.
+                    Fill in all required delegate details to activate registration.
                   </p>
                 )}
               </div>

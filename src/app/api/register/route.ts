@@ -47,14 +47,14 @@ export async function POST(request: Request) {
     }
 
     const isParticipant = isParticipantCategory(category);
-    if (isParticipant && !country) {
+    if (!country) {
       throw new ApiError(400, 'Please select your country to continue registration.');
     }
-    if (isParticipant && country && country !== OTHER_COUNTRIES_OPTION && !isParticipantFeeWaiverCountry(country)) {
+    if (country && country !== OTHER_COUNTRIES_OPTION && !isParticipantFeeWaiverCountry(country)) {
       throw new ApiError(400, 'Please select a valid country from the list.');
     }
 
-    const feeWaived = isParticipant && isParticipantFeeWaiverCountry(country);
+    const feeWaived = Boolean(country && isParticipantFeeWaiverCountry(country));
     const normalizedCurrency = currency.toUpperCase() === 'USD' ? 'USD' : 'INR';
 
     const regRecord = {
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       institution,
       category,
       currency: normalizedCurrency,
-      amount: feeWaived ? (normalizedCurrency === 'USD' ? '$0' : '₹0') : amount || '₹500',
+      amount: feeWaived ? (normalizedCurrency === 'USD' ? '$0' : '₹0') : amount || (isParticipant ? '₹300' : '₹500'),
       country: country || null,
       mode: mode || 'In-Person',
       paper_id: paperId || '',
