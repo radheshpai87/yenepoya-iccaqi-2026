@@ -145,17 +145,15 @@ const ACCEPTANCE_EMAIL_TEMPLATE = `<p>Dear Author,</p>
   <li>Kindly ensure that the correct registration category is selected while completing the payment.</li>
 </ul>
 
-<p>Please complete the registration process at your earliest convenience. Upon successful registration, you will receive a confirmation email.</p>
+<p style="color: #15803d; font-weight: bold; font-size: 15px;">Please complete the registration process before 20th November 2026</p>
 
-<h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Presentation and Publication</h3>
+<h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;"> Paper Presentation </h3>
 
-<p>Following successful registration, authors are required to present their accepted papers at ICCAQI 2026 through their preferred presentation mode (Online or Offline), as selected during registration. The detailed presentation schedule will be communicated to the authors through the official WhatsApp group, &ldquo;ICCAQI&apos;26 AUTHORS.&rdquo; The WhatsApp group joining link will be provided during the registration process. Authors are requested to join the group to receive important updates and presentation-related announcements.</p>
-
-<p>The manuscripts and corresponding author details will subsequently be forwarded to the Conference Proceedings Editorial Committee and the respective publication channels for further processing, once the registration has been successfully completed and confirmed.</p>
+<p>Following successful registration, authors are required to present their accepted papers at ICCAQI 2026 through their preferred presentation mode (Online or Offline), as selected during paper submission. The detailed presentation schedule will be communicated to the authors through the official WhatsApp group, &ldquo;ICCAQI&apos;26 AUTHORS.&rdquo; The WhatsApp group joining link will be provided during the registration process. Authors are requested to join the group to receive important updates and presentation-related announcements.</p>
 
 <h3 style="color: #0f172a; font-size: 15px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">Accommodation for Offline Participants</h3>
 
-<p>Participants opting for offline presentation and requesting accommodation through the registration form will receive a separate accommodation confirmation email with the relevant details.</p>
+<p>Participants opting for offline presentations and requesting accommodation via email will receive a separate accommodation confirmation email containing the relevant details.</p>
 
 <p>We look forward to your participation and valuable research contribution to ICCAQI 2026.</p>
 
