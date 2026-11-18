@@ -108,7 +108,7 @@ interface PaymentProof {
   createdAt: string;
 }
 
-const ACCEPTANCE_EMAIL_TEMPLATE = `<p>Dear Author,</p>
+const ACCEPTANCE_EMAIL_TEMPLATE = `<p>Dear {{name}},</p>
 
 <p>Greetings from the ICCAQI 2026 Organising Committee!</p>
 
@@ -561,7 +561,17 @@ export default function PortalAdminPage() {
     });
     setEmailTargetType('accepted_submissions');
     setEmailSubject(`ICCAQI 2026 — Official Paper Acceptance Notification [Paper ID: ${sub.submissionId}]`);
-    setEmailBody(ACCEPTANCE_EMAIL_TEMPLATE);
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.iccaqi.in';
+    const paymentUrl = `${baseUrl}/complete-payment?id=${encodeURIComponent(sub.submissionId)}`;
+    const personalizedBody = ACCEPTANCE_EMAIL_TEMPLATE
+      .replace(/{{name}}/g, sub.authorName || 'Author')
+      .replace(/{{author_name}}/g, sub.authorName || 'Author')
+      .replace(/Dear Author,/g, `Dear ${sub.authorName || 'Author'},`)
+      .replace(/{{paper_id}}/g, sub.submissionId)
+      .replace(/{{paper_title}}/g, sub.paperTitle)
+      .replace(/{{payment_url}}/g, paymentUrl);
+
+    setEmailBody(personalizedBody);
     setEmailError('');
     setEmailSendReport(null);
     setIsEmailModalOpen(true);

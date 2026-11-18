@@ -60,6 +60,8 @@ export function renderEmailText(
     .replace(/&rarr;/g, '→')
     .replace(/&bull;/g, '•')
     .replace(/{{name}}/g, name)
+    .replace(/{{author_name}}/g, name)
+    .replace(/{{author}}/g, name)
     .replace(/\[Author Name\]/g, name)
     .replace(/Dear Author,/g, `Dear ${name},`)
     .replace(/{{paper_id}}/g, paperId || 'N/A')
@@ -108,6 +110,8 @@ export function renderEmailHtml(
 
   let processedBody = messageBody
     .replace(/{{name}}/g, name)
+    .replace(/{{author_name}}/g, name)
+    .replace(/{{author}}/g, name)
     .replace(/\[Author Name\]/g, name)
     .replace(/Dear Author,/g, `Dear ${name},`)
     .replace(/{{paper_id}}/g, paperId || 'N/A')
