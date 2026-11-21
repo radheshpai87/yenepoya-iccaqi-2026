@@ -387,10 +387,10 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 </span>
               </div>
               <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">
-                Delegate Registration Portal
+                Participant Registration Portal
               </h3>
               <p className="text-xs text-slate-500">
-                Article Registration: <strong className="text-red-600">November 20, 2026</strong> • Participant Registration: <strong>November 23, 2026</strong> • Hybrid Mode
+                Participant Registration: <strong className="text-emerald-700">Open until November 23, 2026</strong> • Hybrid Mode
               </p>
             </div>
 
@@ -433,9 +433,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                     className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl border border-slate-300 text-base sm:text-xs focus:border-emerald-500 focus:outline-hidden bg-white"
                   >
                     <option value="Participants only">Participant Only (Attendee / Listener) — {delegateType === 'INR' ? '₹300' : '$5.00'}</option>
-                    <option value="Students (UG / PG)">Student Paper Author (UG / PG) — {delegateType === 'INR' ? '₹500' : '$10.00'}</option>
-                    <option value="Research scholars / Academicians">Faculty / Scholar Paper Author — {delegateType === 'INR' ? '₹750' : '$15.00'}</option>
-                    <option value="Industry Delegates">Industry Delegate Paper Author — {delegateType === 'INR' ? '₹1,500' : '$20.00'}</option>
                   </select>
                 </div>
 
